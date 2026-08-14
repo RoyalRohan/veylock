@@ -1,130 +1,99 @@
 # Veylock
 
-<p align="center">
-  <strong>Your secrets. Your device. Your control.</strong><br>
-  A privacy-first, local-only password manager for Windows and Linux.
-</p>
+Veylock is a offline-first, local-only password manager built for Windows and Linux. It is designed to keep your credentials completely under your control with zero cloud synchronization, zero trackers, and zero external network requests. 
+
+Built on top of **Tauri 2**, **Rust**, **React**, and **SQLite**, Veylock provides a native desktop application container with high-performance cryptographic operations and a minimalist macOS-inspired dark user interface.
 
 ---
 
-## Overview
+## Core Principles
 
-**Veylock** is a production-quality, open-source, cross-platform desktop password manager built around a fundamental principle:
-
-> **Your credentials belong to you. They should remain under your control.**
-
-Veylock is a native desktop application for **Linux and Windows** powered by **Tauri 2**, **Rust**, **SQLite**, and **React**. It operates 100% offline, requires no account, requires no remote server, and collects zero telemetry or credentials.
-
----
-
-## Core Product Philosophy
-
-* **Local-First**: Your encrypted vault lives exclusively on your local device or your designated storage.
-* **Offline-First**: Fully functional without an active Internet connection.
-* **No Mandatory Account**: Zero sign-ups, emails, usernames, subscriptions, or central accounts.
-* **No Telemetry / No Cloud**: Zero transmission of master passwords, credentials, logs, or analytics.
-* **Open Source & Auditable**: Built with standard, highly vetted cryptographic libraries (`argon2`, `aes-gcm`, `zeroize`).
+*   **Local-Only**: Your database lives exclusively on your local device. It is never uploaded to a cloud server or synced outside your machine.
+*   **Zero Knowledge**: Your master password is never stored on disk or in memory. You are the only person who can decrypt your vault.
+*   **Zero Telemetry**: No tracking, no user profiling, and no telemetry data collection of any kind.
+*   **Auditable Cryptography**: Built with heavily-vetted standard cryptographic libraries (`argon2` for key derivation, `aes-gcm` for authenticated encryption, and `zeroize` to clean sensitive memory buffers).
 
 ---
 
-## Security Architecture & Threat Model
+## Security Design
 
-Veylock enforces envelope encryption and zero-trust memory management:
+Veylock uses a dual-key architecture to secure your credentials:
 
-```text
-Master Password (User Input)
-       │
-       ▼
-   Argon2id KDF (m=64MB, t=3, p=4, 16-byte random salt)
-       │
-       ▼
-Key Encryption Key (KEK, 256-bit)
-       │
-       ▼
-Decrypt Wrapped Vault Encryption Key (VEK, 256-bit CSPRNG)
-       │
-       ▼
-AES-256-GCM (96-bit random nonce per record)
-       │
-       ▼
-Encrypted Payload (Saved in SQLite / `.vlock` portable archive)
+```
+[Master Password] -> Argon2id KDF -> [Key Encryption Key (KEK)]
+                                            │
+                                            ▼
+[Vault Encryption Key (VEK)] <─── Decrypts Wrapped Key
+            │
+            ▼
+   AES-256-GCM Encryption
+(Unique 96-bit Nonce per entry)
+            │
+            ▼
+[SQLite Encrypted Payload]
 ```
 
-### Protection Summary
-- **Data at Rest**: SQLite stores only AEAD encrypted payloads with unique nonces. Plaintext credentials are never indexed or saved to disk.
-- **Master Password Handling**: The master password is never stored anywhere on disk, database, logs, or memory after key derivation.
-- **Lock & Memory Zeroization**: When locked, Rust zeroizes sensitive key structures in RAM using the `zeroize` crate.
-- **Clipboard Guard**: Copied secrets overwrite the clipboard automatically after a configurable timer (default 30s).
-
-*(For a comprehensive analysis of environmental threats like host OS malware and cold boot attacks, see [`THREAT_MODEL.md`](./THREAT_MODEL.md).)*
+*   **Key Derivation**: Uses Argon2id (64MB memory, 3 iterations, 4 parallelism threads) to protect against GPU-based brute-force attacks.
+*   **Envelope Encryption**: All sensitive fields (passwords, usernames, URLs, notes, custom fields) are serialized together and encrypted as a single byte array before being written to SQLite.
+*   **Memory Protection**: The active Vault Encryption Key (VEK) is wrapped in memory and automatically zeroed out of RAM when the app locks or when the window is closed.
+*   **Clipboard Auto-Clear**: Copied secrets are cleared from the system clipboard after 30 seconds. Additionally, locking the vault immediately wipes the clipboard to prevent leakages.
 
 ---
 
 ## Key Features
 
-1. **Vault Lifecycle Management**:
-   - Master Password setup & confirmation with Argon2id parameters.
-   - Manual Lock button and configurable Auto-Lock timers (1m, 5m, 10m, 15m, 30m, Never).
-2. **Credential & Secret Organization**:
-   - Web Logins, Passwords, Usernames, URLs, Notes, Custom Fields (Sensitive & Normal).
-   - Dedicated Secure Notes module.
-   - Categories, Tags, and Favorites.
-3. **Built-in Password Generator**:
-   - CSPRNG random generation with custom length, uppercase, lowercase, numbers, symbols, ambiguous character exclusion, and passphrase modes.
-   - Integrated password strength visual indicator.
-4. **Built-in Offline TOTP Authenticator**:
-   - RFC 6238 compliant 2-Factor OTP calculator with active countdown timers.
-5. **Security & Health Dashboard**:
-   - Local vault health scoring (detecting weak passwords, reused passwords, old entries, missing TOTP).
-   - Local password reuse detection without external hash lookups.
-6. **Backup, Import & Export**:
-   - Portable Encrypted Vault Archives (`.vlock`) for USB/Local storage migration.
-   - CSV Plaintext Import and Export with explicit security warnings.
-7. **Keyboard Navigation & System Integration**:
-   - `Ctrl/Cmd + K` Quick Search, `Ctrl/Cmd + N` New Entry, `Ctrl/Cmd + L` Lock Vault, `Ctrl/Cmd + G` Password Generator.
+1.  **Vault Management**: Secure master password setup, manual locking, and configurable auto-lock timers.
+2.  **Flexible Credentials**: Store logins, passwords, URLs, custom tags, and secure notes.
+3.  **Password Generator**: Built-in cryptographically secure random password and passphrase generator.
+4.  **TOTP Authenticator**: Built-in 2-Factor OTP calculator (RFC 6238 compliant) with active time-remaining counters.
+5.  **Vault Auditor**: Local security dashboard highlighting weak passwords, reused credentials, and missing 2FA codes without any external network audits.
+6.  **Simple Portability**: Export and import portable, encrypted backups (`.vlock`) or export unencrypted CSV files with built-in plaintext warnings.
 
 ---
 
-## Building Veylock
+## Building from Source
 
 ### Prerequisites
-* **Node.js**: v18+ and `npm`
-* **Rust**: 1.75+ (`rustc` and `cargo`)
-* **Linux Dependencies** (Ubuntu/Debian):
-  ```bash
-  sudo apt install build-essential pkg-config libssl-dev libgtk-3-dev libwebkit2gtk-4.1-dev
-  ```
 
-### Development
-```bash
-# Clone the repository
-git clone https://github.com/veylock/veylock.git
-cd veylock
+*   **Node.js**: v20+ and `npm`
+*   **Rust**: v1.75+ (`rustc` and `cargo`)
+*   **Linux System Packages** (Ubuntu/Debian):
+    ```bash
+    sudo apt install build-essential pkg-config libssl-dev libgtk-3-dev libwebkit2gtk-4.1-dev
+    ```
 
-# Install Node dependencies
-npm install
+### Step-by-Step Build Instructions
 
-# Run application in development mode
-npm run tauri dev
-```
+1.  **Clone the Repository**:
+    ```bash
+    git clone https://github.com/YOUR_USERNAME/securepassbook.git
+    cd securepassbook
+    ```
 
-### Packaging & Distribution
-```bash
-# Build desktop executable (.AppImage / .deb on Linux, .exe / .msi on Windows)
-npm run tauri build
-```
+2.  **Install Node Dependencies**:
+    ```bash
+    npm install
+    ```
+
+3.  **Run in Development Mode**:
+    ```bash
+    npm run tauri dev
+    ```
+
+4.  **Build the Production Distribution Package**:
+    ```bash
+    npm run tauri build
+    ```
+    *   On Linux: Produces a `.deb` package in `src-tauri/target/release/bundle/deb/`
+    *   On Windows: Produces a `.exe` installer in `src-tauri/target/release/bundle/msi/` or `nsis/`
 
 ---
 
-## Project Structure & Documentation
+## Project Guide & Specs
 
-* [`SECURITY.md`](./SECURITY.md) — Vulnerability reporting and security boundaries.
-* [`THREAT_MODEL.md`](./THREAT_MODEL.md) — Threat model and cryptographic bounds.
-* [`PRIVACY.md`](./PRIVACY.md) — Privacy commitments and offline guarantee.
-* [`ARCHITECTURE.md`](./ARCHITECTURE.md) — Structural diagrams, IPC design, and schema definitions.
-* [`CONTRIBUTING.md`](./CONTRIBUTING.md) — Development workflow and contribution rules.
-* [`CHANGELOG.md`](./CHANGELOG.md) — Version history and release notes.
-* [`LICENSE`](./LICENSE) — MIT Open Source License.
+*   [`SECURITY.md`](./SECURITY.md) — Security policy and vulnerability disclosures.
+*   [`THREAT_MODEL.md`](./THREAT_MODEL.md) — Threat vectors, mitigations, and architectural boundaries.
+*   [`PRIVACY.md`](./PRIVACY.md) — Privacy commitments and local execution specs.
 
 ---
 

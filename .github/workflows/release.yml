@@ -1,49 +1,57 @@
-name: 'Veylock Cross-Platform Release Build'
+name: Release Build
 
 on:
   push:
     tags:
-      - 'v*'
-  workflow_dispatch:
+      - 'v*' # Triggers the build when you push a tag like v0.1.0
+
+permissions:
+  contents: write
 
 jobs:
-  release:
+  publish-tauri:
     permissions:
       contents: write
     strategy:
       fail-fast: false
       matrix:
-        platform: [ubuntu-22.04, windows-latest]
+        include:
+          - platform: 'ubuntu-22.04' # Builds the Linux .deb package
+            args: ''
+          - platform: 'windows-latest' # Builds the Windows .exe installer
+            args: ''
 
     runs-on: ${{ matrix.platform }}
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-      - name: Install Node.js
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: 'npm'
 
-      - name: Install Rust stable
+      - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
 
-      - name: Install Linux Build Dependencies
+      - name: Install Linux system dependencies
         if: matrix.platform == 'ubuntu-22.04'
         run: |
           sudo apt-get update
-          sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf libssl-dev pkg-config
+          sudo apt-get install -y libwebkit2gtk-4.1-dev build-essential curl wget file libxdo-dev libssl-dev libayatana-appindicator3-dev librsvg2-dev
 
       - name: Install npm dependencies
-        run: npm ci || npm install
+        run: npm ci
 
-      - name: Build Tauri App
-        uses: tauri-apps/tauri-action@v2
+      - name: Build and Publish Release Binaries
+        uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tagName: v__VERSION__
-          releaseName: 'Veylock v__VERSION__'
-          releaseBody: 'See CHANGELOG.md for release details.'
+          tagName: ${{ github.ref_name }}
+          releaseName: 'Veylock ${{ github.ref_name }}'
+          releaseBody: 'Production distribution packages for Veylock Password Manager.'
           releaseDraft: true
           prerelease: false
+          args: ${{ matrix.args }}

@@ -131,6 +131,7 @@ export const VaultProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const lockVault = useCallback(async () => {
     try {
       await invoke('lock_vault');
+      await navigator.clipboard.writeText('');
     } catch (err: any) {
       console.error('Lock vault failed:', err);
     }

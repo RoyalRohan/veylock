@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Shield, Lock, Eye, EyeOff, KeyRound, ArrowRight } from 'lucide-react';
+import { Shield, Lock, Eye, EyeOff, KeyRound, ArrowRight, Server, ShieldCheck } from 'lucide-react';
 import { useVault } from '../context/VaultContext';
 
 interface LockScreenProps {
@@ -30,47 +30,44 @@ export const LockScreen: React.FC<LockScreenProps> = ({ onOpenSetup }) => {
   };
 
   return (
-    <div className="relative min-h-screen w-full flex items-center justify-center bg-gradient-to-br from-dark-bg via-dark-surface to-slate-950 p-6 overflow-hidden">
-      {/* Background glow graphics */}
-      <div className="absolute -top-40 -left-40 w-96 h-96 bg-brand-600/10 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute -bottom-40 -right-40 w-96 h-96 bg-brand-500/10 rounded-full blur-3xl pointer-events-none" />
-
-      <div className="w-full max-w-md glass-panel p-8 rounded-3xl shadow-2xl relative z-10 border border-slate-800/80">
+    <div className="relative min-h-screen w-full flex items-center justify-center bg-dark-bg p-6 overflow-hidden">
+      <div className="w-full max-w-[400px] glass-panel p-8 rounded-2xl shadow-xl relative z-10 border border-neutral-800 animate-scale-up">
+        {/* Brand Header */}
         <div className="flex flex-col items-center text-center mb-8">
-          <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-brand-600 to-blue-400 p-[1px] shadow-lg shadow-brand-500/20 mb-4 flex items-center justify-center">
-            <div className="w-full h-full bg-dark-surface rounded-[15px] flex items-center justify-center">
-              <Shield className="w-8 h-8 text-brand-400" />
+          <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-neutral-700 to-neutral-500 p-[1px] shadow-sm mb-4 flex items-center justify-center">
+            <div className="w-full h-full bg-[#1c1c1e] rounded-[15px] flex items-center justify-center">
+              <Shield className="w-6 h-6 text-white" />
             </div>
           </div>
-          <h1 className="text-3xl font-bold tracking-tight text-white mb-1">Veylock</h1>
-          <p className="text-xs font-semibold uppercase tracking-widest text-brand-400">Your secrets. Your device. Your control.</p>
+          <h1 className="text-2xl font-bold tracking-tight text-white mb-1.5">Veylock</h1>
+          <p className="text-[10px] font-bold uppercase tracking-widest text-cyan-400">Zero-Trust Passbook</p>
         </div>
 
         {!status.exists ? (
-          <div className="text-center py-4">
-            <p className="text-sm text-slate-300 mb-6 leading-relaxed">
-              Welcome to Veylock. No account required. Your vault will be encrypted locally on this device using Argon2id & AES-256-GCM.
+          <div className="text-center space-y-6">
+            <p className="text-xs text-slate-400 leading-relaxed">
+              Welcome to Veylock. Your vault data is encrypted 100% locally on this device using <strong>Argon2id KDF & AES-256-GCM</strong>.
             </p>
             <button
               onClick={onOpenSetup}
-              className="w-full py-3.5 px-6 rounded-xl bg-gradient-to-r from-brand-600 to-brand-500 hover:from-brand-500 hover:to-brand-400 text-white font-medium text-sm transition-all shadow-lg shadow-brand-600/30 flex items-center justify-center gap-2 group"
+              className="w-full py-3 px-5 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white font-medium text-xs transition-all shadow-lg shadow-blue-600/25 flex items-center justify-center gap-2 group cursor-pointer"
             >
-              <KeyRound className="w-4 h-4" />
-              <span>Create Master Password & Vault</span>
-              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+              <KeyRound className="w-4 h-4 text-cyan-200" />
+              <span>Initialize Local Vault</span>
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform text-cyan-200" />
             </button>
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-5">
-            <div className="text-center mb-2">
-              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-800/60 border border-slate-700/50 text-xs text-slate-400">
-                <Lock className="w-3 h-3 text-emerald-400" />
-                <span>Encrypted Vault Locked</span>
+            <div className="text-center">
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-900/95 border border-slate-800 text-[10px] text-slate-400 font-medium">
+                <Lock className="w-3 h-3 text-cyan-400 animate-pulse" />
+                <span>Vault Locked</span>
               </div>
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-medium text-slate-400">Master Password</label>
+              <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Master Password</label>
               <div className="relative">
                 <input
                   type={showPassword ? 'text' : 'password'}
@@ -78,38 +75,43 @@ export const LockScreen: React.FC<LockScreenProps> = ({ onOpenSetup }) => {
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Enter master password..."
                   autoFocus
-                  className="w-full bg-slate-900/90 border border-slate-700/80 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 transition-all"
+                  className="w-full bg-slate-950/90 border border-slate-800 rounded-xl pl-4 pr-10 py-3 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all font-mono"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 p-1"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 p-1 transition-colors"
                 >
-                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  {showPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
                 </button>
               </div>
-              {error && <p className="text-xs text-rose-400 mt-1">{error}</p>}
+              {error && <p className="text-[11px] text-rose-400 mt-1 leading-tight">{error}</p>}
             </div>
 
             <button
               type="submit"
               disabled={isSubmitting || !password}
-              className="w-full py-3.5 px-6 rounded-xl bg-gradient-to-r from-brand-600 to-brand-500 hover:from-brand-500 hover:to-brand-400 text-white font-medium text-sm transition-all shadow-lg shadow-brand-600/30 flex items-center justify-center gap-2 disabled:opacity-50"
+              className="w-full py-3 px-5 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white font-semibold text-xs transition-all shadow-lg shadow-blue-600/25 flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
             >
               {isSubmitting ? (
-                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
               ) : (
                 <>
-                  <Lock className="w-4 h-4" />
-                  <span>Unlock Vault</span>
+                  <Lock className="w-4 h-4 text-cyan-200" />
+                  <span>Unlock Passbook</span>
                 </>
               )}
             </button>
 
-            <div className="pt-4 border-t border-slate-800/80 text-center">
-              <p className="text-[11px] text-slate-500 leading-tight">
-                Veylock operates 100% offline. Passwords stay on your device and are derived via Argon2id.
-              </p>
+            <div className="pt-4 border-t border-slate-900 flex items-center justify-between text-[9px] text-slate-500 font-mono">
+              <div className="flex items-center gap-1">
+                <Server className="w-3 h-3 text-slate-600" />
+                <span>Local Engine: Active</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <ShieldCheck className="w-3 h-3 text-emerald-600" />
+                <span>Zero-Trust Verified</span>
+              </div>
             </div>
           </form>
         )}

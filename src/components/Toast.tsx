@@ -23,10 +23,10 @@ export const Toast: React.FC = () => {
   const type = toast.type || 'info';
 
   return (
-    <div className="fixed bottom-6 right-6 z-50 animate-bounce-in max-w-md">
-      <div className={`flex items-center gap-3 px-4 py-3 rounded-xl border backdrop-blur-md shadow-2xl ${borders[type]}`}>
+    <div className="fixed bottom-5 right-5 z-55 animate-toast-slide-in max-w-sm">
+      <div className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl border backdrop-blur-md shadow-lg ${borders[type]}`}>
         {icons[type]}
-        <span className="text-sm font-medium">{toast.message}</span>
+        <span className="text-xs font-semibold">{toast.message}</span>
       </div>
     </div>
   );

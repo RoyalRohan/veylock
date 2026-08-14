@@ -39,7 +39,7 @@ export const TotpViewer: React.FC<TotpViewerProps> = ({ secret, onCopy }) => {
 
   if (error || !secret) {
     return (
-      <div className="p-3 rounded-xl bg-slate-900 border border-slate-800 text-xs text-rose-400">
+      <div className="p-3 rounded-xl bg-[#0d1222] border border-slate-900 text-xs text-rose-450 font-medium">
         Invalid or corrupt TOTP secret format.
       </div>
     );
@@ -47,7 +47,7 @@ export const TotpViewer: React.FC<TotpViewerProps> = ({ secret, onCopy }) => {
 
   if (!totp) {
     return (
-      <div className="p-4 rounded-xl bg-slate-900 border border-slate-800 flex items-center gap-2 text-xs text-slate-400">
+      <div className="p-4 rounded-xl bg-[#0d1222] border border-slate-900 flex items-center gap-2.5 text-xs text-slate-500">
         <Clock className="w-4 h-4 animate-spin text-cyan-400" />
         <span>Calculating TOTP code...</span>
       </div>
@@ -63,10 +63,10 @@ export const TotpViewer: React.FC<TotpViewerProps> = ({ secret, onCopy }) => {
   const progressPercent = (totp.time_remaining / 30) * 100;
 
   return (
-    <div className="p-4 rounded-2xl bg-gradient-to-r from-slate-900 to-cyan-950/30 border border-cyan-500/20 shadow-lg flex items-center justify-between">
+    <div className="p-4 rounded-2xl bg-[#0d1222]/90 border border-slate-900 shadow-sm flex items-center justify-between">
       <div className="flex items-center gap-4">
         {/* Countdown Ring */}
-        <div className="relative w-10 h-10 flex items-center justify-center">
+        <div className="relative w-9 h-9 flex items-center justify-center">
           <svg className="w-full h-full -rotate-90" viewBox="0 0 36 36">
             <path
               className="text-slate-800"
@@ -76,7 +76,7 @@ export const TotpViewer: React.FC<TotpViewerProps> = ({ secret, onCopy }) => {
               d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
             />
             <path
-              className="text-cyan-400 transition-all duration-1000 ease-linear"
+              className="text-cyan-450 transition-all duration-1000 ease-linear"
               strokeDasharray={`${progressPercent}, 100`}
               strokeWidth="3"
               strokeLinecap="round"
@@ -85,7 +85,7 @@ export const TotpViewer: React.FC<TotpViewerProps> = ({ secret, onCopy }) => {
               d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
             />
           </svg>
-          <span className="absolute text-[10px] font-mono font-bold text-cyan-300">
+          <span className="absolute text-[9px] font-mono font-bold text-cyan-400">
             {totp.time_remaining}s
           </span>
         </div>
@@ -94,7 +94,7 @@ export const TotpViewer: React.FC<TotpViewerProps> = ({ secret, onCopy }) => {
           <span className="text-[10px] font-bold uppercase tracking-wider text-cyan-400 block mb-0.5">
             Authenticator 2FA Code
           </span>
-          <span className="text-xl font-mono font-bold tracking-widest text-white">
+          <span className="text-lg font-mono font-bold tracking-widest text-white">
             {totp.code.slice(0, 3)} {totp.code.slice(3)}
           </span>
         </div>
@@ -102,9 +102,9 @@ export const TotpViewer: React.FC<TotpViewerProps> = ({ secret, onCopy }) => {
 
       <button
         onClick={handleCopyCode}
-        className="p-2.5 rounded-xl bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 transition-colors flex items-center gap-1.5 text-xs font-medium"
+        className="p-1.5 rounded-lg bg-slate-950/60 hover:bg-slate-800 text-cyan-300 border border-slate-900 transition-colors flex items-center gap-1 text-xs font-semibold cursor-pointer"
       >
-        {copied ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
+        {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
         <span>{copied ? 'Copied' : 'Copy'}</span>
       </button>
     </div>

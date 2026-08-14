@@ -3,9 +3,9 @@ use rand::Rng;
 use rand::rngs::OsRng;
 use super::models::PwGenConfig;
 
-const UPPER: &[u8] = b"ABCDEFGHJKLMNPQRSTUVWXYZ";
-const LOWER: &[u8] = b"abcdefghijkmnopqrstuvwxyz";
-const NUMBERS: &[u8] = b"23456789";
+const UPPER: &[u8] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+const LOWER: &[u8] = b"abcdefghijklmnopqrstuvwxyz";
+const NUMBERS: &[u8] = b"0123456789";
 const SYMBOLS: &[u8] = b"!@#$%^&*()_+-=[]{}|;:,.<>?";
 const AMBIGUOUS: &[char] = &['1', 'l', 'I', '0', 'O', '8', 'B', '|', 'S', '5', 'Z', '2'];
 
