@@ -9,8 +9,7 @@ If you discover a potential security vulnerability in Veylock, please report it 
 **Please DO NOT open a public issue on GitHub for unconfirmed security vulnerabilities.**
 
 Instead, please send an encrypted or private security report to:
-* **Email**: `security@veylock.local` *(Placeholder: Replace with production security address before official release)*
-* **PGP Key**: Available upon request.
+* **Email**: `royalfga69@gmail.com`
 
 ### What to Include in Your Report
 
@@ -20,14 +19,6 @@ To help us triage and resolve the issue quickly, please include:
 3. The platform (Windows / Linux), Veylock version, and Tauri runtime details.
 4. Any relevant logs or system configurations (ensuring no plaintext sensitive user secrets are attached).
 
-## Supported Versions
-
-Only the latest stable release of Veylock receives active security updates and security patches.
-
-| Version | Supported          |
-| ------- | ------------------ |
-| 1.0.x   | :white_check_mark: |
-| < 1.0   | :x:                |
 
 ## Security Guarantees & Non-Guarantees
 
