@@ -66,7 +66,7 @@ Veylock uses a dual-key architecture to secure your credentials:
 
 1.  **Clone the Repository**:
     ```bash
-    git clone https://github.com/YOUR_USERNAME/securepassbook.git
+    git clone https://github.com/RoyalRohan/veylock.git
     cd securepassbook
     ```
 
