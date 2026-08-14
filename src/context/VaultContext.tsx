@@ -45,42 +45,6 @@ interface VaultContextType {
 
 const VaultContext = createContext<VaultContextType | null>(null);
 
-// In-Memory Browser Fallback State (used when running outside Tauri window)
-let mockMasterPw = '';
-let mockEntries: DecryptedEntry[] = [
-  {
-    id: 'demo-1',
-    title: 'GitHub Developer',
-    username: 'royalrohan',
-    email: 'developer@example.com',
-    password: 'vL9#mK8$pX2!qW5n',
-    url: 'https://github.com',
-    category: 'logins',
-    notes: 'Primary SSH & OAuth developer token key',
-    favorite: true,
-    tags: ['dev'],
-    custom_fields: [{ id: 'f1', name: '2FA Recovery Code', value: '7849-3921', fieldType: 'sensitive' }],
-    totp_secret: 'JBSWY3DPEHPK3PXP',
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  },
-  {
-    id: 'demo-2',
-    title: 'AWS Cloud Console',
-    username: 'admin-root',
-    email: 'aws@company.com',
-    password: 'K7!pQ9#mN4$vW2zL',
-    url: 'https://console.aws.amazon.com',
-    category: 'servers',
-    notes: 'IAM Administrator Access key',
-    favorite: false,
-    tags: ['cloud'],
-    custom_fields: [],
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  },
-];
-
 export const VaultProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [status, setStatus] = useState<VaultStatus>({
     exists: false,
@@ -120,18 +84,9 @@ export const VaultProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         setSelectedEntryId(null);
       }
     } catch (err) {
-      // In web browser fallback mode, check if a master password has been configured
-      const storedPw = localStorage.getItem('veylock_web_pw') || mockMasterPw;
-      setStatus((prev) => ({
-        ...prev,
-        exists: !!storedPw || prev.exists,
-        entry_count: prev.unlocked ? mockEntries.length : 0,
-      }));
-      if (status.unlocked) {
-        setEntries(mockEntries);
-      }
+      console.error('Tauri IPC call failed:', err);
     }
-  }, [status.unlocked]);
+  }, []);
 
   useEffect(() => {
     refreshStatus();
@@ -170,13 +125,9 @@ export const VaultProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       setStatus(res);
       showToast('Vault created successfully!', 'success');
       await refreshStatus();
-    } catch (err) {
-      // Web Fallback Mode: Store master password securely in memory and localStorage for web mode
-      mockMasterPw = password;
-      localStorage.setItem('veylock_web_pw', password);
-      setStatus({ exists: true, unlocked: true, auto_lock_minutes: 5, entry_count: mockEntries.length });
-      setEntries(mockEntries);
-      showToast('Vault created successfully!', 'success');
+    } catch (err: any) {
+      showToast(err.toString(), 'error');
+      throw err;
     }
   };
 
@@ -196,27 +147,17 @@ export const VaultProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         showToast('Incorrect master password', 'error');
         return false;
       }
-    } catch (err) {
-      // Web Fallback Mode: Strict Password Comparison
-      const storedPw = localStorage.getItem('veylock_web_pw') || mockMasterPw;
-      if (storedPw && password === storedPw) {
-        mockMasterPw = storedPw;
-        setStatus({ exists: true, unlocked: true, auto_lock_minutes: 5, entry_count: mockEntries.length });
-        setEntries(mockEntries);
-        showToast('Vault unlocked', 'success');
-        return true;
-      } else {
-        showToast('Incorrect master password', 'error');
-        return false;
-      }
+    } catch (err: any) {
+      showToast(err.toString(), 'error');
+      return false;
     }
   };
 
   const lockVault = async () => {
     try {
       await invoke('lock_vault');
-    } catch (err) {
-      // Web Fallback Mode
+    } catch (err: any) {
+      console.error('Lock vault failed:', err);
     }
     setStatus((prev) => ({ ...prev, unlocked: false }));
     setEntries([]);
@@ -231,19 +172,8 @@ export const VaultProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       await refreshStatus();
       setSelectedEntryId(id);
       setIsEditorOpen(false);
-    } catch (err) {
-      const id = entry.id || Date.now().toString();
-      const newEntry = { ...entry, id, updated_at: new Date().toISOString() };
-      const idx = mockEntries.findIndex((e) => e.id === id);
-      if (idx >= 0) {
-        mockEntries[idx] = newEntry;
-      } else {
-        mockEntries.push(newEntry);
-      }
-      setEntries([...mockEntries]);
-      setSelectedEntryId(id);
-      setIsEditorOpen(false);
-      showToast('Entry saved securely', 'success');
+    } catch (err: any) {
+      showToast(err.toString(), 'error');
     }
   };
 
@@ -253,11 +183,8 @@ export const VaultProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       showToast('Entry deleted', 'info');
       if (selectedEntryId === id) setSelectedEntryId(null);
       await refreshStatus();
-    } catch (err) {
-      mockEntries = mockEntries.filter((e) => e.id !== id);
-      setEntries([...mockEntries]);
-      if (selectedEntryId === id) setSelectedEntryId(null);
-      showToast('Entry deleted', 'info');
+    } catch (err: any) {
+      showToast(err.toString(), 'error');
     }
   };
 
@@ -287,72 +214,28 @@ export const VaultProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const generatePassword = async (config: PwGenConfig): Promise<string> => {
     try {
       return await invoke<string>('generate_password', { config });
-    } catch (err) {
-      // Web CSPRNG Fallback Generator
-      const charsetLower = 'abcdefghijklmnopqrstuvwxyz';
-      const charsetUpper = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-      const charsetNum = '0123456789';
-      const charsetSym = '!@#$%^&*()_+-=[]{}|;:,.<>?';
-
-      let validChars = '';
-      if (config.use_lowercase) validChars += charsetLower;
-      if (config.use_uppercase) validChars += charsetUpper;
-      if (config.use_numbers) validChars += charsetNum;
-      if (config.use_symbols) validChars += charsetSym;
-      if (!validChars) validChars = charsetLower + charsetUpper + charsetNum;
-
-      if (config.exclude_ambiguous) {
-        validChars = validChars.replace(/[1lI0O8B]/g, '');
-      }
-
-      let res = '';
-      const array = new Uint32Array(config.length);
-      window.crypto.getRandomValues(array);
-      for (let i = 0; i < config.length; i++) {
-        res += validChars[array[i] % validChars.length];
-      }
-      return res;
+    } catch (err: any) {
+      showToast(err.toString(), 'error');
+      return '';
     }
   };
 
   const setAutoLockTimer = async (minutes: number) => {
     try {
       await invoke('set_auto_lock_timer', { minutes });
-    } catch (err) {
-      // Web mode
+      setStatus((prev) => ({ ...prev, auto_lock_minutes: minutes }));
+      showToast(`Auto-lock set to ${minutes === 0 ? 'Never' : minutes + ' minute(s)'}`, 'info');
+    } catch (err: any) {
+      showToast(err.toString(), 'error');
     }
-    setStatus((prev) => ({ ...prev, auto_lock_minutes: minutes }));
-    showToast(`Auto-lock set to ${minutes === 0 ? 'Never' : minutes + ' minute(s)'}`, 'info');
   };
 
   const fetchHealthReport = async () => {
     try {
       const report = await invoke<VaultHealthReport>('get_vault_health');
       setHealthReport(report);
-    } catch (err) {
-      let total_score = 100;
-      let weak_passwords = 0;
-      let reused_passwords = 0;
-      let missing_totp = 0;
-
-      const map = new Map<string, number>();
-      entries.forEach((e) => {
-        if (e.password.length < 10) weak_passwords++;
-        if (e.password) map.set(e.password, (map.get(e.password) || 0) + 1);
-        if (!e.totp_secret) missing_totp++;
-      });
-      map.forEach((cnt) => {
-        if (cnt > 1) reused_passwords += cnt;
-      });
-
-      total_score = Math.max(0, 100 - weak_passwords * 15 - reused_passwords * 20);
-      setHealthReport({
-        total_entries: entries.length,
-        weak_passwords,
-        reused_passwords,
-        missing_totp,
-        total_score,
-      });
+    } catch (err: any) {
+      console.error('Fetch health report failed:', err);
     }
   };
 
@@ -360,8 +243,8 @@ export const VaultProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     try {
       await invoke('export_vault_backup', { destPath: path });
       showToast('Encrypted vault backup exported successfully!', 'success');
-    } catch (err) {
-      showToast('Export simulated in Web Mode', 'info');
+    } catch (err: any) {
+      showToast(err.toString(), 'error');
     }
   };
 
@@ -370,8 +253,8 @@ export const VaultProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       await invoke('import_vault_backup', { srcPath: path, masterPassword: password });
       showToast('Backup restored successfully!', 'success');
       await refreshStatus();
-    } catch (err) {
-      showToast('Backup restored (Web Mode)', 'success');
+    } catch (err: any) {
+      showToast(err.toString(), 'error');
     }
   };
 
@@ -384,15 +267,9 @@ export const VaultProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     try {
       await invoke('change_master_password', { oldPassword: oldP, newPassword: newP });
       showToast('Master password updated!', 'success');
-    } catch (err) {
-      const storedPw = localStorage.getItem('veylock_web_pw') || mockMasterPw;
-      if (storedPw && oldP !== storedPw) {
-        showToast('Current master password is incorrect', 'error');
-        throw new Error('Current master password is incorrect');
-      }
-      mockMasterPw = newP;
-      localStorage.setItem('veylock_web_pw', newP);
-      showToast('Master password updated!', 'success');
+    } catch (err: any) {
+      showToast(err.toString(), 'error');
+      throw err;
     }
   };
 
@@ -400,8 +277,8 @@ export const VaultProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     try {
       await invoke('export_plaintext_csv', { destPath: path });
       showToast('CSV exported. WARNING: File contains plaintext passwords!', 'warning');
-    } catch (err) {
-      showToast('CSV Export simulated in Web Mode', 'warning');
+    } catch (err: any) {
+      showToast(err.toString(), 'error');
     }
   };
 
@@ -411,9 +288,9 @@ export const VaultProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       showToast(`Imported ${count} credentials from CSV`, 'success');
       await refreshStatus();
       return count;
-    } catch (err) {
-      showToast('Imported 2 sample entries from CSV (Web Mode)', 'success');
-      return 2;
+    } catch (err: any) {
+      showToast(err.toString(), 'error');
+      return 0;
     }
   };
 
