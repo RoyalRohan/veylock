@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Plus, Trash2, Sparkles, Eye, EyeOff, Lock, Check } from 'lucide-react';
+import { X, Plus, Trash2, Sparkles, Eye, EyeOff, Lock, Check, ChevronDown, KeyRound, Globe, User, Mail, FileText } from 'lucide-react';
 import { useVault } from '../context/VaultContext';
 import { CustomField, DecryptedEntry } from '../types';
 
@@ -97,41 +97,54 @@ export const EntryEditorModal: React.FC = () => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
-      <div className="w-full max-w-xl glass-panel rounded-3xl p-6 shadow-2xl border border-slate-700/60 animate-scale-up max-h-[90vh] flex flex-col">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
+      <div className="w-full max-w-xl glass-panel rounded-2xl shadow-2xl border border-slate-700/60 animate-scale-up max-h-[92vh] flex flex-col overflow-hidden">
         {/* Modal Header */}
-        <div className="flex items-center justify-between pb-4 border-b border-slate-800 shrink-0">
-          <h2 className="text-lg font-bold text-white">
-            {editingEntry ? 'Edit Credential' : 'Create New Credential'}
-          </h2>
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-800/80 bg-slate-900/60 shrink-0">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-400 flex items-center justify-center shadow-sm">
+              <KeyRound className="w-5 h-5" />
+            </div>
+            <div>
+              <h2 className="text-base font-semibold text-white tracking-tight">
+                {editingEntry ? 'Edit Credential' : 'Create New Credential'}
+              </h2>
+              <p className="text-[11px] text-slate-400">Encrypted in local vault using AES-256-GCM</p>
+            </div>
+          </div>
           <button
             onClick={closeEditor}
-            className="p-2 rounded-xl hover:bg-slate-800 text-slate-400 hover:text-white transition-colors"
+            className="p-2 rounded-lg hover:bg-slate-800/80 text-slate-400 hover:text-white transition-colors"
           >
             <X className="w-4 h-4" />
           </button>
         </div>
 
         {/* Modal Form Content */}
-        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto py-4 space-y-4 pr-1">
+        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto px-6 py-5 space-y-4">
           {/* Category & Title */}
           <div className="grid grid-cols-3 gap-3">
             <div className="col-span-1">
-              <label className="text-xs font-medium text-slate-400 mb-1 block">Category</label>
-              <select
-                value={category}
-                onChange={(e) => setCategory(e.target.value)}
-                className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:border-brand-500"
-              >
-                <option value="logins">Login</option>
-                <option value="secure_notes">Secure Note</option>
-                <option value="cards">Card / License</option>
-                <option value="servers">Server / API</option>
-              </select>
+              <label className="text-[11px] font-medium text-slate-300 mb-1.5 block uppercase tracking-wider">
+                Category
+              </label>
+              <div className="relative">
+                <select
+                  value={category}
+                  onChange={(e) => setCategory(e.target.value)}
+                  className="w-full bg-slate-900/90 border border-slate-700/80 rounded-xl pl-3 pr-8 py-2.5 text-xs text-slate-100 appearance-none focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 cursor-pointer"
+                >
+                  <option value="logins" className="bg-slate-900 text-slate-100">Login</option>
+                  <option value="secure_notes" className="bg-slate-900 text-slate-100">Secure Note</option>
+                  <option value="cards" className="bg-slate-900 text-slate-100">Card / License</option>
+                  <option value="servers" className="bg-slate-900 text-slate-100">Server / API</option>
+                </select>
+                <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+              </div>
             </div>
 
             <div className="col-span-2">
-              <label className="text-xs font-medium text-slate-400 mb-1 block">
+              <label className="text-[11px] font-medium text-slate-300 mb-1.5 block uppercase tracking-wider">
                 Title <span className="text-rose-400">*</span>
               </label>
               <input
@@ -140,7 +153,7 @@ export const EntryEditorModal: React.FC = () => {
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="e.g. GitHub, AWS Console, Work Email..."
                 required
-                className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-brand-500"
+                className="w-full bg-slate-900/90 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
               />
             </div>
           </div>
@@ -148,90 +161,104 @@ export const EntryEditorModal: React.FC = () => {
           {/* Username & Email */}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="text-xs font-medium text-slate-400 mb-1 block">Username</label>
+              <label className="text-[11px] font-medium text-slate-300 mb-1.5 block uppercase tracking-wider flex items-center gap-1">
+                <User className="w-3 h-3 text-slate-400" />
+                <span>Username</span>
+              </label>
               <input
                 type="text"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 placeholder="Username or handle..."
-                className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-brand-500"
+                className="w-full bg-slate-900/90 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
               />
             </div>
             <div>
-              <label className="text-xs font-medium text-slate-400 mb-1 block">Email</label>
+              <label className="text-[11px] font-medium text-slate-300 mb-1.5 block uppercase tracking-wider flex items-center gap-1">
+                <Mail className="w-3 h-3 text-slate-400" />
+                <span>Email</span>
+              </label>
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="user@example.com..."
-                className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-brand-500"
+                className="w-full bg-slate-900/90 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
               />
             </div>
           </div>
 
-          {/* Password with CSPRNG Generator Trigger */}
+          {/* Password with Generator Trigger */}
           <div>
-            <label className="text-xs font-medium text-slate-400 mb-1 block">Password</label>
+            <div className="flex items-center justify-between mb-1.5">
+              <label className="text-[11px] font-medium text-slate-300 uppercase tracking-wider flex items-center gap-1">
+                <Lock className="w-3 h-3 text-slate-400" />
+                <span>Password</span>
+              </label>
+              <button
+                type="button"
+                onClick={handleGeneratePw}
+                className="text-[11px] text-blue-400 hover:text-blue-300 flex items-center gap-1 transition-colors"
+              >
+                <Sparkles className="w-3 h-3" />
+                <span>Generate Password</span>
+              </button>
+            </div>
             <div className="relative">
               <input
                 type={showPassword ? 'text' : 'password'}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="Enter password..."
-                className="w-full bg-slate-900 border border-slate-700 rounded-xl pl-3.5 pr-24 py-2.5 text-xs text-white font-mono focus:outline-none focus:border-brand-500"
+                placeholder="Enter or generate password..."
+                className="w-full bg-slate-900/90 border border-slate-700/80 rounded-xl pl-3.5 pr-10 py-2.5 text-xs text-white font-mono placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
               />
-              <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
-                <button
-                  type="button"
-                  onClick={handleGeneratePw}
-                  className="p-1.5 rounded-lg bg-brand-600/20 hover:bg-brand-600/30 text-brand-300 border border-brand-500/30 transition-colors"
-                  title="Generate CSPRNG Password"
-                >
-                  <Sparkles className="w-3.5 h-3.5" />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="p-1.5 rounded-lg text-slate-500 hover:text-slate-300"
-                >
-                  {showPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
-                </button>
-              </div>
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 p-1 transition-colors"
+              >
+                {showPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+              </button>
             </div>
           </div>
 
           {/* Website URL */}
           <div>
-            <label className="text-xs font-medium text-slate-400 mb-1 block">Website URL</label>
+            <label className="text-[11px] font-medium text-slate-300 mb-1.5 block uppercase tracking-wider flex items-center gap-1">
+              <Globe className="w-3 h-3 text-slate-400" />
+              <span>Website URL</span>
+            </label>
             <input
               type="text"
               value={url}
               onChange={(e) => setUrl(e.target.value)}
               placeholder="https://example.com"
-              className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-brand-500"
+              className="w-full bg-slate-900/90 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
             />
           </div>
 
           {/* TOTP Secret Key */}
           <div>
-            <label className="text-xs font-medium text-slate-400 mb-1 block">TOTP Secret Key (2FA Authenticator)</label>
+            <label className="text-[11px] font-medium text-slate-300 mb-1.5 block uppercase tracking-wider">
+              TOTP Secret Key (2FA Authenticator)
+            </label>
             <input
               type="text"
               value={totpSecret}
               onChange={(e) => setTotpSecret(e.target.value)}
-              placeholder="e.g. JBSWY3DPEHPK3PXP (Base32)"
-              className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-white font-mono uppercase focus:outline-none focus:border-brand-500"
+              placeholder="e.g. JBSWY3DPEHPK3PXP (Base32 Key)"
+              className="w-full bg-slate-900/90 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-xs text-slate-200 font-mono uppercase tracking-wider placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
             />
           </div>
 
           {/* Custom Fields Section */}
-          <div className="pt-2">
+          <div className="pt-2 border-t border-slate-800/80">
             <div className="flex items-center justify-between mb-2">
-              <label className="text-xs font-medium text-slate-400">Custom Fields</label>
+              <label className="text-[11px] font-medium text-slate-300 uppercase tracking-wider">Custom Fields</label>
               <button
                 type="button"
                 onClick={handleAddCustomField}
-                className="text-[11px] text-brand-400 hover:underline flex items-center gap-1"
+                className="text-[11px] text-blue-400 hover:text-blue-300 flex items-center gap-1 font-medium transition-colors"
               >
                 <Plus className="w-3 h-3" />
                 <span>Add Custom Field</span>
@@ -247,7 +274,7 @@ export const EntryEditorModal: React.FC = () => {
                     const val = e.target.value;
                     setCustomFields(customFields.map((f) => (f.id === field.id ? { ...f, name: val } : f)));
                   }}
-                  className="w-1/3 bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white"
+                  className="w-1/3 bg-slate-900/90 border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-blue-500"
                 />
                 <input
                   type={field.fieldType === 'sensitive' ? 'password' : 'text'}
@@ -257,7 +284,7 @@ export const EntryEditorModal: React.FC = () => {
                     const val = e.target.value;
                     setCustomFields(customFields.map((f) => (f.id === field.id ? { ...f, value: val } : f)));
                   }}
-                  className="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white"
+                  className="flex-1 bg-slate-900/90 border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-blue-500"
                 />
                 <button
                   type="button"
@@ -265,10 +292,10 @@ export const EntryEditorModal: React.FC = () => {
                     const newType = field.fieldType === 'sensitive' ? 'text' : 'sensitive';
                     setCustomFields(customFields.map((f) => (f.id === field.id ? { ...f, fieldType: newType } : f)));
                   }}
-                  className={`p-2 rounded-xl border text-xs ${
+                  className={`p-2 rounded-xl border text-xs transition-colors ${
                     field.fieldType === 'sensitive'
                       ? 'bg-rose-950/40 border-rose-800/50 text-rose-300'
-                      : 'bg-slate-900 border-slate-700 text-slate-400'
+                      : 'bg-slate-900/90 border-slate-700/80 text-slate-400 hover:text-slate-200'
                   }`}
                   title={field.fieldType === 'sensitive' ? 'Encrypted Sensitive Field' : 'Normal Field'}
                 >
@@ -277,7 +304,7 @@ export const EntryEditorModal: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => handleRemoveCustomField(field.id)}
-                  className="p-2 text-slate-500 hover:text-rose-400"
+                  className="p-2 text-slate-500 hover:text-rose-400 transition-colors"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
                 </button>
@@ -286,29 +313,32 @@ export const EntryEditorModal: React.FC = () => {
           </div>
 
           {/* Secure Notes */}
-          <div>
-            <label className="text-xs font-medium text-slate-400 mb-1 block">Secure Notes</label>
+          <div className="pt-2 border-t border-slate-800/80">
+            <label className="text-[11px] font-medium text-slate-300 mb-1.5 block uppercase tracking-wider flex items-center gap-1">
+              <FileText className="w-3 h-3 text-slate-400" />
+              <span>Secure Notes</span>
+            </label>
             <textarea
               rows={3}
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               placeholder="Additional encrypted notes..."
-              className="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-xs text-white focus:outline-none focus:border-brand-500 font-mono"
+              className="w-full bg-slate-900/90 border border-slate-700/80 rounded-xl p-3 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 font-mono resize-none"
             />
           </div>
 
-          {/* Footer Submit Buttons */}
-          <div className="flex items-center gap-3 pt-4 border-t border-slate-800 shrink-0">
+          {/* Footer Action Buttons */}
+          <div className="flex items-center gap-3 pt-4 border-t border-slate-800/80 shrink-0">
             <button
               type="button"
               onClick={closeEditor}
-              className="flex-1 py-2.5 rounded-xl border border-slate-700 hover:bg-slate-800 text-slate-300 text-xs font-medium"
+              className="flex-1 py-2.5 rounded-xl border border-slate-700/80 hover:bg-slate-800/80 text-slate-300 text-xs font-medium transition-colors"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="flex-1 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-500 text-white text-xs font-medium flex items-center justify-center gap-1.5 shadow-md"
+              className="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white text-xs font-medium flex items-center justify-center gap-1.5 shadow-lg shadow-blue-600/25 transition-all"
             >
               <Check className="w-4 h-4" />
               <span>Save Entry</span>
