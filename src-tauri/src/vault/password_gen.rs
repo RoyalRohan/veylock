@@ -53,6 +53,10 @@ pub fn generate_password_csprng(config: &PwGenConfig) -> Result<String, String> 
         pool.retain(|&b| !AMBIGUOUS.contains(&(b as char)));
     }
 
+    if pool.is_empty() {
+        return Err("Character pool is empty. Please enable at least one character set.".to_string());
+    }
+
     let len = config.length.clamp(8, 128) as usize;
     let mut password_bytes = Vec::with_capacity(len);
 

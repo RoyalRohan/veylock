@@ -67,9 +67,10 @@ export const VaultProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const showToast = useCallback((message: string, type: 'info' | 'success' | 'warning' | 'error' = 'info') => {
     setToast({ message, type });
-    setTimeout(() => {
+    const timer = setTimeout(() => {
       setToast(null);
     }, 4000);
+    return () => clearTimeout(timer);
   }, []);
 
   const refreshStatus = useCallback(async () => {
@@ -88,6 +89,187 @@ export const VaultProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   }, []);
 
+  const createVault = useCallback(async (password: string) => {
+    if (!password || password.trim().length < 8) {
+      showToast('Master password must be at least 8 characters long.', 'error');
+      throw new Error('Master password too short');
+    }
+
+    try {
+      const res = await invoke<VaultStatus>('create_vault', { masterPassword: password });
+      setStatus(res);
+      showToast('Vault created successfully!', 'success');
+      await refreshStatus();
+    } catch (err: any) {
+      showToast(err.toString(), 'error');
+      throw err;
+    }
+  }, [showToast, refreshStatus]);
+
+  const unlockVault = useCallback(async (password: string): Promise<boolean> => {
+    if (!password) {
+      showToast('Master password is required.', 'error');
+      return false;
+    }
+
+    try {
+      const success = await invoke<boolean>('unlock_vault', { masterPassword: password });
+      if (success) {
+        showToast('Vault unlocked', 'success');
+        await refreshStatus();
+        return true;
+      } else {
+        showToast('Incorrect master password', 'error');
+        return false;
+      }
+    } catch (err: any) {
+      showToast(err.toString(), 'error');
+      return false;
+    }
+  }, [showToast, refreshStatus]);
+
+  const lockVault = useCallback(async () => {
+    try {
+      await invoke('lock_vault');
+    } catch (err: any) {
+      console.error('Lock vault failed:', err);
+    }
+    setStatus((prev) => ({ ...prev, unlocked: false }));
+    setEntries([]);
+    setSelectedEntryId(null);
+    showToast('Vault locked', 'info');
+  }, [showToast]);
+
+  const saveEntry = useCallback(async (entry: DecryptedEntry) => {
+    try {
+      const id = await invoke<string>('save_entry', { entry });
+      showToast('Entry saved securely', 'success');
+      await refreshStatus();
+      setSelectedEntryId(id);
+      setIsEditorOpen(false);
+    } catch (err: any) {
+      showToast(err.toString(), 'error');
+    }
+  }, [showToast, refreshStatus]);
+
+  const deleteEntry = useCallback(async (id: string) => {
+    try {
+      await invoke('delete_entry', { id });
+      showToast('Entry deleted', 'info');
+      setSelectedEntryId((prev) => (prev === id ? null : prev));
+      await refreshStatus();
+    } catch (err: any) {
+      showToast(err.toString(), 'error');
+    }
+  }, [showToast, refreshStatus]);
+
+  const openEditor = useCallback((entry?: DecryptedEntry) => {
+    setEditingEntry(entry || null);
+    setIsEditorOpen(true);
+  }, []);
+
+  const closeEditor = useCallback(() => {
+    setEditingEntry(null);
+    setIsEditorOpen(false);
+  }, []);
+
+  const copyToClipboard = useCallback(async (text: string, label: string) => {
+    if (!text) return;
+    try {
+      await navigator.clipboard.writeText(text);
+      showToast(`${label} copied! Will auto-clear in 30s.`, 'success');
+      setTimeout(() => {
+        navigator.clipboard.writeText('');
+      }, 30000);
+    } catch (err) {
+      showToast('Failed to copy to clipboard', 'error');
+    }
+  }, [showToast]);
+
+  const generatePassword = useCallback(async (config: PwGenConfig): Promise<string> => {
+    try {
+      return await invoke<string>('generate_password', { config });
+    } catch (err: any) {
+      showToast(err.toString(), 'error');
+      return '';
+    }
+  }, [showToast]);
+
+  const setAutoLockTimer = useCallback(async (minutes: number) => {
+    try {
+      await invoke('set_auto_lock_timer', { minutes });
+      setStatus((prev) => ({ ...prev, auto_lock_minutes: minutes }));
+      showToast(`Auto-lock set to ${minutes === 0 ? 'Never' : minutes + ' minute(s)'}`, 'info');
+    } catch (err: any) {
+      showToast(err.toString(), 'error');
+    }
+  }, [showToast]);
+
+  const fetchHealthReport = useCallback(async () => {
+    try {
+      const report = await invoke<VaultHealthReport>('get_vault_health');
+      setHealthReport(report);
+    } catch (err: any) {
+      console.error('Fetch health report failed:', err);
+    }
+  }, []);
+
+  const exportBackup = useCallback(async (path: string) => {
+    try {
+      await invoke('export_vault_backup', { destPath: path });
+      showToast('Encrypted vault backup exported successfully!', 'success');
+    } catch (err: any) {
+      showToast(err.toString(), 'error');
+    }
+  }, [showToast]);
+
+  const importBackup = useCallback(async (path: string, password: string) => {
+    try {
+      await invoke('import_vault_backup', { srcPath: path, masterPassword: password });
+      showToast('Backup restored successfully!', 'success');
+      await refreshStatus();
+    } catch (err: any) {
+      showToast(err.toString(), 'error');
+    }
+  }, [showToast, refreshStatus]);
+
+  const changeMasterPassword = useCallback(async (oldP: string, newP: string) => {
+    if (!newP || newP.trim().length < 8) {
+      showToast('New master password must be at least 8 characters long.', 'error');
+      throw new Error('New master password too short');
+    }
+
+    try {
+      await invoke('change_master_password', { oldPassword: oldP, newPassword: newP });
+      showToast('Master password updated!', 'success');
+    } catch (err: any) {
+      showToast(err.toString(), 'error');
+      throw err;
+    }
+  }, [showToast]);
+
+  const exportCsv = useCallback(async (path: string) => {
+    try {
+      await invoke('export_plaintext_csv', { destPath: path });
+      showToast('CSV exported. WARNING: File contains plaintext passwords!', 'warning');
+    } catch (err: any) {
+      showToast(err.toString(), 'error');
+    }
+  }, [showToast]);
+
+  const importCsv = useCallback(async (path: string): Promise<number> => {
+    try {
+      const count = await invoke<number>('import_plaintext_csv', { srcPath: path });
+      showToast(`Imported ${count} credentials from CSV`, 'success');
+      await refreshStatus();
+      return count;
+    } catch (err: any) {
+      showToast(err.toString(), 'error');
+      return 0;
+    }
+  }, [showToast, refreshStatus]);
+
+  // Initial Sync
   useEffect(() => {
     refreshStatus();
   }, [refreshStatus]);
@@ -112,187 +294,7 @@ export const VaultProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
-
-  const createVault = async (password: string) => {
-    if (!password || password.trim().length < 8) {
-      showToast('Master password must be at least 8 characters long.', 'error');
-      throw new Error('Master password too short');
-    }
-
-    try {
-      const res = await invoke<VaultStatus>('create_vault', { masterPassword: password });
-      setStatus(res);
-      showToast('Vault created successfully!', 'success');
-      await refreshStatus();
-    } catch (err: any) {
-      showToast(err.toString(), 'error');
-      throw err;
-    }
-  };
-
-  const unlockVault = async (password: string): Promise<boolean> => {
-    if (!password) {
-      showToast('Master password is required.', 'error');
-      return false;
-    }
-
-    try {
-      const success = await invoke<boolean>('unlock_vault', { masterPassword: password });
-      if (success) {
-        showToast('Vault unlocked', 'success');
-        await refreshStatus();
-        return true;
-      } else {
-        showToast('Incorrect master password', 'error');
-        return false;
-      }
-    } catch (err: any) {
-      showToast(err.toString(), 'error');
-      return false;
-    }
-  };
-
-  const lockVault = async () => {
-    try {
-      await invoke('lock_vault');
-    } catch (err: any) {
-      console.error('Lock vault failed:', err);
-    }
-    setStatus((prev) => ({ ...prev, unlocked: false }));
-    setEntries([]);
-    setSelectedEntryId(null);
-    showToast('Vault locked', 'info');
-  };
-
-  const saveEntry = async (entry: DecryptedEntry) => {
-    try {
-      const id = await invoke<string>('save_entry', { entry });
-      showToast('Entry saved securely', 'success');
-      await refreshStatus();
-      setSelectedEntryId(id);
-      setIsEditorOpen(false);
-    } catch (err: any) {
-      showToast(err.toString(), 'error');
-    }
-  };
-
-  const deleteEntry = async (id: string) => {
-    try {
-      await invoke('delete_entry', { id });
-      showToast('Entry deleted', 'info');
-      if (selectedEntryId === id) setSelectedEntryId(null);
-      await refreshStatus();
-    } catch (err: any) {
-      showToast(err.toString(), 'error');
-    }
-  };
-
-  const openEditor = (entry?: DecryptedEntry) => {
-    setEditingEntry(entry || null);
-    setIsEditorOpen(true);
-  };
-
-  const closeEditor = () => {
-    setEditingEntry(null);
-    setIsEditorOpen(false);
-  };
-
-  const copyToClipboard = async (text: string, label: string) => {
-    if (!text) return;
-    try {
-      await navigator.clipboard.writeText(text);
-      showToast(`${label} copied! Will auto-clear in 30s.`, 'success');
-      setTimeout(() => {
-        navigator.clipboard.writeText('');
-      }, 30000);
-    } catch (err) {
-      showToast('Failed to copy to clipboard', 'error');
-    }
-  };
-
-  const generatePassword = async (config: PwGenConfig): Promise<string> => {
-    try {
-      return await invoke<string>('generate_password', { config });
-    } catch (err: any) {
-      showToast(err.toString(), 'error');
-      return '';
-    }
-  };
-
-  const setAutoLockTimer = async (minutes: number) => {
-    try {
-      await invoke('set_auto_lock_timer', { minutes });
-      setStatus((prev) => ({ ...prev, auto_lock_minutes: minutes }));
-      showToast(`Auto-lock set to ${minutes === 0 ? 'Never' : minutes + ' minute(s)'}`, 'info');
-    } catch (err: any) {
-      showToast(err.toString(), 'error');
-    }
-  };
-
-  const fetchHealthReport = async () => {
-    try {
-      const report = await invoke<VaultHealthReport>('get_vault_health');
-      setHealthReport(report);
-    } catch (err: any) {
-      console.error('Fetch health report failed:', err);
-    }
-  };
-
-  const exportBackup = async (path: string) => {
-    try {
-      await invoke('export_vault_backup', { destPath: path });
-      showToast('Encrypted vault backup exported successfully!', 'success');
-    } catch (err: any) {
-      showToast(err.toString(), 'error');
-    }
-  };
-
-  const importBackup = async (path: string, password: string) => {
-    try {
-      await invoke('import_vault_backup', { srcPath: path, masterPassword: password });
-      showToast('Backup restored successfully!', 'success');
-      await refreshStatus();
-    } catch (err: any) {
-      showToast(err.toString(), 'error');
-    }
-  };
-
-  const changeMasterPassword = async (oldP: string, newP: string) => {
-    if (!newP || newP.trim().length < 8) {
-      showToast('New master password must be at least 8 characters long.', 'error');
-      throw new Error('New master password too short');
-    }
-
-    try {
-      await invoke('change_master_password', { oldPassword: oldP, newPassword: newP });
-      showToast('Master password updated!', 'success');
-    } catch (err: any) {
-      showToast(err.toString(), 'error');
-      throw err;
-    }
-  };
-
-  const exportCsv = async (path: string) => {
-    try {
-      await invoke('export_plaintext_csv', { destPath: path });
-      showToast('CSV exported. WARNING: File contains plaintext passwords!', 'warning');
-    } catch (err: any) {
-      showToast(err.toString(), 'error');
-    }
-  };
-
-  const importCsv = async (path: string): Promise<number> => {
-    try {
-      const count = await invoke<number>('import_plaintext_csv', { srcPath: path });
-      showToast(`Imported ${count} credentials from CSV`, 'success');
-      await refreshStatus();
-      return count;
-    } catch (err: any) {
-      showToast(err.toString(), 'error');
-      return 0;
-    }
-  };
+  }, [openEditor, lockVault]);
 
   return (
     <VaultContext.Provider
