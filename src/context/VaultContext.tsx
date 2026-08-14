@@ -46,7 +46,6 @@ interface VaultContextType {
 const VaultContext = createContext<VaultContextType | null>(null);
 
 // In-Memory Browser Fallback State (used when running outside Tauri window)
-let isWebFallback = false;
 let mockMasterPw = '';
 let mockEntries: DecryptedEntry[] = [
   {
@@ -121,15 +120,13 @@ export const VaultProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         setSelectedEntryId(null);
       }
     } catch (err) {
-      isWebFallback = true;
-      if (isWebFallback) {
-        // When running in standard browser preview, maintain interactive demo state
-        setStatus((prev) => ({
-          ...prev,
-          exists: prev.exists || mockMasterPw.length > 0 || true,
-          entry_count: prev.unlocked ? mockEntries.length : 0,
-        }));
-      }
+      // In web browser fallback mode, check if a master password has been configured
+      const storedPw = localStorage.getItem('veylock_web_pw') || mockMasterPw;
+      setStatus((prev) => ({
+        ...prev,
+        exists: !!storedPw || prev.exists,
+        entry_count: prev.unlocked ? mockEntries.length : 0,
+      }));
       if (status.unlocked) {
         setEntries(mockEntries);
       }
@@ -163,21 +160,32 @@ export const VaultProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   }, []);
 
   const createVault = async (password: string) => {
+    if (!password || password.trim().length < 8) {
+      showToast('Master password must be at least 8 characters long.', 'error');
+      throw new Error('Master password too short');
+    }
+
     try {
       const res = await invoke<VaultStatus>('create_vault', { masterPassword: password });
       setStatus(res);
       showToast('Vault created successfully!', 'success');
       await refreshStatus();
     } catch (err) {
-      isWebFallback = true;
+      // Web Fallback Mode: Store master password securely in memory and localStorage for web mode
       mockMasterPw = password;
+      localStorage.setItem('veylock_web_pw', password);
       setStatus({ exists: true, unlocked: true, auto_lock_minutes: 5, entry_count: mockEntries.length });
       setEntries(mockEntries);
-      showToast('Web Vault Initialized', 'success');
+      showToast('Vault created successfully!', 'success');
     }
   };
 
   const unlockVault = async (password: string): Promise<boolean> => {
+    if (!password) {
+      showToast('Master password is required.', 'error');
+      return false;
+    }
+
     try {
       const success = await invoke<boolean>('unlock_vault', { masterPassword: password });
       if (success) {
@@ -189,16 +197,18 @@ export const VaultProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         return false;
       }
     } catch (err) {
-      isWebFallback = true;
-      if (!mockMasterPw || password === mockMasterPw || password.length >= 4) {
-        mockMasterPw = password;
+      // Web Fallback Mode: Strict Password Comparison
+      const storedPw = localStorage.getItem('veylock_web_pw') || mockMasterPw;
+      if (storedPw && password === storedPw) {
+        mockMasterPw = storedPw;
         setStatus({ exists: true, unlocked: true, auto_lock_minutes: 5, entry_count: mockEntries.length });
         setEntries(mockEntries);
-        showToast('Vault unlocked (Web Mode)', 'success');
+        showToast('Vault unlocked', 'success');
         return true;
+      } else {
+        showToast('Incorrect master password', 'error');
+        return false;
       }
-      showToast('Incorrect master password', 'error');
-      return false;
     }
   };
 
@@ -206,7 +216,7 @@ export const VaultProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     try {
       await invoke('lock_vault');
     } catch (err) {
-      isWebFallback = true;
+      // Web Fallback Mode
     }
     setStatus((prev) => ({ ...prev, unlocked: false }));
     setEntries([]);
@@ -222,7 +232,6 @@ export const VaultProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       setSelectedEntryId(id);
       setIsEditorOpen(false);
     } catch (err) {
-      isWebFallback = true;
       const id = entry.id || Date.now().toString();
       const newEntry = { ...entry, id, updated_at: new Date().toISOString() };
       const idx = mockEntries.findIndex((e) => e.id === id);
@@ -245,7 +254,6 @@ export const VaultProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       if (selectedEntryId === id) setSelectedEntryId(null);
       await refreshStatus();
     } catch (err) {
-      isWebFallback = true;
       mockEntries = mockEntries.filter((e) => e.id !== id);
       setEntries([...mockEntries]);
       if (selectedEntryId === id) setSelectedEntryId(null);
@@ -311,7 +319,7 @@ export const VaultProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     try {
       await invoke('set_auto_lock_timer', { minutes });
     } catch (err) {
-      isWebFallback = true;
+      // Web mode
     }
     setStatus((prev) => ({ ...prev, auto_lock_minutes: minutes }));
     showToast(`Auto-lock set to ${minutes === 0 ? 'Never' : minutes + ' minute(s)'}`, 'info');
@@ -322,7 +330,6 @@ export const VaultProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       const report = await invoke<VaultHealthReport>('get_vault_health');
       setHealthReport(report);
     } catch (err) {
-      isWebFallback = true;
       let total_score = 100;
       let weak_passwords = 0;
       let reused_passwords = 0;
@@ -369,12 +376,23 @@ export const VaultProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   };
 
   const changeMasterPassword = async (oldP: string, newP: string) => {
+    if (!newP || newP.trim().length < 8) {
+      showToast('New master password must be at least 8 characters long.', 'error');
+      throw new Error('New master password too short');
+    }
+
     try {
       await invoke('change_master_password', { oldPassword: oldP, newPassword: newP });
       showToast('Master password updated!', 'success');
     } catch (err) {
+      const storedPw = localStorage.getItem('veylock_web_pw') || mockMasterPw;
+      if (storedPw && oldP !== storedPw) {
+        showToast('Current master password is incorrect', 'error');
+        throw new Error('Current master password is incorrect');
+      }
       mockMasterPw = newP;
-      showToast('Master password updated (Web Mode)!', 'success');
+      localStorage.setItem('veylock_web_pw', newP);
+      showToast('Master password updated!', 'success');
     }
   };
 
