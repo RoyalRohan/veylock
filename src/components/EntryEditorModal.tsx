@@ -141,7 +141,7 @@ export const EntryEditorModal: React.FC = () => {
               <h2 className="text-sm font-semibold text-white tracking-tight">
                 {editingEntry ? 'Edit Credential' : 'Create New Credential'}
               </h2>
-              <p className="text-[10px] text-slate-500">Encrypted locally using AES-256-GCM</p>
+              <p className="text-[10px] text-slate-500">Save encrypted in your vault</p>
             </div>
           </div>
           <button

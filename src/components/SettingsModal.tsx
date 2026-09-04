@@ -172,21 +172,9 @@ export const SettingsModal: React.FC = () => {
             </button>
           </form>
 
-          {/* Cryptographic Spec Overview */}
-          <div className="p-4 rounded-xl bg-[#0d1222]/90 border border-slate-900 text-[10px] text-slate-550 space-y-2">
-            <span className="font-bold text-slate-300 block uppercase tracking-wider">Cryptographic Engine Info</span>
-            <div className="flex justify-between">
-              <span>KDF Algorithm:</span>
-              <span className="font-mono text-slate-350">Argon2id (m=64MB, t=3, p=4)</span>
-            </div>
-            <div className="flex justify-between">
-              <span>Encryption Cipher:</span>
-              <span className="font-mono text-slate-350">AES-256-GCM (96-bit Nonce)</span>
-            </div>
-            <div className="flex justify-between">
-              <span>Memory Protection:</span>
-              <span className="font-mono text-emerald-400">Zeroize Active</span>
-            </div>
+          <div className="pt-3 border-t border-slate-900 flex items-center justify-between text-[11px] text-slate-500">
+            <span>Veylock Vault</span>
+            <span className="font-mono text-slate-400">v1.1.0 • Offline</span>
           </div>
         </div>
       </div>

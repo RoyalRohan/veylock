@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Shield, Lock, Eye, EyeOff, KeyRound, ArrowRight, Server, ShieldCheck, AlertTriangle } from 'lucide-react';
+import { Shield, Lock, Eye, EyeOff, KeyRound, ArrowRight, AlertTriangle } from 'lucide-react';
 import { useVault } from '../context/VaultContext';
 
 interface LockScreenProps {
@@ -44,7 +44,7 @@ export const LockScreen: React.FC<LockScreenProps> = ({ onOpenSetup }) => {
       <div className="absolute bottom-1/4 right-1/3 translate-x-1/2 translate-y-1/2 w-96 h-96 bg-cyan-600/10 rounded-full blur-3xl pointer-events-none" />
 
       <div
-        className={`w-full max-w-[400px] glass-panel p-5 sm:p-8 rounded-2xl shadow-2xl relative z-10 border border-slate-800/80 ${
+        className={`w-full max-w-[400px] glass-panel p-6 sm:p-8 rounded-2xl shadow-2xl relative z-10 border border-slate-800/80 ${
           shake ? 'animate-shake border-rose-500/60 shadow-rose-500/10' : 'animate-scale-up'
         }`}
       >
@@ -56,13 +56,13 @@ export const LockScreen: React.FC<LockScreenProps> = ({ onOpenSetup }) => {
             </div>
           </div>
           <h1 className="text-2xl font-bold tracking-tight text-white mb-1">Veylock</h1>
-          <p className="text-[10px] font-bold uppercase tracking-widest text-cyan-400">Zero-Trust Passbook</p>
+          <p className="text-xs text-slate-400 font-medium">Local Password Manager</p>
         </div>
 
         {!status.exists ? (
           <div className="text-center space-y-6">
             <p className="text-xs text-slate-400 leading-relaxed">
-              Welcome to Veylock. Your vault data is encrypted 100% locally on this device using <strong>Argon2id KDF & AES-256-GCM</strong>.
+              Your encrypted vault is stored exclusively on this device and never leaves your control.
             </p>
             <button
               onClick={onOpenSetup}
@@ -77,7 +77,7 @@ export const LockScreen: React.FC<LockScreenProps> = ({ onOpenSetup }) => {
           <form onSubmit={handleSubmit} className="space-y-5">
             <div className="text-center">
               <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-900/95 border border-slate-800 text-[10px] text-slate-400 font-medium">
-                <Lock className="w-3 h-3 text-cyan-400 animate-pulse" />
+                <Lock className="w-3 h-3 text-cyan-400" />
                 <span>Vault Locked</span>
               </div>
             </div>
@@ -130,17 +130,6 @@ export const LockScreen: React.FC<LockScreenProps> = ({ onOpenSetup }) => {
                 </>
               )}
             </button>
-
-            <div className="pt-4 border-t border-slate-900 flex items-center justify-between text-[9px] text-slate-500 font-mono">
-              <div className="flex items-center gap-1">
-                <Server className="w-3 h-3 text-slate-600" />
-                <span>Local Engine: Active</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <ShieldCheck className="w-3 h-3 text-emerald-500" />
-                <span>Zero-Trust Verified</span>
-              </div>
-            </div>
           </form>
         )}
       </div>

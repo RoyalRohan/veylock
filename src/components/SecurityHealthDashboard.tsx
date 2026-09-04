@@ -72,7 +72,7 @@ export const SecurityHealthDashboard: React.FC = () => {
               <span>Vault Security Dashboard</span>
             </h2>
             <p className="text-[10px] sm:text-[11px] text-slate-500 mt-0.5">
-              Local offline audit of credential strength, duplication, and 2FA coverage
+              Audit password strength, reuse, and two-factor authentication coverage
             </p>
           </div>
         </div>
@@ -122,7 +122,6 @@ export const SecurityHealthDashboard: React.FC = () => {
           <span className="text-[10px] font-bold uppercase tracking-wider text-slate-300">
             {healthReport.total_score >= 80 ? 'Vault Healthy' : healthReport.total_score >= 50 ? 'Attention Needed' : 'Vulnerable Vault'}
           </span>
-          <span className="text-[9px] text-slate-550 mt-1">Calculated locally</span>
         </div>
 
         {/* Metrics Grid */}
@@ -346,11 +345,6 @@ export const SecurityHealthDashboard: React.FC = () => {
               </div>
             ))}
         </div>
-      </div>
-
-      {/* Explanatory note */}
-      <div className="p-4 rounded-xl bg-[#0d1222]/90 border border-slate-900 text-[10px] text-slate-550 leading-relaxed shadow-sm">
-        <strong>Veylock Vault Security Auditing Policy:</strong> Strength indicators and reuse metrics are evaluated 100% locally on your machine. Decrypted credential material never crosses network bounds.
       </div>
     </div>
   );

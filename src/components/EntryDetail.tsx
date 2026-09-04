@@ -23,7 +23,7 @@ import { useVault } from '../context/VaultContext';
 import { TotpViewer } from './TotpViewer';
 import { calculatePasswordStrength, calculateEntropy } from '../utils/cryptoUtils';
 import { openUrl } from '@tauri-apps/plugin-opener';
-import { Tag, Command, ChevronLeft } from 'lucide-react';
+import { Tag, ChevronLeft } from 'lucide-react';
 
 export const EntryDetail: React.FC = () => {
   const { entries, selectedEntryId, setSelectedEntryId, openEditor, deleteEntry, copyToClipboard, saveEntry } = useVault();
@@ -34,42 +34,15 @@ export const EntryDetail: React.FC = () => {
   const entry = entries.find((e) => e.id === selectedEntryId);
 
   if (!entry) {
-    const isMac = typeof navigator !== 'undefined' && /Mac|iPod|iPhone|iPad/.test(navigator.platform);
-    const mod = isMac ? '⌘' : 'Ctrl+';
-
     return (
       <div className="flex-1 flex flex-col items-center justify-center p-8 text-center bg-[#070a13]/20 select-none">
-        <div className="w-14 h-14 rounded-2xl bg-[#0d1222]/80 border border-slate-800/80 flex items-center justify-center mb-4 shadow-inner text-slate-600">
-          <Shield className="w-7 h-7 stroke-[1.5]" />
+        <div className="w-12 h-12 rounded-2xl bg-[#0d1222]/80 border border-slate-800/80 flex items-center justify-center mb-3 shadow-inner text-slate-500">
+          <Shield className="w-6 h-6 stroke-[1.5]" />
         </div>
         <h3 className="text-sm font-semibold text-slate-300 mb-1 tracking-tight">No Item Selected</h3>
-        <p className="text-xs text-slate-500 max-w-[280px] leading-relaxed mb-6">
+        <p className="text-xs text-slate-500 max-w-[260px] leading-relaxed">
           Select an entry from the list to view decrypted details or manage credentials.
         </p>
-
-        {/* Keyboard Shortcuts Cheatsheet */}
-        <div className="w-full max-w-xs bg-[#0d1222]/60 border border-slate-800/60 rounded-xl p-3.5 space-y-2 text-left">
-          <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-2">
-            <Command className="w-3 h-3 text-cyan-400" />
-            <span>Quick Shortcuts</span>
-          </div>
-          <div className="flex items-center justify-between text-xs text-slate-400">
-            <span>New Credential</span>
-            <kbd className="px-2 py-0.5 rounded bg-slate-900 border border-slate-800 text-[10px] font-mono text-slate-300 font-semibold">{mod}N</kbd>
-          </div>
-          <div className="flex items-center justify-between text-xs text-slate-400">
-            <span>Quick Search</span>
-            <kbd className="px-2 py-0.5 rounded bg-slate-900 border border-slate-800 text-[10px] font-mono text-slate-300 font-semibold">{mod}K</kbd>
-          </div>
-          <div className="flex items-center justify-between text-xs text-slate-400">
-            <span>Password Generator</span>
-            <kbd className="px-2 py-0.5 rounded bg-slate-900 border border-slate-800 text-[10px] font-mono text-slate-300 font-semibold">{mod}G</kbd>
-          </div>
-          <div className="flex items-center justify-between text-xs text-slate-400">
-            <span>Lock Vault</span>
-            <kbd className="px-2 py-0.5 rounded bg-slate-900 border border-slate-800 text-[10px] font-mono text-slate-300 font-semibold">{mod}L</kbd>
-          </div>
-        </div>
       </div>
     );
   }

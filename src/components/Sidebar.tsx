@@ -27,7 +27,6 @@ export const Sidebar: React.FC = () => {
     setIsImportExportOpen,
     fetchHealthReport,
     healthReport,
-    status,
     isMobileNavOpen,
     setIsMobileNavOpen,
   } = useVault();
@@ -73,13 +72,7 @@ export const Sidebar: React.FC = () => {
             </div>
           </div>
           <div>
-            <div className="flex items-center gap-1.5">
-              <h1 className="font-bold text-white tracking-wide text-sm leading-none">Veylock</h1>
-              <span className="text-[9px] px-1.5 py-0.2 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 font-mono font-bold">
-                v1.1
-              </span>
-            </div>
-            <span className="text-[10px] text-slate-400 font-medium tracking-wide">Local-Only Vault</span>
+            <h1 className="font-bold text-white tracking-wide text-sm">Veylock</h1>
           </div>
         </div>
 
@@ -158,15 +151,6 @@ export const Sidebar: React.FC = () => {
 
       {/* Footer Status, Backup & Settings */}
       <div className="p-3 border-t border-slate-800/80 space-y-1 bg-slate-950/80 pb-safe">
-        {/* Live Auto-Lock Status Pill */}
-        <div className="px-3 py-1.5 rounded-lg bg-slate-900/60 border border-slate-800/60 flex items-center justify-between text-[10px] text-slate-400 font-mono mb-1">
-          <div className="flex items-center gap-1.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-sm shadow-emerald-400/50 animate-pulse" />
-            <span className="text-slate-300 font-medium">Vault Active</span>
-          </div>
-          <span>{status.auto_lock_minutes === 0 ? 'Lock: Off' : `Lock: ${status.auto_lock_minutes}m`}</span>
-        </div>
-
         <button
           onClick={() => {
             setIsImportExportOpen(true);

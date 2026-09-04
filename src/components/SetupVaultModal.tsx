@@ -63,13 +63,13 @@ export const SetupVaultModal: React.FC<SetupVaultModalProps> = ({ isOpen, onClos
         </div>
 
         {/* Security Alert Warning */}
-        <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-200/90 text-xs mb-5 space-y-1">
+        <div className="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-200/90 text-xs mb-5 space-y-1">
           <div className="flex items-center gap-1.5 font-semibold text-amber-400">
             <AlertTriangle className="w-4 h-4 shrink-0" />
-            <span>Zero-Knowledge Architecture Warning</span>
+            <span>Important Offline Notice</span>
           </div>
-          <p className="leading-relaxed text-[11px]">
-            Veylock runs strictly offline. **There are no servers or backup recovery routes.** If you forget your master password, all encrypted credentials inside your SQLite vault will be lost forever.
+          <p className="leading-relaxed text-[11px] text-amber-200/80">
+            Veylock is 100% offline. There is no cloud recovery or password reset. If you lose your master password, your vault cannot be recovered.
           </p>
         </div>
 

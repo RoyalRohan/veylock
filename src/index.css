@@ -1,6 +1,9 @@
 @import "tailwindcss";
 
 @theme {
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+
   --color-brand-50: #eff6ff;
   --color-brand-100: #dbeafe;
   --color-brand-200: #bfdbfe;
@@ -45,11 +48,18 @@
   body {
     background-color: #090d16;
     color: #f1f5f9;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Inter, Helvetica, Arial, sans-serif;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+    letter-spacing: -0.011em;
     user-select: none;
     overflow: hidden;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+  }
+
+  code, kbd, samp, pre, .font-mono {
+    font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-feature-settings: 'tnum', 'zero';
   }
 
   select {

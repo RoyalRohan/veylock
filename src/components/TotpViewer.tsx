@@ -92,7 +92,7 @@ export const TotpViewer: React.FC<TotpViewerProps> = ({ secret, onCopy }) => {
 
         <div>
           <span className="text-[10px] font-bold uppercase tracking-wider text-cyan-400 block mb-0.5">
-            Authenticator 2FA Code
+            2FA Code
           </span>
           <span className="text-lg font-mono font-bold tracking-widest text-white">
             {totp.code.slice(0, 3)} {totp.code.slice(3)}

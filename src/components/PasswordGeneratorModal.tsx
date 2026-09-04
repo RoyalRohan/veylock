@@ -70,8 +70,8 @@ export const PasswordGeneratorModal: React.FC = () => {
               <Sparkles className="w-4 h-4" />
             </div>
             <div>
-              <h2 className="text-sm font-semibold text-white tracking-tight">CSPRNG Generator</h2>
-              <p className="text-[10px] text-slate-550">Create cryptographically secure credentials</p>
+              <h2 className="text-sm font-semibold text-white tracking-tight">Password Generator</h2>
+              <p className="text-[10px] text-slate-500">Generate strong, unique passwords</p>
             </div>
           </div>
           <button
