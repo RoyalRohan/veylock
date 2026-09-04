@@ -1106,7 +1106,7 @@ export const EntryDetail: React.FC = () => {
       </div>
 
       {/* Main Content Area */}
-      <div className="p-4 sm:p-6 max-w-2xl pb-28 md:pb-8">
+      <div className="p-4 sm:p-6 max-w-3xl pb-28 md:pb-8">
         {renderContentByCategory()}
       </div>
     </div>

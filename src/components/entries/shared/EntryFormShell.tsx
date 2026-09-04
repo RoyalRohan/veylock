@@ -47,7 +47,7 @@ export const EntryFormShell: React.FC<EntryFormShellProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-slate-950/80 backdrop-blur-md select-none">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/60 backdrop-blur-md select-none">
       <div className="w-full max-w-xl glass-panel rounded-2xl shadow-2xl border border-theme-border animate-scale-up max-h-[94vh] flex flex-col overflow-hidden text-theme-text">
         {/* Header */}
         <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 sm:py-4 border-b border-theme-border bg-theme-surface/50 shrink-0">
@@ -64,7 +64,7 @@ export const EntryFormShell: React.FC<EntryFormShellProps> = ({
                   <select
                     value={category}
                     onChange={(e) => onCategoryChange(e.target.value as CategoryType)}
-                    className="bg-theme-surface border border-theme-border rounded-lg pl-2 pr-6 py-0.5 text-xs text-theme-text font-medium appearance-none cursor-pointer focus:outline-none focus:border-blue-500"
+                    className="bg-theme-surface border border-theme-border rounded-lg pl-2 pr-6 py-1 text-xs text-theme-text font-medium appearance-none cursor-pointer focus:outline-none focus:border-blue-500"
                   >
                     <option value="logins">Login</option>
                     <option value="secure_notes">Secure Note</option>
@@ -84,11 +84,11 @@ export const EntryFormShell: React.FC<EntryFormShellProps> = ({
             <button
               type="button"
               onClick={onFavoriteToggle}
-              className="p-2 rounded-xl border border-theme-border bg-theme-surface hover:bg-theme-hover text-theme-text-muted transition-colors cursor-pointer"
+              className="p-2.5 rounded-xl border border-theme-border bg-theme-surface hover:bg-theme-hover text-theme-text-muted transition-colors cursor-pointer min-h-[44px] min-w-[44px] flex items-center justify-center"
               title={favorite ? 'Remove from favorites' : 'Mark as favorite'}
             >
               <Star
-                className={`w-4 h-4 ${
+                className={`w-4.5 h-4.5 ${
                   favorite ? 'fill-amber-400 text-amber-400' : 'text-slate-400'
                 }`}
               />
@@ -96,10 +96,10 @@ export const EntryFormShell: React.FC<EntryFormShellProps> = ({
             <button
               type="button"
               onClick={onClose}
-              className="p-2 rounded-xl border border-theme-border bg-theme-surface hover:bg-theme-hover text-theme-text-muted hover:text-theme-text transition-colors cursor-pointer"
+              className="p-2.5 rounded-xl border border-theme-border bg-theme-surface hover:bg-theme-hover text-theme-text-muted hover:text-theme-text transition-colors cursor-pointer min-h-[44px] min-w-[44px] flex items-center justify-center"
               title="Close editor"
             >
-              <X className="w-4 h-4" />
+              <X className="w-4.5 h-4.5" />
             </button>
           </div>
         </div>
@@ -115,14 +115,14 @@ export const EntryFormShell: React.FC<EntryFormShellProps> = ({
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 rounded-xl text-xs font-semibold text-theme-text-muted hover:text-theme-text hover:bg-theme-hover border border-theme-border transition-colors cursor-pointer"
+              className="px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold text-theme-text-muted hover:text-theme-text hover:bg-theme-hover border border-theme-border transition-colors cursor-pointer min-h-[44px] flex items-center justify-center"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={submitDisabled}
-              className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white text-xs font-semibold shadow-md shadow-blue-600/25 transition-all disabled:opacity-50 cursor-pointer"
+              className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white text-xs sm:text-sm font-semibold shadow-md shadow-blue-600/25 transition-all disabled:opacity-50 cursor-pointer min-h-[44px] flex items-center justify-center"
             >
               Save Encrypted
             </button>

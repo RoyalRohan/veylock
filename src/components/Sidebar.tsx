@@ -118,7 +118,7 @@ export const Sidebar: React.FC = () => {
             <button
               key={item.id}
               onClick={() => handleNavClick(item.id)}
-              className={`w-full flex items-center justify-between px-3 py-2 sm:py-2.5 rounded-xl text-sm font-medium transition-all cursor-pointer group min-h-[40px] ${
+              className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium transition-all cursor-pointer group min-h-[44px] ${
                 isActive
                   ? 'bg-blue-600/15 text-blue-500 shadow-sm border border-blue-500/30'
                   : 'text-theme-text-muted hover:text-theme-text hover:bg-theme-hover border border-transparent'
