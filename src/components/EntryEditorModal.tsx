@@ -129,12 +129,12 @@ export const EntryEditorModal: React.FC = () => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
-      <div className="w-full max-w-xl glass-panel rounded-2xl shadow-2xl border border-slate-800/80 animate-scale-up max-h-[92vh] flex flex-col overflow-hidden">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-slate-950/80 backdrop-blur-md">
+      <div className="w-full max-w-xl glass-panel rounded-2xl shadow-2xl border border-slate-800/80 animate-scale-up max-h-[94vh] flex flex-col overflow-hidden">
         {/* Modal Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-900 bg-slate-950/40 shrink-0">
-          <div className="flex items-center gap-3.5">
-            <div className="w-9 h-9 rounded-xl bg-[#0d1222] border border-slate-800 text-blue-400 flex items-center justify-center shadow-sm">
+        <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 sm:py-4 border-b border-slate-900 bg-slate-950/40 shrink-0">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-[#0d1222] border border-slate-800 text-blue-400 flex items-center justify-center shadow-sm shrink-0">
               <KeyRound className="w-4 h-4" />
             </div>
             <div>
@@ -153,10 +153,10 @@ export const EntryEditorModal: React.FC = () => {
         </div>
 
         {/* Modal Form Content */}
-        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto px-6 py-5 space-y-4">
+        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto px-4 sm:px-6 py-4 sm:py-5 space-y-4">
           {/* Category & Title */}
-          <div className="grid grid-cols-3 gap-3">
-            <div className="col-span-1">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div className="sm:col-span-1">
               <label className="text-[10px] font-bold text-slate-400 mb-1.5 block uppercase tracking-wider">
                 Category
               </label>
@@ -175,7 +175,7 @@ export const EntryEditorModal: React.FC = () => {
               </div>
             </div>
 
-            <div className="col-span-2">
+            <div className="sm:col-span-2">
               <div className="flex items-center justify-between mb-1.5">
                 <label className="text-[10px] font-bold text-slate-400 block uppercase tracking-wider">
                   Title <span className="text-rose-400">*</span>
@@ -202,7 +202,7 @@ export const EntryEditorModal: React.FC = () => {
           </div>
 
           {/* Username & Email */}
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="text-[10px] font-bold text-slate-400 mb-1.5 block uppercase tracking-wider flex items-center gap-1.5">
                 <User className="w-3.5 h-3.5 text-slate-550" />

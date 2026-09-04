@@ -44,8 +44,8 @@ export const SettingsModal: React.FC = () => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md select-none">
-      <div className="w-full max-w-lg glass-panel rounded-2xl p-6 shadow-2xl border border-slate-850 animate-scale-up max-h-[90vh] flex flex-col overflow-hidden">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-slate-950/80 backdrop-blur-md select-none">
+      <div className="w-full max-w-lg glass-panel rounded-2xl p-4 sm:p-6 shadow-2xl border border-slate-850 animate-scale-up max-h-[94vh] flex flex-col overflow-hidden">
         {/* Header */}
         <div className="flex items-center justify-between pb-4 border-b border-slate-900 shrink-0">
           <div className="flex items-center gap-3">

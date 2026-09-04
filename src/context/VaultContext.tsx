@@ -15,6 +15,8 @@ interface VaultContextType {
   isImportExportOpen: boolean;
   healthReport: VaultHealthReport | null;
   toast: { message: string; type?: 'info' | 'success' | 'warning' | 'error' } | null;
+  isMobileNavOpen: boolean;
+  setIsMobileNavOpen: (open: boolean) => void;
 
   // Actions
   refreshStatus: () => Promise<void>;
@@ -62,6 +64,7 @@ export const VaultProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [isEditorOpen, setIsEditorOpen] = useState(false);
   const [editingEntry, setEditingEntry] = useState<DecryptedEntry | null>(null);
   const [isImportExportOpen, setIsImportExportOpen] = useState(false);
+  const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
   const [healthReport, setHealthReport] = useState<VaultHealthReport | null>(null);
   const [toast, setToast] = useState<{ message: string; type?: 'info' | 'success' | 'warning' | 'error' } | null>(null);
 
@@ -308,6 +311,7 @@ export const VaultProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   // Safe category selector that deselects entry if it does not belong to new category
   const handleSetActiveCategory = useCallback((cat: CategoryType) => {
     setActiveCategory(cat);
+    setIsMobileNavOpen(false);
     if (selectedEntryId) {
       const selected = entries.find((e) => e.id === selectedEntryId);
       if (selected) {
@@ -416,6 +420,8 @@ export const VaultProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         isEditorOpen,
         editingEntry,
         isImportExportOpen,
+        isMobileNavOpen,
+        setIsMobileNavOpen,
         healthReport,
         toast,
         refreshStatus,

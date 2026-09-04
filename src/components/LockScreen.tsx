@@ -38,13 +38,13 @@ export const LockScreen: React.FC<LockScreenProps> = ({ onOpenSetup }) => {
   };
 
   return (
-    <div className="relative min-h-screen w-full flex items-center justify-center bg-[#070a13] p-6 overflow-hidden select-none">
+    <div className="relative min-h-screen w-full flex items-center justify-center bg-[#070a13] p-4 sm:p-6 overflow-hidden select-none pt-safe pb-safe">
       {/* Ambient background glows */}
       <div className="absolute top-1/4 left-1/3 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-blue-600/10 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute bottom-1/4 right-1/3 translate-x-1/2 translate-y-1/2 w-96 h-96 bg-cyan-600/10 rounded-full blur-3xl pointer-events-none" />
 
       <div
-        className={`w-full max-w-[400px] glass-panel p-8 rounded-2xl shadow-2xl relative z-10 border border-slate-800/80 ${
+        className={`w-full max-w-[400px] glass-panel p-5 sm:p-8 rounded-2xl shadow-2xl relative z-10 border border-slate-800/80 ${
           shake ? 'animate-shake border-rose-500/60 shadow-rose-500/10' : 'animate-scale-up'
         }`}
       >

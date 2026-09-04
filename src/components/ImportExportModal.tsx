@@ -183,8 +183,8 @@ export const ImportExportModal: React.FC = () => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-md select-none">
-      <div className="w-full max-w-lg glass-panel rounded-2xl p-6 shadow-2xl border border-slate-800 animate-scale-up max-h-[92vh] flex flex-col overflow-hidden">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-slate-950/85 backdrop-blur-md select-none">
+      <div className="w-full max-w-lg glass-panel rounded-2xl p-4 sm:p-6 shadow-2xl border border-slate-800 animate-scale-up max-h-[94vh] flex flex-col overflow-hidden">
         {/* Hidden Native File Inputs */}
         <input
           type="file"

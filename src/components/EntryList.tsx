@@ -97,7 +97,7 @@ export const EntryList: React.FC = () => {
   };
 
   return (
-    <div className="w-80 border-r border-slate-800/80 bg-slate-950/40 flex flex-col h-full select-none shrink-0">
+    <div className="w-full h-full md:border-r border-slate-800/80 bg-slate-950/40 flex flex-col select-none">
       {/* List Header */}
       <div className="px-4 py-2.5 border-b border-slate-800/80 flex items-center justify-between text-[11px] font-medium bg-slate-950/60">
         <span className="font-semibold text-slate-300">{getCategoryLabel()}</span>

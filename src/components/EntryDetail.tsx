@@ -23,10 +23,10 @@ import { useVault } from '../context/VaultContext';
 import { TotpViewer } from './TotpViewer';
 import { calculatePasswordStrength, calculateEntropy } from '../utils/cryptoUtils';
 import { openUrl } from '@tauri-apps/plugin-opener';
-import { Tag, Command } from 'lucide-react';
+import { Tag, Command, ChevronLeft } from 'lucide-react';
 
 export const EntryDetail: React.FC = () => {
-  const { entries, selectedEntryId, openEditor, deleteEntry, copyToClipboard, saveEntry } = useVault();
+  const { entries, selectedEntryId, setSelectedEntryId, openEditor, deleteEntry, copyToClipboard, saveEntry } = useVault();
   const [showPassword, setShowPassword] = useState(false);
   const [copiedField, setCopiedField] = useState<string | null>(null);
   const [visibleCustomFields, setVisibleCustomFields] = useState<Record<string, boolean>>({});
@@ -120,17 +120,27 @@ export const EntryDetail: React.FC = () => {
   return (
     <div className="flex-1 flex flex-col h-full bg-[#070a13]/10 overflow-y-auto select-none">
       {/* Detail Top Header */}
-      <div className="p-5 border-b border-slate-900 flex items-start justify-between bg-[#070a13]/40">
-        <div className="flex items-center gap-4">
-          <div className="w-10 h-10 rounded-xl bg-[#0d1222] border border-slate-800 flex items-center justify-center shadow-md">
+      <div className="p-3.5 sm:p-5 border-b border-slate-900 flex flex-wrap items-center justify-between gap-3 bg-[#070a13]/40">
+        <div className="flex items-center gap-3 min-w-0">
+          {/* Mobile Back to List Button */}
+          <button
+            onClick={() => setSelectedEntryId(null)}
+            className="md:hidden flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-slate-900/90 hover:bg-slate-850 border border-slate-800 text-slate-300 hover:text-white transition-colors cursor-pointer shrink-0 shadow-sm"
+            title="Back to item list"
+          >
+            <ChevronLeft className="w-4 h-4 text-blue-400" />
+            <span className="text-xs font-semibold">Back</span>
+          </button>
+
+          <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-[#0d1222] border border-slate-800 flex items-center justify-center shadow-md shrink-0">
             {getCategoryIcon(entry.category)}
           </div>
-            <div>
+          <div className="min-w-0">
             <div className="flex items-center gap-2">
-              <h2 className="text-base font-bold text-white tracking-wide">{entry.title}</h2>
+              <h2 className="text-sm sm:text-base font-bold text-white tracking-wide truncate">{entry.title}</h2>
               <button
                 onClick={toggleFavorite}
-                className="p-1 rounded-lg hover:bg-slate-900 text-slate-400 transition-colors cursor-pointer"
+                className="p-1 rounded-lg hover:bg-slate-900 text-slate-400 transition-colors cursor-pointer shrink-0"
                 title={entry.favorite ? 'Remove from favorites' : 'Add to favorites'}
               >
                 <Star
@@ -159,7 +169,7 @@ export const EntryDetail: React.FC = () => {
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 ml-auto shrink-0">
           <button
             onClick={() => openEditor(entry)}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 text-xs font-medium transition-colors cursor-pointer"
@@ -171,6 +181,7 @@ export const EntryDetail: React.FC = () => {
             onClick={() => {
               if (confirm(`Are you sure you want to delete '${entry.title}'?`)) {
                 deleteEntry(entry.id);
+                setSelectedEntryId(null);
               }
             }}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-rose-950/40 hover:bg-rose-950/80 border border-rose-900/40 text-rose-300 text-xs font-medium transition-colors cursor-pointer"
@@ -182,7 +193,7 @@ export const EntryDetail: React.FC = () => {
       </div>
 
       {/* Main Content Details */}
-      <div className="p-6 space-y-5 max-w-2xl">
+      <div className="p-3.5 sm:p-6 space-y-4 sm:space-y-5 max-w-2xl pb-safe">
         {/* TOTP Authenticator Section */}
         {entry.totp_secret && (
           <TotpViewer secret={entry.totp_secret} onCopy={copyToClipboard} />

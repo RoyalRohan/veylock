@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Caps Lock Detection & Shake Animation**: Caps Lock alert banner on master password fields and animated error shake feedback.
 - **Obsidian & Sapphire Glass UI**: Redesigned dark aesthetic with ambient glows, glassmorphism panels, and custom minimalist dark scrollbars.
 - **Activity Keepalive Auto-Lock Guard**: User activity IPC ping (`touch_user_activity`) to prevent premature auto-lock while actively browsing.
+- **Complete Mobile Responsiveness**: Adaptive single-column drilldown (List ➔ Detail with back navigation), off-canvas sidebar drawer, quick-access mobile bottom navigation bar, and responsive touch-optimized modals for Android smartphones and tablets.
 - **Fedora RPM & Android APK Distribution**: Added native Fedora Linux (`.rpm`) packaging and automated Android ARM64 (`.apk`) build, sign, and release pipeline.
 - **Quick Keyboard Shortcuts Cheatsheet**: Shortcut badges (`⌘N`, `⌘K`, `⌘G`, `⌘L`, `Esc`) in Header and empty detail pane.
 

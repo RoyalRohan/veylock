@@ -12,6 +12,7 @@ import {
   CreditCard,
   Layers,
   Server,
+  X,
 } from 'lucide-react';
 import { useVault } from '../context/VaultContext';
 import { CategoryType } from '../types';
@@ -27,6 +28,8 @@ export const Sidebar: React.FC = () => {
     fetchHealthReport,
     healthReport,
     status,
+    isMobileNavOpen,
+    setIsMobileNavOpen,
   } = useVault();
 
   const getCount = (cat: CategoryType) => {
@@ -49,6 +52,7 @@ export const Sidebar: React.FC = () => {
 
   const handleNavClick = (id: CategoryType) => {
     setActiveCategory(id);
+    setIsMobileNavOpen(false);
     if (id === 'health') {
       fetchHealthReport();
     }
@@ -58,8 +62,8 @@ export const Sidebar: React.FC = () => {
     ? healthReport.weak_passwords + healthReport.reused_passwords
     : 0;
 
-  return (
-    <aside className="w-64 bg-slate-950/70 backdrop-blur-xl border-r border-slate-800/80 flex flex-col h-full select-none shrink-0">
+  const renderSidebarBody = (isMobile: boolean = false) => (
+    <div className="flex flex-col h-full select-none">
       {/* Brand Header */}
       <div className="p-4 border-b border-slate-800/80 flex items-center justify-between">
         <div className="flex items-center gap-3">
@@ -72,20 +76,35 @@ export const Sidebar: React.FC = () => {
             <div className="flex items-center gap-1.5">
               <h1 className="font-bold text-white tracking-wide text-sm leading-none">Veylock</h1>
               <span className="text-[9px] px-1.5 py-0.2 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 font-mono font-bold">
-                v1.0
+                v1.1
               </span>
             </div>
             <span className="text-[10px] text-slate-400 font-medium tracking-wide">Local-Only Vault</span>
           </div>
         </div>
 
-        <button
-          onClick={lockVault}
-          title="Lock Vault Now (Ctrl+L / ⌘L)"
-          className="p-2 rounded-xl bg-slate-900/80 hover:bg-slate-800 border border-slate-800 text-slate-400 hover:text-white transition-all cursor-pointer shadow-sm group"
-        >
-          <Lock className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" />
-        </button>
+        <div className="flex items-center gap-1">
+          <button
+            onClick={() => {
+              lockVault();
+              if (isMobile) setIsMobileNavOpen(false);
+            }}
+            title="Lock Vault Now"
+            className="p-2 rounded-xl bg-slate-900/80 hover:bg-slate-800 border border-slate-800 text-slate-400 hover:text-white transition-all cursor-pointer shadow-sm group"
+          >
+            <Lock className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" />
+          </button>
+
+          {isMobile && (
+            <button
+              onClick={() => setIsMobileNavOpen(false)}
+              className="p-2 rounded-xl bg-slate-900/80 hover:bg-slate-800 border border-slate-800 text-slate-400 hover:text-white transition-all cursor-pointer shadow-sm"
+              title="Close Menu"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Navigation List */}
@@ -138,7 +157,7 @@ export const Sidebar: React.FC = () => {
       </div>
 
       {/* Footer Status, Backup & Settings */}
-      <div className="p-3 border-t border-slate-800/80 space-y-1 bg-slate-950/80">
+      <div className="p-3 border-t border-slate-800/80 space-y-1 bg-slate-950/80 pb-safe">
         {/* Live Auto-Lock Status Pill */}
         <div className="px-3 py-1.5 rounded-lg bg-slate-900/60 border border-slate-800/60 flex items-center justify-between text-[10px] text-slate-400 font-mono mb-1">
           <div className="flex items-center gap-1.5">
@@ -149,7 +168,10 @@ export const Sidebar: React.FC = () => {
         </div>
 
         <button
-          onClick={() => setIsImportExportOpen(true)}
+          onClick={() => {
+            setIsImportExportOpen(true);
+            if (isMobile) setIsMobileNavOpen(false);
+          }}
           className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs text-slate-300 hover:text-white hover:bg-slate-900 border border-transparent hover:border-slate-800 transition-all cursor-pointer"
         >
           <HardDriveDownload className="w-3.5 h-3.5 text-blue-400" />
@@ -157,13 +179,41 @@ export const Sidebar: React.FC = () => {
         </button>
 
         <button
-          onClick={() => setIsSettingsOpen(true)}
+          onClick={() => {
+            setIsSettingsOpen(true);
+            if (isMobile) setIsMobileNavOpen(false);
+          }}
           className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs text-slate-300 hover:text-white hover:bg-slate-900 border border-transparent hover:border-slate-800 transition-all cursor-pointer"
         >
           <Settings className="w-3.5 h-3.5 text-slate-400" />
           <span>Preferences</span>
         </button>
       </div>
-    </aside>
+    </div>
+  );
+
+  return (
+    <>
+      {/* Desktop Sidebar (Permanent) */}
+      <aside className="hidden md:flex w-64 bg-slate-950/70 backdrop-blur-xl border-r border-slate-800/80 flex-col h-full select-none shrink-0">
+        {renderSidebarBody(false)}
+      </aside>
+
+      {/* Mobile Off-Canvas Drawer */}
+      {isMobileNavOpen && (
+        <div className="fixed inset-0 z-50 md:hidden flex">
+          {/* Backdrop */}
+          <div
+            onClick={() => setIsMobileNavOpen(false)}
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm animate-fade-in"
+          />
+
+          {/* Drawer Container */}
+          <div className="relative w-72 max-w-[85vw] h-full bg-slate-950/95 border-r border-slate-800 shadow-2xl flex flex-col z-10 animate-scale-up">
+            {renderSidebarBody(true)}
+          </div>
+        </div>
+      )}
+    </>
   );
 };

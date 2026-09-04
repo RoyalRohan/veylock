@@ -7,12 +7,13 @@ import {
   Edit3,
   CheckCircle2,
   RefreshCw,
+  ChevronLeft,
 } from 'lucide-react';
 import { useVault } from '../context/VaultContext';
 import { isWeakPassword, calculateEntropy } from '../utils/cryptoUtils';
 
 export const SecurityHealthDashboard: React.FC = () => {
-  const { entries, healthReport, fetchHealthReport, openEditor } = useVault();
+  const { entries, healthReport, fetchHealthReport, openEditor, setActiveCategory } = useVault();
   const [activeTab, setActiveTab] = useState<'all' | 'weak' | 'reused' | 'totp'>('all');
 
   useEffect(() => {
@@ -51,31 +52,44 @@ export const SecurityHealthDashboard: React.FC = () => {
   });
 
   return (
-    <div className="flex-1 overflow-y-auto p-6 space-y-6 select-none bg-[#070a13]/10">
+    <div className="flex-1 overflow-y-auto p-3.5 sm:p-6 space-y-4 sm:space-y-6 select-none bg-[#070a13]/10 pb-safe">
       {/* Dashboard Top Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-lg font-bold text-white flex items-center gap-2">
-            <ShieldCheck className="w-5 h-5 text-blue-400" />
-            <span>Vault Security Dashboard</span>
-          </h2>
-          <p className="text-[11px] text-slate-500 mt-0.5">
-            Local offline audit of credential strength, duplication, and 2FA coverage
-          </p>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-2.5">
+          {/* Mobile Back Button */}
+          <button
+            onClick={() => setActiveCategory('all')}
+            className="md:hidden flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-slate-900/90 hover:bg-slate-850 border border-slate-800 text-slate-300 hover:text-white transition-colors cursor-pointer shrink-0 shadow-sm"
+            title="Back to vault items"
+          >
+            <ChevronLeft className="w-4 h-4 text-blue-400" />
+            <span className="text-xs font-semibold">Back</span>
+          </button>
+
+          <div>
+            <h2 className="text-base sm:text-lg font-bold text-white flex items-center gap-2">
+              <ShieldCheck className="w-5 h-5 text-blue-400 shrink-0" />
+              <span>Vault Security Dashboard</span>
+            </h2>
+            <p className="text-[10px] sm:text-[11px] text-slate-500 mt-0.5">
+              Local offline audit of credential strength, duplication, and 2FA coverage
+            </p>
+          </div>
         </div>
+
         <button
           onClick={fetchHealthReport}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#0d1222]/90 hover:bg-slate-900 border border-slate-800 text-xs text-slate-300 transition-colors cursor-pointer"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#0d1222]/90 hover:bg-slate-900 border border-slate-800 text-xs text-slate-300 transition-colors cursor-pointer ml-auto"
         >
           <RefreshCw className="w-3.5 h-3.5" />
-          <span>Re-audit Vault</span>
+          <span>Re-audit</span>
         </button>
       </div>
 
       {/* Main Score & Metrics Section */}
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         {/* Score Ring Card */}
-        <div className="bg-[#0d1222]/90 border border-slate-900 p-6 rounded-2xl flex flex-col items-center justify-center text-center col-span-1 shadow-sm">
+        <div className="bg-[#0d1222]/90 border border-slate-900 p-5 sm:p-6 rounded-2xl flex flex-col items-center justify-center text-center col-span-1 shadow-sm">
           <div className="relative w-20 h-20 flex items-center justify-center mb-3">
             <svg className="w-full h-full -rotate-90" viewBox="0 0 36 36">
               <path
@@ -112,35 +126,35 @@ export const SecurityHealthDashboard: React.FC = () => {
         </div>
 
         {/* Metrics Grid */}
-        <div className="col-span-3 grid grid-cols-3 gap-4">
-          <div className="bg-[#0d1222]/90 border border-slate-900 p-5 rounded-2xl flex flex-col justify-between shadow-sm">
+        <div className="col-span-1 sm:col-span-1 lg:col-span-3 grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+          <div className="bg-[#0d1222]/90 border border-slate-900 p-4 sm:p-5 rounded-2xl flex flex-col justify-between shadow-sm">
             <div className="flex items-center justify-between">
               <span className="text-xs font-semibold text-slate-400">Weak Passwords</span>
               <AlertTriangle className="w-4 h-4 text-rose-500" />
             </div>
-            <div className="mt-4">
+            <div className="mt-3 sm:mt-4">
               <span className="text-2xl font-bold font-mono text-white">{healthReport.weak_passwords}</span>
               <span className="text-[10px] text-rose-450 block mt-1">Low complexity</span>
             </div>
           </div>
 
-          <div className="bg-[#0d1222]/90 border border-slate-900 p-5 rounded-2xl flex flex-col justify-between shadow-sm">
+          <div className="bg-[#0d1222]/90 border border-slate-900 p-4 sm:p-5 rounded-2xl flex flex-col justify-between shadow-sm">
             <div className="flex items-center justify-between">
               <span className="text-xs font-semibold text-slate-400">Reused Passwords</span>
               <KeyRound className="w-4 h-4 text-amber-500" />
             </div>
-            <div className="mt-4">
+            <div className="mt-3 sm:mt-4">
               <span className="text-2xl font-bold font-mono text-white">{healthReport.reused_passwords}</span>
               <span className="text-[10px] text-amber-450 block mt-1">Reused on multiple sites</span>
             </div>
           </div>
 
-          <div className="bg-[#0d1222]/90 border border-slate-900 p-5 rounded-2xl flex flex-col justify-between shadow-sm">
+          <div className="bg-[#0d1222]/90 border border-slate-900 p-4 sm:p-5 rounded-2xl flex flex-col justify-between shadow-sm">
             <div className="flex items-center justify-between">
               <span className="text-xs font-semibold text-slate-400">Missing 2FA</span>
               <Clock className="w-4 h-4 text-cyan-500" />
             </div>
-            <div className="mt-4">
+            <div className="mt-3 sm:mt-4">
               <span className="text-2xl font-bold font-mono text-white">{healthReport.missing_totp}</span>
               <span className="text-[10px] text-slate-550 block mt-1">Without TOTP keys</span>
             </div>

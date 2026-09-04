@@ -49,8 +49,8 @@ export const SetupVaultModal: React.FC<SetupVaultModalProps> = ({ isOpen, onClos
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
-      <div className="w-full max-w-lg glass-panel rounded-2xl p-6 shadow-2xl border border-slate-700/60 animate-scale-up">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-slate-950/80 backdrop-blur-md">
+      <div className="w-full max-w-lg glass-panel rounded-2xl p-4 sm:p-6 shadow-2xl border border-slate-700/60 animate-scale-up max-h-[94vh] overflow-y-auto">
         {/* Header */}
         <div className="flex items-center gap-3.5 mb-5 pb-4 border-b border-slate-900">
           <div className="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-400 flex items-center justify-center shadow-sm">
