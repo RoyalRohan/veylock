@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { X, Shield } from 'lucide-react';
+import { X } from 'lucide-react';
 import { useVault } from '../context/VaultContext';
 import { calculatePasswordStrength, calculateEntropy } from '../utils/cryptoUtils';
+import logoImg from '../assets/logo.png';
 
 export const SettingsModal: React.FC = () => {
   const { isSettingsOpen, setIsSettingsOpen, status, setAutoLockTimer, changeMasterPassword } =
@@ -49,12 +50,12 @@ export const SettingsModal: React.FC = () => {
         {/* Header */}
         <div className="flex items-center justify-between pb-4 border-b border-slate-900 shrink-0">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-[#0d1222] border border-slate-800 text-blue-400 flex items-center justify-center shadow-sm">
-              <Shield className="w-4 h-4" />
+            <div className="w-9 h-9 rounded-xl shadow-md shadow-cyan-500/10 flex items-center justify-center p-0.5 border border-cyan-500/25 bg-[#0d1222]/80 shrink-0">
+              <img src={logoImg} alt="Veylock" className="w-full h-full object-cover rounded-[10px]" />
             </div>
             <div>
               <h2 className="text-sm font-semibold text-white tracking-tight">Veylock Settings</h2>
-              <p className="text-[10px] text-slate-550">Manage local vault policies</p>
+              <p className="text-[10px] text-slate-500">Manage local vault policies</p>
             </div>
           </div>
           <button
@@ -173,7 +174,10 @@ export const SettingsModal: React.FC = () => {
           </form>
 
           <div className="pt-3 border-t border-slate-900 flex items-center justify-between text-[11px] text-slate-500">
-            <span>Veylock Vault</span>
+            <div className="flex items-center gap-1.5">
+              <img src={logoImg} alt="Veylock" className="w-3.5 h-3.5 rounded object-cover" />
+              <span>Veylock Vault</span>
+            </div>
             <span className="font-mono text-slate-400">v1.1.0 • Offline</span>
           </div>
         </div>

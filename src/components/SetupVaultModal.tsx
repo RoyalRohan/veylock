@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { Shield, Eye, EyeOff, AlertTriangle, CheckCircle2 } from 'lucide-react';
+import { Eye, EyeOff, AlertTriangle, CheckCircle2 } from 'lucide-react';
 import { useVault } from '../context/VaultContext';
 import { calculatePasswordStrength, calculateEntropy } from '../utils/cryptoUtils';
+import logoImg from '../assets/logo.png';
 
 interface SetupVaultModalProps {
   isOpen: boolean;
@@ -53,8 +54,8 @@ export const SetupVaultModal: React.FC<SetupVaultModalProps> = ({ isOpen, onClos
       <div className="w-full max-w-lg glass-panel rounded-2xl p-4 sm:p-6 shadow-2xl border border-slate-700/60 animate-scale-up max-h-[94vh] overflow-y-auto">
         {/* Header */}
         <div className="flex items-center gap-3.5 mb-5 pb-4 border-b border-slate-900">
-          <div className="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-400 flex items-center justify-center shadow-sm">
-            <Shield className="w-5 h-5" />
+          <div className="w-10 h-10 rounded-xl shadow-md shadow-cyan-500/10 flex items-center justify-center p-0.5 border border-cyan-500/25 bg-[#0d1222]/80 shrink-0">
+            <img src={logoImg} alt="Veylock" className="w-full h-full object-cover rounded-[10px]" />
           </div>
           <div>
             <h2 className="text-base font-semibold text-white tracking-tight">Create Local Vault</h2>

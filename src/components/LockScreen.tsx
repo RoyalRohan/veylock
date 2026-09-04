@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { Shield, Lock, Eye, EyeOff, KeyRound, ArrowRight, AlertTriangle } from 'lucide-react';
+import { Lock, Eye, EyeOff, KeyRound, ArrowRight, AlertTriangle } from 'lucide-react';
 import { useVault } from '../context/VaultContext';
+import logoImg from '../assets/logo.png';
 
 interface LockScreenProps {
   onOpenSetup: () => void;
@@ -50,10 +51,12 @@ export const LockScreen: React.FC<LockScreenProps> = ({ onOpenSetup }) => {
       >
         {/* Brand Header */}
         <div className="flex flex-col items-center text-center mb-8">
-          <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-blue-600/30 to-cyan-500/30 p-[1px] shadow-lg mb-4 flex items-center justify-center border border-slate-800">
-            <div className="w-full h-full bg-[#0d1222] rounded-[15px] flex items-center justify-center">
-              <Shield className="w-7 h-7 text-cyan-400" />
-            </div>
+          <div className="w-18 h-18 sm:w-20 sm:h-20 rounded-2xl shadow-2xl shadow-cyan-500/15 mb-4 flex items-center justify-center p-0.5 border border-cyan-500/30 bg-[#0d1222]/80 backdrop-blur-sm group">
+            <img
+              src={logoImg}
+              alt="Veylock Official Logo"
+              className="w-full h-full object-cover rounded-[14px] drop-shadow-md select-none transition-transform duration-300 group-hover:scale-105"
+            />
           </div>
           <h1 className="text-2xl font-bold tracking-tight text-white mb-1">Veylock</h1>
           <p className="text-xs text-slate-400 font-medium">Local Password Manager</p>

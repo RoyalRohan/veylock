@@ -1,6 +1,12 @@
-# Veylock
+<p align="center">
+  <img src="public/logo-192.png" alt="Veylock Logo" width="100" height="100" style="border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.5);" />
+</p>
 
-> **Offline-first, zero-trust, local-only password manager built for Windows, Linux, and Android.**
+<h1 align="center">Veylock</h1>
+
+<p align="center">
+  <strong>Offline-first, zero-trust, local-only password manager built for Windows, Linux, and Android.</strong>
+</p>
 
 Veylock is engineered to keep your credentials completely under your control with **zero cloud synchronization**, **zero telemetry**, and **zero external network requests**. 
 

@@ -1,6 +1,5 @@
 import React from 'react';
 import {
-  Shield,
   KeyRound,
   Star,
   FileText,
@@ -16,6 +15,7 @@ import {
 } from 'lucide-react';
 import { useVault } from '../context/VaultContext';
 import { CategoryType } from '../types';
+import logoImg from '../assets/logo.png';
 
 export const Sidebar: React.FC = () => {
   const {
@@ -66,10 +66,12 @@ export const Sidebar: React.FC = () => {
       {/* Brand Header */}
       <div className="p-4 border-b border-slate-800/80 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 p-[1px] shadow-md shadow-blue-500/20">
-            <div className="w-full h-full bg-slate-950 rounded-[11px] flex items-center justify-center">
-              <Shield className="w-4 h-4 text-blue-400" />
-            </div>
+          <div className="w-8 h-8 rounded-xl shadow-md shadow-cyan-500/10 flex items-center justify-center p-0.5 border border-cyan-500/25 bg-[#0d1222]/80 shrink-0">
+            <img
+              src={logoImg}
+              alt="Veylock"
+              className="w-full h-full object-cover rounded-[10px]"
+            />
           </div>
           <div>
             <h1 className="font-bold text-white tracking-wide text-sm">Veylock</h1>

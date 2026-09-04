@@ -1,6 +1,7 @@
 import React, { useRef } from 'react';
 import { Search, Plus, Sparkles, X, Menu } from 'lucide-react';
 import { useVault } from '../context/VaultContext';
+import logoImg from '../assets/logo.png';
 
 export const Header: React.FC = () => {
   const { searchQuery, setSearchQuery, openEditor, setIsGeneratorOpen, setIsMobileNavOpen } = useVault();
@@ -17,14 +18,21 @@ export const Header: React.FC = () => {
 
   return (
     <header className="h-14 border-b border-slate-800/80 px-3 sm:px-6 flex items-center justify-between gap-2.5 bg-slate-950/60 backdrop-blur-xl shrink-0 select-none pt-safe">
-      {/* Mobile Drawer Hamburger Button */}
-      <button
-        onClick={() => setIsMobileNavOpen(true)}
-        className="md:hidden p-2 rounded-xl bg-slate-900/80 hover:bg-slate-850 border border-slate-800 text-slate-300 hover:text-white transition-colors cursor-pointer shrink-0 shadow-sm"
-        title="Open Navigation Drawer"
-      >
-        <Menu className="w-4 h-4 text-blue-400" />
-      </button>
+      {/* Mobile Drawer Hamburger Button & Brand Logo */}
+      <div className="flex items-center gap-2 md:hidden shrink-0">
+        <button
+          onClick={() => setIsMobileNavOpen(true)}
+          className="p-2 rounded-xl bg-slate-900/80 hover:bg-slate-850 border border-slate-800 text-slate-300 hover:text-white transition-colors cursor-pointer shadow-sm"
+          title="Open Navigation Drawer"
+        >
+          <Menu className="w-4 h-4 text-blue-400" />
+        </button>
+        <img
+          src={logoImg}
+          alt="Veylock"
+          className="w-7 h-7 rounded-lg object-cover shadow-sm ring-1 ring-white/10"
+        />
+      </div>
 
       {/* Search Input with Clear Button */}
       <div className="relative flex-1 max-w-md lg:w-84 min-w-0">
