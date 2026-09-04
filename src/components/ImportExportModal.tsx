@@ -10,6 +10,8 @@ import {
   Lock,
   Folder,
   AlertTriangle,
+  Copy,
+  CheckCircle2,
 } from 'lucide-react';
 import { useVault } from '../context/VaultContext';
 import { documentDir, downloadDir } from '@tauri-apps/api/path';
@@ -22,6 +24,7 @@ export const ImportExportModal: React.FC = () => {
     importBackup,
     exportCsv,
     importCsv,
+    copyToClipboard,
     showToast,
   } = useVault();
 
@@ -29,6 +32,15 @@ export const ImportExportModal: React.FC = () => {
   const [mode, setMode] = useState<'export' | 'import'>('export');
   const [exportFormat, setExportFormat] = useState<'vlock' | 'csv'>('vlock');
   const [saveLocation, setSaveLocation] = useState<'downloads' | 'documents'>('downloads');
+
+  // Success state after export
+  const [exportSuccess, setExportSuccess] = useState<{
+    path: string;
+    filename: string;
+    content: string;
+    format: 'vlock' | 'csv';
+  } | null>(null);
+  const [copiedContent, setCopiedContent] = useState(false);
 
   // Import state
   const [selectedFileName, setSelectedFileName] = useState('');
@@ -66,27 +78,63 @@ export const ImportExportModal: React.FC = () => {
     return dir ? `${dir}/${name}` : name;
   };
 
-  // Handle Export
+  // Handle Export (Dual-Save: Rust direct disk write + HTML5 Blob download trigger)
   const handleExport = async () => {
     setIsProcessing(true);
     const targetPath = getExportPath(exportFormat);
+    const date = new Date().toISOString().slice(0, 10);
+    const filename = exportFormat === 'vlock' ? `veylock_backup_${date}.vlock` : `veylock_export_${date}.csv`;
 
     try {
+      let res: { path: string; content: string };
       if (exportFormat === 'vlock') {
-        await exportBackup(targetPath);
+        res = await exportBackup(targetPath);
       } else {
         if (!confirm('Exporting to CSV saves passwords unencrypted. Proceed?')) {
           setIsProcessing(false);
           return;
         }
-        await exportCsv(targetPath);
+        res = await exportCsv(targetPath);
       }
-      setIsImportExportOpen(false);
+
+      // Trigger HTML5 Blob download for 100% reliability on mobile & desktop WebViews
+      try {
+        const mimeType = exportFormat === 'vlock' ? 'application/json' : 'text/csv;charset=utf-8;';
+        const blob = new Blob([res.content], { type: mimeType });
+        const blobUrl = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = blobUrl;
+        link.download = filename;
+        link.style.display = 'none';
+        document.body.appendChild(link);
+        link.click();
+        setTimeout(() => {
+          document.body.removeChild(link);
+          URL.revokeObjectURL(blobUrl);
+        }, 1000);
+      } catch (dlErr) {
+        console.warn('HTML5 download fallback:', dlErr);
+      }
+
+      // Show success screen with path and clipboard fallback
+      setExportSuccess({
+        path: res.path,
+        filename,
+        content: res.content,
+        format: exportFormat,
+      });
     } catch (err: any) {
       showToast(err?.toString() || 'Export failed', 'error');
     } finally {
       setIsProcessing(false);
     }
+  };
+
+  const handleCopyExportContent = () => {
+    if (!exportSuccess) return;
+    copyToClipboard(exportSuccess.content, `${exportSuccess.filename} content`);
+    setCopiedContent(true);
+    setTimeout(() => setCopiedContent(false), 3000);
   };
 
   // Handle File Selection for Import
@@ -153,11 +201,18 @@ export const ImportExportModal: React.FC = () => {
     setImportContent('');
     setImportPass('');
     setDetectedType(null);
+    setExportSuccess(null);
+    setCopiedContent(false);
+  };
+
+  const handleClose = () => {
+    setIsImportExportOpen(false);
+    resetImportState();
   };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/80 backdrop-blur-md select-none">
-      <div className="w-full max-w-md glass-panel rounded-2xl p-5 sm:p-6 shadow-2xl border border-slate-800 animate-scale-up max-h-[92vh] flex flex-col overflow-hidden">
+      <div className="w-full max-w-lg glass-panel rounded-2xl p-5 sm:p-6 shadow-2xl border border-slate-800 animate-scale-up max-h-[92vh] flex flex-col overflow-hidden">
         {/* Hidden File Input */}
         <input
           type="file"
@@ -170,224 +225,292 @@ export const ImportExportModal: React.FC = () => {
         {/* Modal Header */}
         <div className="flex items-center justify-between pb-3.5 border-b border-slate-800/80 shrink-0">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-400 flex items-center justify-center shadow-sm shrink-0">
-              {mode === 'export' ? <HardDriveDownload className="w-4 h-4" /> : <HardDriveUpload className="w-4 h-4" />}
+            <div className="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-400 flex items-center justify-center shadow-sm shrink-0">
+              {mode === 'export' ? <HardDriveDownload className="w-5 h-5" /> : <HardDriveUpload className="w-5 h-5" />}
             </div>
             <div>
-              <h2 className="text-sm font-semibold text-white tracking-tight">
-                {mode === 'export' ? 'Export Vault' : 'Import Vault'}
+              <h2 className="text-base font-semibold text-white tracking-tight">
+                {exportSuccess ? 'Export Completed' : mode === 'export' ? 'Export Vault' : 'Import Vault'}
               </h2>
-              <p className="text-[10px] text-slate-400">
-                {mode === 'export' ? 'Save a local backup of your vault' : 'Restore credentials from a backup file'}
+              <p className="text-xs text-slate-400">
+                {exportSuccess
+                  ? 'Backup saved and ready on your device'
+                  : mode === 'export'
+                  ? 'Save an encrypted backup to your files'
+                  : 'Restore credentials from a backup file'}
               </p>
             </div>
           </div>
           <button
-            onClick={() => {
-              setIsImportExportOpen(false);
-              resetImportState();
-            }}
-            className="p-1.5 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white transition-colors cursor-pointer"
+            onClick={handleClose}
+            className="p-2 rounded-xl hover:bg-slate-800 text-slate-400 hover:text-white transition-colors cursor-pointer"
           >
             <X className="w-4 h-4" />
           </button>
         </div>
 
-        {/* Export / Import Mode Selector */}
-        <div className="flex bg-slate-900/80 p-1 rounded-xl border border-slate-800 my-4 text-xs shrink-0">
-          <button
-            type="button"
-            onClick={() => setMode('export')}
-            className={`flex-1 py-1.5 rounded-lg font-semibold transition-all cursor-pointer flex items-center justify-center gap-2 ${
-              mode === 'export'
-                ? 'bg-blue-600 text-white shadow-sm'
-                : 'text-slate-400 hover:text-slate-200'
-            }`}
-          >
-            <HardDriveDownload className="w-3.5 h-3.5" />
-            <span>Export</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => setMode('import')}
-            className={`flex-1 py-1.5 rounded-lg font-semibold transition-all cursor-pointer flex items-center justify-center gap-2 ${
-              mode === 'import'
-                ? 'bg-blue-600 text-white shadow-sm'
-                : 'text-slate-400 hover:text-slate-200'
-            }`}
-          >
-            <HardDriveUpload className="w-3.5 h-3.5" />
-            <span>Import</span>
-          </button>
-        </div>
-
-        {/* Content Area */}
-        <div className="flex-1 overflow-y-auto space-y-4 pr-0.5">
-          {mode === 'export' ? (
-            /* EXPORT SECTION */
-            <div className="space-y-4">
-              {/* Format Choice */}
-              <div className="space-y-2">
-                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
-                  Choose Format
-                </label>
-                <div className="grid grid-cols-2 gap-2.5">
-                  <button
-                    type="button"
-                    onClick={() => setExportFormat('vlock')}
-                    className={`p-3 rounded-xl border text-left transition-all cursor-pointer ${
-                      exportFormat === 'vlock'
-                        ? 'bg-blue-600/15 border-blue-500/50 text-white shadow-sm'
-                        : 'bg-slate-900/60 border-slate-800 text-slate-400 hover:text-slate-200'
-                    }`}
-                  >
-                    <div className="flex items-center gap-2 mb-1">
-                      <Shield className={`w-4 h-4 ${exportFormat === 'vlock' ? 'text-blue-400' : 'text-slate-500'}`} />
-                      <span className="text-xs font-semibold">Encrypted</span>
-                    </div>
-                    <span className="text-[10px] text-slate-400 block">.vlock (Safe Backup)</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => setExportFormat('csv')}
-                    className={`p-3 rounded-xl border text-left transition-all cursor-pointer ${
-                      exportFormat === 'csv'
-                        ? 'bg-amber-600/15 border-amber-500/50 text-white shadow-sm'
-                        : 'bg-slate-900/60 border-slate-800 text-slate-400 hover:text-slate-200'
-                    }`}
-                  >
-                    <div className="flex items-center gap-2 mb-1">
-                      <FileSpreadsheet className={`w-4 h-4 ${exportFormat === 'csv' ? 'text-amber-400' : 'text-slate-500'}`} />
-                      <span className="text-xs font-semibold">CSV</span>
-                    </div>
-                    <span className="text-[10px] text-slate-400 block">.csv (Spreadsheet)</span>
-                  </button>
-                </div>
+        {/* If Export Success View */}
+        {exportSuccess ? (
+          <div className="flex-1 overflow-y-auto py-5 space-y-4 pr-0.5 animate-scale-up">
+            <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-start gap-3.5">
+              <CheckCircle2 className="w-6 h-6 text-emerald-400 shrink-0 mt-0.5" />
+              <div className="space-y-1 min-w-0">
+                <h3 className="text-sm font-bold text-emerald-300">
+                  File Downloaded & Saved Successfully!
+                </h3>
+                <p className="text-xs text-emerald-200/80 leading-relaxed">
+                  The file has been saved to your device's Downloads folder.
+                </p>
               </div>
-
-              {/* Save Location */}
-              <div className="space-y-2">
-                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
-                  Save To
-                </label>
-                <div className="flex items-center gap-2 bg-slate-900/60 p-1 rounded-xl border border-slate-800">
-                  <button
-                    type="button"
-                    onClick={() => setSaveLocation('downloads')}
-                    className={`flex-1 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer flex items-center justify-center gap-1.5 ${
-                      saveLocation === 'downloads'
-                        ? 'bg-slate-800 text-white border border-slate-700'
-                        : 'text-slate-400 hover:text-slate-200'
-                    }`}
-                  >
-                    <Folder className="w-3.5 h-3.5" />
-                    <span>Downloads</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setSaveLocation('documents')}
-                    className={`flex-1 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer flex items-center justify-center gap-1.5 ${
-                      saveLocation === 'documents'
-                        ? 'bg-slate-800 text-white border border-slate-700'
-                        : 'text-slate-400 hover:text-slate-200'
-                    }`}
-                  >
-                    <Folder className="w-3.5 h-3.5" />
-                    <span>Documents</span>
-                  </button>
-                </div>
-              </div>
-
-              {/* Security Hint */}
-              {exportFormat === 'csv' ? (
-                <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-300 text-[11px] flex items-start gap-2.5">
-                  <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
-                  <span>CSV files are unencrypted. Anyone who opens the file can see your passwords.</span>
-                </div>
-              ) : (
-                <div className="p-3 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-300 text-[11px] flex items-center gap-2.5">
-                  <Shield className="w-4 h-4 text-blue-400 shrink-0" />
-                  <span>Protected with your current master password using AES-256-GCM.</span>
-                </div>
-              )}
-
-              {/* Action Button */}
-              <button
-                type="button"
-                onClick={handleExport}
-                disabled={isProcessing}
-                className="w-full py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white text-xs font-semibold shadow-md shadow-blue-600/25 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
-              >
-                <HardDriveDownload className="w-4 h-4" />
-                <span>{isProcessing ? 'Exporting...' : `Export ${exportFormat === 'vlock' ? 'Encrypted Backup' : 'CSV File'}`}</span>
-              </button>
             </div>
-          ) : (
-            /* IMPORT SECTION */
-            <div className="space-y-4">
-              {/* File Selector */}
-              <div className="space-y-2">
-                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
-                  Select Backup or CSV File
-                </label>
-                <button
-                  type="button"
-                  onClick={() => fileInputRef.current?.click()}
-                  className="w-full p-4 rounded-xl border border-dashed border-slate-700 hover:border-blue-500/60 bg-slate-900/40 hover:bg-slate-900/80 transition-all flex flex-col items-center justify-center gap-2 cursor-pointer group"
-                >
-                  <div className="w-10 h-10 rounded-xl bg-slate-800 group-hover:bg-blue-600/20 text-slate-400 group-hover:text-blue-400 flex items-center justify-center transition-colors">
-                    <FileUp className="w-5 h-5" />
-                  </div>
-                  <div className="text-center">
-                    <span className="text-xs font-semibold text-slate-200 block">
-                      {selectedFileName || 'Tap to choose file'}
-                    </span>
-                    <span className="text-[10px] text-slate-500">
-                      Supports .vlock (encrypted backup) and .csv
-                    </span>
-                  </div>
-                </button>
+
+            <div className="p-4 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-2.5">
+              <div>
+                <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1">
+                  Saved Filename
+                </span>
+                <span className="text-sm font-mono font-semibold text-white break-all">
+                  {exportSuccess.filename}
+                </span>
               </div>
+              <div className="pt-2 border-t border-slate-800/80">
+                <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1">
+                  Storage Location
+                </span>
+                <span className="text-xs font-mono text-cyan-300 break-all bg-slate-950 px-2.5 py-1.5 rounded-lg block border border-slate-850">
+                  {exportSuccess.path}
+                </span>
+              </div>
+            </div>
 
-              {/* Password Field (Only for .vlock files) */}
-              {detectedType !== 'csv' && selectedFileName && (
-                <div className="space-y-1.5 animate-scale-up">
-                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
-                    Backup Master Password
-                  </label>
-                  <div className="relative">
-                    <input
-                      type="password"
-                      value={importPass}
-                      onChange={(e) => setImportPass(e.target.value)}
-                      placeholder="Enter password for this backup..."
-                      className="w-full bg-[#0d1222] border border-slate-800 rounded-xl pl-9 pr-3.5 py-2 text-xs text-white focus:outline-none focus:border-blue-500"
-                    />
-                    <Lock className="w-3.5 h-3.5 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-                  </div>
-                </div>
-              )}
-
-              {/* Action Button */}
+            <div className="pt-2 space-y-2.5">
               <button
                 type="button"
-                onClick={handleImport}
-                disabled={isProcessing || !selectedFileName || (detectedType === 'vlock' && !importPass)}
-                className="w-full py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white text-xs font-semibold shadow-md shadow-blue-600/25 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                onClick={handleCopyExportContent}
+                className="w-full py-3 px-4 rounded-xl bg-slate-850 hover:bg-slate-800 border border-slate-700 text-slate-200 hover:text-white text-sm font-semibold transition-all flex items-center justify-center gap-2 cursor-pointer"
+              >
+                {copiedContent ? (
+                  <>
+                    <Check className="w-4 h-4 text-emerald-400" />
+                    <span className="text-emerald-300">Backup Content Copied!</span>
+                  </>
+                ) : (
+                  <>
+                    <Copy className="w-4 h-4 text-slate-400" />
+                    <span>Copy Backup Content to Clipboard</span>
+                  </>
+                )}
+              </button>
+
+              <button
+                type="button"
+                onClick={handleClose}
+                className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white text-sm font-semibold shadow-md shadow-blue-600/25 transition-all flex items-center justify-center gap-2 cursor-pointer"
               >
                 <Check className="w-4 h-4" />
-                <span>
-                  {isProcessing
-                    ? 'Importing...'
-                    : detectedType === 'csv'
-                    ? 'Import Credentials from CSV'
-                    : 'Restore Encrypted Backup'}
-                </span>
+                <span>Done</span>
               </button>
             </div>
-          )}
-        </div>
+          </div>
+        ) : (
+          <>
+            {/* Export / Import Mode Selector */}
+            <div className="flex bg-slate-900/80 p-1.5 rounded-xl border border-slate-800 my-4 text-sm shrink-0">
+              <button
+                type="button"
+                onClick={() => setMode('export')}
+                className={`flex-1 py-2 rounded-lg font-semibold transition-all cursor-pointer flex items-center justify-center gap-2 ${
+                  mode === 'export'
+                    ? 'bg-blue-600 text-white shadow-sm'
+                    : 'text-slate-400 hover:text-slate-200'
+                }`}
+              >
+                <HardDriveDownload className="w-4 h-4" />
+                <span>Export</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setMode('import')}
+                className={`flex-1 py-2 rounded-lg font-semibold transition-all cursor-pointer flex items-center justify-center gap-2 ${
+                  mode === 'import'
+                    ? 'bg-blue-600 text-white shadow-sm'
+                    : 'text-slate-400 hover:text-slate-200'
+                }`}
+              >
+                <HardDriveUpload className="w-4 h-4" />
+                <span>Import</span>
+              </button>
+            </div>
+
+            {/* Content Area */}
+            <div className="flex-1 overflow-y-auto space-y-4 pr-0.5">
+              {mode === 'export' ? (
+                /* EXPORT SECTION */
+                <div className="space-y-4">
+                  {/* Format Choice */}
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block">
+                      Choose Format
+                    </label>
+                    <div className="grid grid-cols-2 gap-3">
+                      <button
+                        type="button"
+                        onClick={() => setExportFormat('vlock')}
+                        className={`p-3.5 sm:p-4 rounded-xl border text-left transition-all cursor-pointer ${
+                          exportFormat === 'vlock'
+                            ? 'bg-blue-600/15 border-blue-500/50 text-white shadow-sm'
+                            : 'bg-slate-900/60 border-slate-800 text-slate-400 hover:text-slate-200'
+                        }`}
+                      >
+                        <div className="flex items-center gap-2 mb-1.5">
+                          <Shield className={`w-4 h-4 ${exportFormat === 'vlock' ? 'text-blue-400' : 'text-slate-500'}`} />
+                          <span className="text-sm font-semibold">Encrypted</span>
+                        </div>
+                        <span className="text-xs text-slate-400 block">.vlock (Safe Backup)</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => setExportFormat('csv')}
+                        className={`p-3.5 sm:p-4 rounded-xl border text-left transition-all cursor-pointer ${
+                          exportFormat === 'csv'
+                            ? 'bg-amber-600/15 border-amber-500/50 text-white shadow-sm'
+                            : 'bg-slate-900/60 border-slate-800 text-slate-400 hover:text-slate-200'
+                        }`}
+                      >
+                        <div className="flex items-center gap-2 mb-1.5">
+                          <FileSpreadsheet className={`w-4 h-4 ${exportFormat === 'csv' ? 'text-amber-400' : 'text-slate-500'}`} />
+                          <span className="text-sm font-semibold">CSV</span>
+                        </div>
+                        <span className="text-xs text-slate-400 block">.csv (Spreadsheet)</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Save Location */}
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block">
+                      Save Location
+                    </label>
+                    <div className="flex items-center gap-2 bg-slate-900/60 p-1.5 rounded-xl border border-slate-800">
+                      <button
+                        type="button"
+                        onClick={() => setSaveLocation('downloads')}
+                        className={`flex-1 py-2 rounded-lg text-xs font-medium transition-colors cursor-pointer flex items-center justify-center gap-2 ${
+                          saveLocation === 'downloads'
+                            ? 'bg-slate-800 text-white border border-slate-700 font-semibold'
+                            : 'text-slate-400 hover:text-slate-200'
+                        }`}
+                      >
+                        <Folder className="w-4 h-4 text-blue-400" />
+                        <span>Downloads Folder</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setSaveLocation('documents')}
+                        className={`flex-1 py-2 rounded-lg text-xs font-medium transition-colors cursor-pointer flex items-center justify-center gap-2 ${
+                          saveLocation === 'documents'
+                            ? 'bg-slate-800 text-white border border-slate-700 font-semibold'
+                            : 'text-slate-400 hover:text-slate-200'
+                        }`}
+                      >
+                        <Folder className="w-4 h-4 text-blue-400" />
+                        <span>Documents Folder</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Security Hint */}
+                  {exportFormat === 'csv' ? (
+                    <div className="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs flex items-start gap-2.5">
+                      <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+                      <span>CSV files are unencrypted. Anyone who opens the file can see your passwords in plain text.</span>
+                    </div>
+                  ) : (
+                    <div className="p-3.5 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-300 text-xs flex items-center gap-2.5">
+                      <Shield className="w-4 h-4 text-blue-400 shrink-0" />
+                      <span>Protected with your current master password using AES-256-GCM.</span>
+                    </div>
+                  )}
+
+                  {/* Action Button */}
+                  <button
+                    type="button"
+                    onClick={handleExport}
+                    disabled={isProcessing}
+                    className="w-full py-3.5 rounded-xl bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white text-sm font-semibold shadow-md shadow-blue-600/25 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                  >
+                    <HardDriveDownload className="w-4 h-4" />
+                    <span>{isProcessing ? 'Saving to Files...' : `Export ${exportFormat === 'vlock' ? 'Encrypted Backup' : 'CSV File'}`}</span>
+                  </button>
+                </div>
+              ) : (
+                /* IMPORT SECTION */
+                <div className="space-y-4">
+                  {/* File Selector */}
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block">
+                      Select Backup or CSV File
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      className="w-full p-5 rounded-xl border border-dashed border-slate-700 hover:border-blue-500/60 bg-slate-900/40 hover:bg-slate-900/80 transition-all flex flex-col items-center justify-center gap-2.5 cursor-pointer group"
+                    >
+                      <div className="w-11 h-11 rounded-xl bg-slate-800 group-hover:bg-blue-600/20 text-slate-400 group-hover:text-blue-400 flex items-center justify-center transition-colors">
+                        <FileUp className="w-5 h-5" />
+                      </div>
+                      <div className="text-center">
+                        <span className="text-sm font-semibold text-slate-200 block">
+                          {selectedFileName || 'Tap to choose file'}
+                        </span>
+                        <span className="text-xs text-slate-400 mt-0.5 block">
+                          Supports .vlock (encrypted backup) and .csv
+                        </span>
+                      </div>
+                    </button>
+                  </div>
+
+                  {/* Password Field (Only for .vlock files) */}
+                  {detectedType !== 'csv' && selectedFileName && (
+                    <div className="space-y-1.5 animate-scale-up">
+                      <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block">
+                        Backup Master Password
+                      </label>
+                      <div className="relative">
+                        <input
+                          type="password"
+                          value={importPass}
+                          onChange={(e) => setImportPass(e.target.value)}
+                          placeholder="Enter password for this backup..."
+                          className="w-full bg-[#0d1222] border border-slate-800 rounded-xl pl-9 pr-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500"
+                        />
+                        <Lock className="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Action Button */}
+                  <button
+                    type="button"
+                    onClick={handleImport}
+                    disabled={isProcessing || !selectedFileName || (detectedType === 'vlock' && !importPass)}
+                    className="w-full py-3.5 rounded-xl bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white text-sm font-semibold shadow-md shadow-blue-600/25 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                  >
+                    <Check className="w-4 h-4" />
+                    <span>
+                      {isProcessing
+                        ? 'Importing...'
+                        : detectedType === 'csv'
+                        ? 'Import Credentials from CSV'
+                        : 'Restore Encrypted Backup'}
+                    </span>
+                  </button>
+                </div>
+              )}
+            </div>
+          </>
+        )}
       </div>
     </div>
   );

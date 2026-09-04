@@ -50,17 +50,17 @@ export const SettingsModal: React.FC = () => {
         {/* Header */}
         <div className="flex items-center justify-between pb-4 border-b border-slate-900 shrink-0">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl shadow-md shadow-cyan-500/10 flex items-center justify-center p-0.5 border border-cyan-500/25 bg-[#0d1222]/80 shrink-0">
+            <div className="w-10 h-10 rounded-xl shadow-md shadow-cyan-500/10 flex items-center justify-center p-0.5 border border-cyan-500/25 bg-[#0d1222]/80 shrink-0">
               <img src={logoImg} alt="Veylock" className="w-full h-full object-cover rounded-[10px]" />
             </div>
             <div>
-              <h2 className="text-sm font-semibold text-white tracking-tight">Veylock Settings</h2>
-              <p className="text-[10px] text-slate-500">Manage local vault policies</p>
+              <h2 className="text-base font-semibold text-white tracking-tight">Veylock Settings</h2>
+              <p className="text-xs text-slate-400">Manage local vault policies</p>
             </div>
           </div>
           <button
             onClick={() => setIsSettingsOpen(false)}
-            className="p-1.5 rounded-lg hover:bg-slate-900 text-slate-400 hover:text-white transition-colors cursor-pointer"
+            className="p-2 rounded-xl hover:bg-slate-900 text-slate-400 hover:text-white transition-colors cursor-pointer"
           >
             <X className="w-4 h-4" />
           </button>
@@ -69,20 +69,20 @@ export const SettingsModal: React.FC = () => {
         <div className="flex-1 overflow-y-auto py-4 space-y-5 pr-1">
           {/* Auto-Lock Settings */}
           <div className="space-y-2">
-            <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
+            <label className="text-xs font-bold uppercase tracking-wider text-slate-400 block">
               Auto-Lock Timer
             </label>
-            <p className="text-[11px] text-slate-500">
+            <p className="text-xs text-slate-400">
               Automatically lock vault after a period of user inactivity.
             </p>
-            <div className="grid grid-cols-3 gap-2 pt-1 text-[11px]">
+            <div className="grid grid-cols-3 gap-2.5 pt-1 text-xs">
               {[1, 5, 10, 15, 30, 0].map((mins) => {
                 const isSelected = status.auto_lock_minutes === mins;
                 return (
                   <button
                     key={mins}
                     onClick={() => setAutoLockTimer(mins)}
-                    className={`py-2 px-3 rounded-xl font-semibold border transition-all cursor-pointer ${
+                    className={`py-2.5 px-3 rounded-xl font-semibold border transition-all cursor-pointer ${
                       isSelected
                         ? 'bg-slate-900 text-blue-400 border-slate-800 shadow-sm'
                         : 'bg-[#0d1222] border-slate-900 text-slate-400 hover:text-slate-200'
@@ -96,60 +96,60 @@ export const SettingsModal: React.FC = () => {
           </div>
 
           {/* Change Master Password Form */}
-          <form onSubmit={handleChangePassword} className="space-y-3 pt-4 border-t border-slate-900">
-            <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
+          <form onSubmit={handleChangePassword} className="space-y-3.5 pt-4 border-t border-slate-900">
+            <label className="text-xs font-bold uppercase tracking-wider text-slate-400 block">
               Change Master Password
             </label>
 
             <div>
-              <label className="text-[10px] font-bold text-slate-400 block mb-1">Current Master Password</label>
+              <label className="text-xs font-bold text-slate-400 block mb-1.5">Current Master Password</label>
               <input
                 type="password"
                 value={oldPass}
                 onChange={(e) => setOldPass(e.target.value)}
                 placeholder="Enter current password..."
-                className="w-full bg-[#0d1222] border border-slate-800 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-650 focus:outline-none focus:border-blue-500"
+                className="w-full bg-[#0d1222] border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white placeholder-slate-650 focus:outline-none focus:border-blue-500"
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="text-[10px] font-bold text-slate-400 block mb-1">New Master Password</label>
+                <label className="text-xs font-bold text-slate-400 block mb-1.5">New Master Password</label>
                 <input
                   type="password"
                   value={newPass}
                   onChange={(e) => setNewPass(e.target.value)}
                   placeholder="At least 8 chars..."
-                  className="w-full bg-[#0d1222] border border-slate-800 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-650 focus:outline-none focus:border-blue-500 font-mono"
+                  className="w-full bg-[#0d1222] border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white placeholder-slate-650 focus:outline-none focus:border-blue-500 font-mono"
                 />
               </div>
               <div>
-                <label className="text-[10px] font-bold text-slate-400 block mb-1">Confirm New Password</label>
+                <label className="text-xs font-bold text-slate-400 block mb-1.5">Confirm New Password</label>
                 <input
                   type="password"
                   value={confirmPass}
                   onChange={(e) => setConfirmPass(e.target.value)}
                   placeholder="Confirm new password..."
-                  className="w-full bg-[#0d1222] border border-slate-800 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-650 focus:outline-none focus:border-blue-500 font-mono"
+                  className="w-full bg-[#0d1222] border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white placeholder-slate-650 focus:outline-none focus:border-blue-500 font-mono"
                 />
               </div>
             </div>
 
             {/* New Password Strength Indicator */}
             {newPass && (
-              <div className="p-2 rounded-xl bg-[#080d1a] border border-slate-850 space-y-1.5 animate-scale-up">
-                <div className="flex items-center justify-between text-[10px]">
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-slate-400">Complexity:</span>
-                    <span className={`px-1.5 py-0.2 rounded font-bold text-white text-[9px] ${newPassStrength.color}`}>
+              <div className="p-3 rounded-xl bg-[#080d1a] border border-slate-850 space-y-2 animate-scale-up">
+                <div className="flex items-center justify-between text-xs">
+                  <div className="flex items-center gap-2">
+                    <span className="text-slate-400 font-medium">Complexity:</span>
+                    <span className={`px-2 py-0.5 rounded font-bold text-white text-xs ${newPassStrength.color}`}>
                       {newPassStrength.label}
                     </span>
                   </div>
-                  <span className="font-mono text-[9px] text-cyan-300">
+                  <span className="font-mono text-xs text-cyan-300">
                     {newPassEntropy.bits} bits • {newPassEntropy.crackTimeDisplay}
                   </span>
                 </div>
-                <div className="h-1 w-full bg-slate-900 rounded-full overflow-hidden flex gap-1">
+                <div className="h-1.5 w-full bg-slate-900 rounded-full overflow-hidden flex gap-1">
                   {[0, 1, 2, 3].map((idx) => (
                     <div
                       key={idx}
@@ -162,21 +162,21 @@ export const SettingsModal: React.FC = () => {
               </div>
             )}
 
-            {passError && <p className="text-[11px] text-rose-450 leading-tight">{passError}</p>}
+            {passError && <p className="text-xs text-rose-400 leading-tight">{passError}</p>}
 
             <button
               type="submit"
               disabled={isChanging || !oldPass || !newPass}
-              className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white text-xs font-semibold transition-all shadow-lg shadow-blue-600/25 disabled:opacity-50 cursor-pointer"
+              className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white text-sm font-semibold transition-all shadow-lg shadow-blue-600/25 disabled:opacity-50 cursor-pointer"
             >
               {isChanging ? 'Updating Password...' : 'Update Master Password'}
             </button>
           </form>
 
-          <div className="pt-3 border-t border-slate-900 flex items-center justify-between text-[11px] text-slate-500">
+          <div className="pt-3 border-t border-slate-900 flex items-center justify-between text-xs text-slate-400">
             <div className="flex items-center gap-1.5">
-              <img src={logoImg} alt="Veylock" className="w-3.5 h-3.5 rounded object-cover" />
-              <span>Veylock Vault</span>
+              <img src={logoImg} alt="Veylock" className="w-4 h-4 rounded object-cover" />
+              <span className="font-medium text-slate-300">Veylock Vault</span>
             </div>
             <span className="font-mono text-slate-400">v1.1.0 • Offline</span>
           </div>

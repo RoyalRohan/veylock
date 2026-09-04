@@ -97,6 +97,12 @@ jobs:
       - name: Initialize Android Target
         run: npx tauri android init --ci
 
+      - name: Configure Official Android App Icon
+        run: |
+          mkdir -p src-tauri/gen/android/app/src/main/res
+          cp -rf src-tauri/icons/android/* src-tauri/gen/android/app/src/main/res/
+          npx tauri icon src/assets/logo.png
+
       - name: Build Android APK
         run: npx tauri android build --apk --target aarch64 --ci
 

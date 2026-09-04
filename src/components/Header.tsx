@@ -19,18 +19,18 @@ export const Header: React.FC = () => {
   return (
     <header className="h-14 border-b border-slate-800/80 px-3 sm:px-6 flex items-center justify-between gap-2.5 bg-slate-950/60 backdrop-blur-xl shrink-0 select-none pt-safe">
       {/* Mobile Drawer Hamburger Button & Brand Logo */}
-      <div className="flex items-center gap-2 md:hidden shrink-0">
+      <div className="flex items-center gap-2.5 md:hidden shrink-0">
         <button
           onClick={() => setIsMobileNavOpen(true)}
-          className="p-2 rounded-xl bg-slate-900/80 hover:bg-slate-850 border border-slate-800 text-slate-300 hover:text-white transition-colors cursor-pointer shadow-sm"
+          className="p-2.5 rounded-xl bg-slate-900/80 hover:bg-slate-850 border border-slate-800 text-slate-300 hover:text-white transition-colors cursor-pointer shadow-sm min-h-[40px] min-w-[40px] flex items-center justify-center"
           title="Open Navigation Drawer"
         >
-          <Menu className="w-4 h-4 text-blue-400" />
+          <Menu className="w-4.5 h-4.5 text-blue-400" />
         </button>
         <img
           src={logoImg}
           alt="Veylock"
-          className="w-7 h-7 rounded-lg object-cover shadow-sm ring-1 ring-white/10"
+          className="w-8 h-8 rounded-lg object-cover shadow-sm ring-1 ring-white/10"
         />
       </div>
 
@@ -45,7 +45,7 @@ export const Header: React.FC = () => {
           onChange={(e) => setSearchQuery(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder="Search items, tags, usernames..."
-          className="w-full bg-slate-900/80 border border-slate-800 rounded-xl pl-8.5 pr-8 sm:pr-14 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all shadow-inner shadow-black/20"
+          className="w-full bg-slate-900/80 border border-slate-800 rounded-xl pl-9 pr-8 sm:pr-14 py-2 sm:py-2.5 text-xs sm:text-sm text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all shadow-inner shadow-black/20"
         />
 
         {searchQuery ? (
@@ -54,13 +54,13 @@ export const Header: React.FC = () => {
               setSearchQuery('');
               searchInputRef.current?.focus();
             }}
-            className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded-md text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer"
+            className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-md text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer"
             title="Clear search (Esc)"
           >
-            <X className="w-3.5 h-3.5" />
+            <X className="w-4 h-4" />
           </button>
         ) : (
-          <kbd className="hidden sm:inline-block absolute right-3 top-1/2 -translate-y-1/2 text-[9px] font-mono font-medium text-slate-400 bg-slate-800 px-1.5 py-0.5 rounded border border-slate-700/60 pointer-events-none">
+          <kbd className="hidden sm:inline-block absolute right-3 top-1/2 -translate-y-1/2 text-xs font-mono font-medium text-slate-400 bg-slate-800 px-1.5 py-0.5 rounded border border-slate-700/60 pointer-events-none">
             {isMac ? '⌘K' : 'Ctrl+K'}
           </kbd>
         )}
@@ -71,16 +71,16 @@ export const Header: React.FC = () => {
         <button
           onClick={() => setIsGeneratorOpen(true)}
           title={`Generate Password (${isMac ? '⌘G' : 'Ctrl+G'})`}
-          className="flex items-center gap-1.5 p-2 sm:px-3 sm:py-2 rounded-xl bg-slate-900/80 hover:bg-slate-850 border border-slate-800 text-slate-200 text-xs font-medium transition-all shadow-sm hover:border-slate-700 cursor-pointer group"
+          className="flex items-center gap-1.5 p-2.5 sm:px-3 sm:py-2 rounded-xl bg-slate-900/80 hover:bg-slate-850 border border-slate-800 text-slate-200 text-xs sm:text-sm font-medium transition-all shadow-sm hover:border-slate-700 cursor-pointer group min-h-[40px]"
         >
-          <Sparkles className="w-3.5 h-3.5 text-blue-400 group-hover:rotate-12 transition-transform" />
+          <Sparkles className="w-4 h-4 text-blue-400 group-hover:rotate-12 transition-transform" />
           <span className="hidden sm:inline">Generator</span>
         </button>
 
         <button
           onClick={() => openEditor()}
           title={`New Item (${isMac ? '⌘N' : 'Ctrl+N'})`}
-          className="flex items-center gap-1.5 p-2 sm:px-3.5 sm:py-2 rounded-xl bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white text-xs font-semibold transition-all shadow-md shadow-blue-600/25 cursor-pointer active:scale-98"
+          className="flex items-center gap-1.5 p-2.5 sm:px-3.5 sm:py-2 rounded-xl bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white text-xs sm:text-sm font-semibold transition-all shadow-md shadow-blue-600/25 cursor-pointer active:scale-98 min-h-[40px]"
         >
           <Plus className="w-4 h-4" />
           <span className="hidden sm:inline">New Entry</span>

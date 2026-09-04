@@ -245,7 +245,7 @@ impl VaultManager {
         Ok(())
     }
 
-    pub fn export_backup(&mut self, dest_path: &str) -> Result<(), String> {
+    pub fn export_backup_string(&mut self) -> Result<String, String> {
         self.check_auto_lock();
         if self.active_key.is_none() {
             return Err("Vault is locked".to_string());
@@ -283,6 +283,13 @@ impl VaultManager {
 
         let json_str = serde_json::to_string_pretty(&backup)
             .map_err(|e| format!("Failed to build backup JSON: {}", e))?;
+
+        self.touch_activity();
+        Ok(json_str)
+    }
+
+    pub fn export_backup(&mut self, dest_path: &str) -> Result<(), String> {
+        let json_str = self.export_backup_string()?;
 
         if let Some(parent) = std::path::Path::new(dest_path).parent() {
             if !parent.as_os_str().is_empty() {

@@ -104,7 +104,7 @@ export const Sidebar: React.FC = () => {
 
       {/* Navigation List */}
       <div className="flex-1 overflow-y-auto px-2.5 py-3 space-y-1">
-        <span className="text-[9px] font-bold text-slate-500 uppercase tracking-wider px-3 mb-1 block">Categories</span>
+        <span className="text-xs font-bold text-slate-400 uppercase tracking-wider px-3 mb-1.5 block">Categories</span>
         {navItems.map((item) => {
           const count = getCount(item.id);
           const isActive = activeCategory === item.id;
@@ -112,7 +112,7 @@ export const Sidebar: React.FC = () => {
             <button
               key={item.id}
               onClick={() => handleNavClick(item.id)}
-              className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-medium transition-all cursor-pointer group ${
+              className={`w-full flex items-center justify-between px-3 py-2.5 sm:py-3 rounded-xl text-sm font-medium transition-all cursor-pointer group min-h-[44px] ${
                 isActive
                   ? 'bg-blue-600/15 text-white shadow-sm border border-blue-500/30'
                   : 'text-slate-400 hover:text-slate-100 hover:bg-slate-900/50 border border-transparent'
@@ -127,17 +127,17 @@ export const Sidebar: React.FC = () => {
 
               {item.id === 'health' ? (
                 totalVulnerabilities > 0 ? (
-                  <span className="text-[9px] px-1.5 py-0.5 rounded-full font-mono bg-rose-500/20 text-rose-300 border border-rose-500/30 font-bold animate-pulse">
+                  <span className="text-xs px-2 py-0.5 rounded-full font-mono bg-rose-500/20 text-rose-300 border border-rose-500/30 font-bold animate-pulse">
                     {totalVulnerabilities} alert{totalVulnerabilities > 1 ? 's' : ''}
                   </span>
                 ) : (
-                  <span className="text-[9px] px-1.5 py-0.5 rounded-full font-mono bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 font-medium">
+                  <span className="text-xs px-2 py-0.5 rounded-full font-mono bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 font-medium">
                     Secure
                   </span>
                 )
               ) : (
                 <span
-                  className={`text-[10px] px-2 py-0.5 rounded-full font-mono transition-colors ${
+                  className={`text-xs px-2.5 py-0.5 rounded-full font-mono transition-colors ${
                     isActive
                       ? 'bg-blue-500/25 text-blue-200 font-bold border border-blue-500/30'
                       : 'bg-slate-900/60 text-slate-400'
@@ -158,9 +158,9 @@ export const Sidebar: React.FC = () => {
             setIsImportExportOpen(true);
             if (isMobile) setIsMobileNavOpen(false);
           }}
-          className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs text-slate-300 hover:text-white hover:bg-slate-900 border border-transparent hover:border-slate-800 transition-all cursor-pointer"
+          className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm text-slate-300 hover:text-white hover:bg-slate-900 border border-transparent hover:border-slate-800 transition-all cursor-pointer min-h-[44px]"
         >
-          <HardDriveDownload className="w-3.5 h-3.5 text-blue-400" />
+          <HardDriveDownload className="w-4 h-4 text-blue-400" />
           <span>Backup & Restore</span>
         </button>
 
@@ -169,9 +169,9 @@ export const Sidebar: React.FC = () => {
             setIsSettingsOpen(true);
             if (isMobile) setIsMobileNavOpen(false);
           }}
-          className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs text-slate-300 hover:text-white hover:bg-slate-900 border border-transparent hover:border-slate-800 transition-all cursor-pointer"
+          className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm text-slate-300 hover:text-white hover:bg-slate-900 border border-transparent hover:border-slate-800 transition-all cursor-pointer min-h-[44px]"
         >
-          <Settings className="w-3.5 h-3.5 text-slate-400" />
+          <Settings className="w-4 h-4 text-slate-400" />
           <span>Preferences</span>
         </button>
       </div>

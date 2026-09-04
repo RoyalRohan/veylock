@@ -1,5 +1,5 @@
 use std::fs;
-use tauri::State;
+use tauri::{Manager, State};
 use uuid::Uuid;
 
 use crate::totp::generator::generate_totp_code as calc_totp;
@@ -117,13 +117,94 @@ pub fn get_vault_health(state: State<'_, SharedVaultManager>) -> Result<VaultHea
     Ok(evaluate_vault_health(&entries))
 }
 
+fn resolve_save_path(app: &tauri::AppHandle, custom_path: Option<&str>, ext: &str) -> String {
+    let date = chrono::Utc::now().format("%Y-%m-%d").to_string();
+    let filename = format!("veylock_backup_{}.{}", date, ext);
+
+    if let Some(p) = custom_path {
+        let p = p.trim();
+        if !p.is_empty() {
+            let path = std::path::Path::new(p);
+            if path.is_absolute() {
+                return p.to_string();
+            }
+        }
+    }
+
+    // Check Android external public storage Download directory
+    #[cfg(target_os = "android")]
+    {
+        let android_dl = std::path::Path::new("/storage/emulated/0/Download");
+        if android_dl.exists() && android_dl.is_dir() {
+            return android_dl.join(&filename).to_string_lossy().to_string();
+        }
+    }
+
+    // Try Tauri download_dir()
+    if let Ok(dl) = app.path().download_dir() {
+        return dl.join(&filename).to_string_lossy().to_string();
+    }
+
+    // Try Tauri document_dir()
+    if let Ok(doc) = app.path().document_dir() {
+        return doc.join(&filename).to_string_lossy().to_string();
+    }
+
+    // Try home directory Downloads
+    if let Ok(home) = app.path().home_dir() {
+        let downloads = home.join("Downloads");
+        if downloads.exists() {
+            return downloads.join(&filename).to_string_lossy().to_string();
+        }
+        return home.join(&filename).to_string_lossy().to_string();
+    }
+
+    // Fallback to app_data_dir()
+    if let Ok(app_data) = app.path().app_data_dir() {
+        return app_data.join(&filename).to_string_lossy().to_string();
+    }
+
+    filename
+}
+
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+pub struct ExportResult {
+    pub path: String,
+    pub content: String,
+}
+
+#[tauri::command]
+pub fn export_vault_backup_string(
+    state: State<'_, SharedVaultManager>,
+) -> Result<String, String> {
+    let mut manager = state.lock().map_err(|_| "Failed to acquire vault lock")?;
+    manager.export_backup_string()
+}
+
 #[tauri::command]
 pub fn export_vault_backup(
+    app: tauri::AppHandle,
     state: State<'_, SharedVaultManager>,
-    dest_path: String,
-) -> Result<(), String> {
+    dest_path: Option<String>,
+) -> Result<ExportResult, String> {
     let mut manager = state.lock().map_err(|_| "Failed to acquire vault lock")?;
-    manager.export_backup(&dest_path)
+    let json_str = manager.export_backup_string()?;
+
+    let target_path = resolve_save_path(&app, dest_path.as_deref(), "vlock");
+    if let Some(parent) = std::path::Path::new(&target_path).parent() {
+        if !parent.as_os_str().is_empty() {
+            let _ = fs::create_dir_all(parent);
+        }
+    }
+
+    let write_res = fs::write(&target_path, &json_str);
+    if let Err(e) = write_res {
+        eprintln!("Warning: direct disk write failed: {}", e);
+    }
+    Ok(ExportResult {
+        path: target_path,
+        content: json_str,
+    })
 }
 
 #[tauri::command]
@@ -147,10 +228,37 @@ pub fn change_master_password(
 }
 
 #[tauri::command]
-pub fn export_plaintext_csv(
+pub fn export_plaintext_csv_string(
     state: State<'_, SharedVaultManager>,
-    dest_path: String,
-) -> Result<(), String> {
+) -> Result<String, String> {
+    let mut manager = state.lock().map_err(|_| "Failed to acquire vault lock")?;
+    let entries = manager.get_entries()?;
+
+    let mut csv_out = String::from("title,username,email,password,url,category,notes,totp_secret\r\n");
+    for e in entries {
+        let title = escape_csv(&e.title);
+        let user = escape_csv(&e.username);
+        let email = escape_csv(&e.email);
+        let pass = escape_csv(&e.password);
+        let url = escape_csv(&e.url);
+        let cat = escape_csv(&e.category);
+        let notes = escape_csv(&e.notes);
+        let totp = escape_csv(e.totp_secret.as_deref().unwrap_or(""));
+
+        csv_out.push_str(&format!(
+            "{},{},{},{},{},{},{},{}\r\n",
+            title, user, email, pass, url, cat, notes, totp
+        ));
+    }
+    Ok(csv_out)
+}
+
+#[tauri::command]
+pub fn export_plaintext_csv(
+    app: tauri::AppHandle,
+    state: State<'_, SharedVaultManager>,
+    dest_path: Option<String>,
+) -> Result<ExportResult, String> {
     let mut manager = state.lock().map_err(|_| "Failed to acquire vault lock")?;
     let entries = manager.get_entries()?;
 
@@ -171,14 +279,21 @@ pub fn export_plaintext_csv(
         ));
     }
 
-    if let Some(parent) = std::path::Path::new(&dest_path).parent() {
+    let target_path = resolve_save_path(&app, dest_path.as_deref(), "csv");
+    if let Some(parent) = std::path::Path::new(&target_path).parent() {
         if !parent.as_os_str().is_empty() {
             let _ = fs::create_dir_all(parent);
         }
     }
 
-    fs::write(dest_path, csv_out).map_err(|e| format!("Failed to write CSV: {}", e))?;
-    Ok(())
+    let write_res = fs::write(&target_path, &csv_out);
+    if let Err(e) = write_res {
+        eprintln!("Warning: direct disk write failed: {}", e);
+    }
+    Ok(ExportResult {
+        path: target_path,
+        content: csv_out,
+    })
 }
 
 fn escape_csv(val: &str) -> String {

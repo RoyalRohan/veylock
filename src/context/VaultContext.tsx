@@ -2,6 +2,11 @@ import React, { createContext, useContext, useState, useEffect, useCallback, use
 import { invoke } from '@tauri-apps/api/core';
 import { CategoryType, DecryptedEntry, PwGenConfig, VaultHealthReport, VaultStatus } from '../types';
 
+export interface ExportResult {
+  path: string;
+  content: string;
+}
+
 interface VaultContextType {
   status: VaultStatus;
   entries: DecryptedEntry[];
@@ -37,10 +42,10 @@ interface VaultContextType {
   generatePassword: (config: PwGenConfig) => Promise<string>;
   setAutoLockTimer: (minutes: number) => Promise<void>;
   fetchHealthReport: () => Promise<void>;
-  exportBackup: (path: string) => Promise<void>;
+  exportBackup: (path?: string) => Promise<ExportResult>;
   importBackup: (path: string, password: string) => Promise<void>;
   changeMasterPassword: (oldP: string, newP: string) => Promise<void>;
-  exportCsv: (path: string) => Promise<void>;
+  exportCsv: (path?: string) => Promise<ExportResult>;
   importCsv: (path: string) => Promise<number>;
   showToast: (message: string, type?: 'info' | 'success' | 'warning' | 'error') => void;
 }
@@ -248,12 +253,14 @@ export const VaultProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   }, []);
 
-  const exportBackup = useCallback(async (path: string) => {
+  const exportBackup = useCallback(async (path?: string): Promise<ExportResult> => {
     try {
-      await invoke('export_vault_backup', { destPath: path });
+      const res = await invoke<ExportResult>('export_vault_backup', { destPath: path || null });
       showToast('Encrypted vault backup exported successfully!', 'success');
+      return res;
     } catch (err: any) {
       showToast(err.toString(), 'error');
+      throw err;
     }
   }, [showToast]);
 
@@ -282,12 +289,14 @@ export const VaultProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   }, [showToast]);
 
-  const exportCsv = useCallback(async (path: string) => {
+  const exportCsv = useCallback(async (path?: string): Promise<ExportResult> => {
     try {
-      await invoke('export_plaintext_csv', { destPath: path });
+      const res = await invoke<ExportResult>('export_plaintext_csv', { destPath: path || null });
       showToast('CSV exported. WARNING: File contains plaintext passwords!', 'warning');
+      return res;
     } catch (err: any) {
       showToast(err.toString(), 'error');
+      throw err;
     }
   }, [showToast]);
 

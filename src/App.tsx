@@ -63,8 +63,8 @@ const MainAppContent: React.FC = () => {
           )}
         </div>
 
-        {/* Mobile Bottom Navigation Bar */}
-        <MobileBottomBar />
+        {/* Mobile Bottom Navigation Bar (Hidden when viewing an entry detail on mobile) */}
+        {!selectedEntryId && <MobileBottomBar />}
       </div>
 
       {/* Application Modals */}

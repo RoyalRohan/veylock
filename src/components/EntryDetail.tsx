@@ -93,46 +93,46 @@ export const EntryDetail: React.FC = () => {
   return (
     <div className="flex-1 flex flex-col h-full bg-[#070a13]/10 overflow-y-auto select-none">
       {/* Detail Top Header */}
-      <div className="p-3.5 sm:p-5 border-b border-slate-900 flex flex-wrap items-center justify-between gap-3 bg-[#070a13]/40">
+      <div className="p-3.5 sm:p-5 border-b border-slate-900 flex flex-wrap items-center justify-between gap-3 bg-[#070a13]/40 shrink-0">
         <div className="flex items-center gap-3 min-w-0">
           {/* Mobile Back to List Button */}
           <button
             onClick={() => setSelectedEntryId(null)}
-            className="md:hidden flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-slate-900/90 hover:bg-slate-850 border border-slate-800 text-slate-300 hover:text-white transition-colors cursor-pointer shrink-0 shadow-sm"
+            className="md:hidden flex items-center gap-1 px-3 py-2 rounded-xl bg-slate-900/90 hover:bg-slate-850 border border-slate-800 text-slate-300 hover:text-white transition-colors cursor-pointer shrink-0 shadow-sm"
             title="Back to item list"
           >
             <ChevronLeft className="w-4 h-4 text-blue-400" />
             <span className="text-xs font-semibold">Back</span>
           </button>
 
-          <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-[#0d1222] border border-slate-800 flex items-center justify-center shadow-md shrink-0">
+          <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-[#0d1222] border border-slate-800 flex items-center justify-center shadow-md shrink-0">
             {getCategoryIcon(entry.category)}
           </div>
           <div className="min-w-0">
             <div className="flex items-center gap-2">
-              <h2 className="text-sm sm:text-base font-bold text-white tracking-wide truncate">{entry.title}</h2>
+              <h2 className="text-base sm:text-lg font-bold text-white tracking-wide truncate">{entry.title}</h2>
               <button
                 onClick={toggleFavorite}
                 className="p-1 rounded-lg hover:bg-slate-900 text-slate-400 transition-colors cursor-pointer shrink-0"
                 title={entry.favorite ? 'Remove from favorites' : 'Add to favorites'}
               >
                 <Star
-                  className={`w-3.5 h-3.5 ${
+                  className={`w-4 h-4 ${
                     entry.favorite ? 'fill-amber-400 text-amber-400' : 'text-slate-500'
                   }`}
                 />
               </button>
             </div>
             <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-              <span className="text-[10px] text-slate-500 capitalize font-medium">{entry.category.replace('_', ' ')}</span>
+              <span className="text-xs text-slate-400 capitalize font-medium">{entry.category.replace('_', ' ')}</span>
               {entry.tags && entry.tags.length > 0 && (
                 <div className="flex items-center gap-1.5 flex-wrap">
                   {entry.tags.map((tag) => (
                     <span
                       key={tag}
-                      className="inline-flex items-center gap-0.5 text-[9px] px-1.5 py-0.5 rounded-md bg-slate-900 border border-slate-800 text-cyan-300 font-medium"
+                      className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-md bg-slate-900 border border-slate-800 text-cyan-300 font-medium"
                     >
-                      <Tag className="w-2.5 h-2.5 text-cyan-400/80" />
+                      <Tag className="w-3 h-3 text-cyan-400/80" />
                       {tag}
                     </span>
                   ))}
@@ -145,9 +145,9 @@ export const EntryDetail: React.FC = () => {
         <div className="flex items-center gap-2 ml-auto shrink-0">
           <button
             onClick={() => openEditor(entry)}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 text-xs font-medium transition-colors cursor-pointer"
+            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-200 text-xs font-semibold transition-colors cursor-pointer"
           >
-            <Edit3 className="w-3.5 h-3.5" />
+            <Edit3 className="w-4 h-4" />
             <span>Edit</span>
           </button>
           <button
@@ -157,16 +157,16 @@ export const EntryDetail: React.FC = () => {
                 setSelectedEntryId(null);
               }
             }}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-rose-950/40 hover:bg-rose-950/80 border border-rose-900/40 text-rose-300 text-xs font-medium transition-colors cursor-pointer"
+            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-rose-950/40 hover:bg-rose-950/80 border border-rose-900/40 text-rose-300 text-xs font-semibold transition-colors cursor-pointer"
           >
-            <Trash2 className="w-3.5 h-3.5" />
+            <Trash2 className="w-4 h-4" />
             <span>Delete</span>
           </button>
         </div>
       </div>
 
       {/* Main Content Details */}
-      <div className="p-3.5 sm:p-6 space-y-4 sm:space-y-5 max-w-2xl pb-safe">
+      <div className="p-4 sm:p-6 space-y-4 sm:space-y-5 max-w-2xl pb-28 md:pb-8">
         {/* TOTP Authenticator Section */}
         {entry.totp_secret && (
           <TotpViewer secret={entry.totp_secret} onCopy={copyToClipboard} />
@@ -177,62 +177,62 @@ export const EntryDetail: React.FC = () => {
           {/* Username */}
           {entry.username && (
             <div className="flex items-center justify-between group">
-              <div className="flex items-center gap-3">
-                <User className="w-4 h-4 text-slate-500 shrink-0" />
-                <div>
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block">Username</span>
-                  <span className="text-xs font-mono text-slate-200">{entry.username}</span>
+              <div className="flex items-center gap-3 min-w-0 flex-1 pr-3">
+                <User className="w-4.5 h-4.5 text-slate-500 shrink-0" />
+                <div className="min-w-0 flex-1">
+                  <span className="text-xs font-bold uppercase tracking-wider text-slate-400 block mb-0.5">Username</span>
+                  <span className="text-sm sm:text-base font-mono text-slate-100 font-medium select-all block truncate">{entry.username}</span>
                 </div>
               </div>
               <button
                 onClick={() => handleCopy(entry.username, 'Username')}
-                className="p-1.5 rounded-lg bg-slate-950/60 hover:bg-slate-800 text-slate-400 hover:text-white border border-slate-900 transition-colors cursor-pointer"
+                className="p-2 rounded-xl bg-slate-950/60 hover:bg-slate-800 text-slate-400 hover:text-white border border-slate-900 transition-colors cursor-pointer shrink-0"
               >
-                {copiedField === 'Username' ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                {copiedField === 'Username' ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
               </button>
             </div>
           )}
 
           {/* Email */}
           {entry.email && (
-            <div className="flex items-center justify-between group pt-3 border-t border-slate-900/60">
-              <div className="flex items-center gap-3">
-                <Mail className="w-4 h-4 text-slate-500 shrink-0" />
-                <div>
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block">Email</span>
-                  <span className="text-xs font-mono text-slate-200">{entry.email}</span>
+            <div className="flex items-center justify-between group pt-3.5 border-t border-slate-900/60">
+              <div className="flex items-center gap-3 min-w-0 flex-1 pr-3">
+                <Mail className="w-4.5 h-4.5 text-slate-500 shrink-0" />
+                <div className="min-w-0 flex-1">
+                  <span className="text-xs font-bold uppercase tracking-wider text-slate-400 block mb-0.5">Email</span>
+                  <span className="text-sm sm:text-base font-mono text-slate-100 font-medium select-all block truncate">{entry.email}</span>
                 </div>
               </div>
               <button
                 onClick={() => handleCopy(entry.email, 'Email')}
-                className="p-1.5 rounded-lg bg-slate-950/60 hover:bg-slate-800 text-slate-400 hover:text-white border border-slate-900 transition-colors cursor-pointer"
+                className="p-2 rounded-xl bg-slate-950/60 hover:bg-slate-800 text-slate-400 hover:text-white border border-slate-900 transition-colors cursor-pointer shrink-0"
               >
-                {copiedField === 'Email' ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                {copiedField === 'Email' ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
               </button>
             </div>
           )}
 
           {/* Password */}
           {entry.password && (
-            <div className="pt-3 border-t border-slate-900/60">
+            <div className="pt-3.5 border-t border-slate-900/60">
               <div className="flex items-start justify-between gap-3">
-                <div className="flex items-start gap-3 min-w-0">
-                  <Lock className="w-4 h-4 text-slate-500 shrink-0 mt-0.5" />
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-2 mb-1 flex-wrap">
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Password</span>
-                      <span className={`text-[9px] px-1.5 py-0.5 rounded font-bold ${strength.color} text-white`}>
+                <div className="flex items-start gap-3 min-w-0 flex-1">
+                  <Lock className="w-4.5 h-4.5 text-slate-500 shrink-0 mt-0.5" />
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2 mb-1.5 flex-wrap">
+                      <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Password</span>
+                      <span className={`text-xs px-2 py-0.5 rounded font-bold ${strength.color} text-white`}>
                         {strength.label}
                       </span>
-                      <span className="text-[9px] font-mono text-cyan-300 bg-cyan-950/60 px-1.5 py-0.5 rounded border border-cyan-800/40">
+                      <span className="text-xs font-mono text-cyan-300 bg-cyan-950/60 px-2 py-0.5 rounded border border-cyan-800/40">
                         {entropy.bits} bits • {entropy.crackTimeDisplay}
                       </span>
                     </div>
-                    <span className="text-xs font-mono text-slate-200 block break-all">
+                    <span className="text-sm sm:text-base font-mono text-slate-100 block break-all tracking-wider font-medium select-all">
                       {showPassword ? entry.password : '••••••••••••••••'}
                     </span>
                     {/* Visual 4-step strength bar */}
-                    <div className="h-1 w-32 bg-slate-900 rounded-full overflow-hidden flex gap-1 mt-2">
+                    <div className="h-1.5 w-36 bg-slate-900 rounded-full overflow-hidden flex gap-1 mt-2.5">
                       {[0, 1, 2, 3].map((idx) => (
                         <div
                           key={idx}
@@ -248,17 +248,17 @@ export const EntryDetail: React.FC = () => {
                 <div className="flex items-center gap-1.5 shrink-0">
                   <button
                     onClick={() => setShowPassword(!showPassword)}
-                    className="p-1.5 rounded-lg bg-slate-950/60 hover:bg-slate-800 text-slate-400 hover:text-white border border-slate-900 transition-colors cursor-pointer"
+                    className="p-2 rounded-xl bg-slate-950/60 hover:bg-slate-800 text-slate-400 hover:text-white border border-slate-900 transition-colors cursor-pointer"
                     title={showPassword ? 'Hide Password' : 'Show Password'}
                   >
-                    {showPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
                   <button
                     onClick={() => handleCopy(entry.password, 'Password')}
-                    className="p-1.5 rounded-lg bg-slate-950/60 hover:bg-slate-800 text-slate-400 hover:text-white border border-slate-900 transition-colors cursor-pointer"
+                    className="p-2 rounded-xl bg-slate-950/60 hover:bg-slate-800 text-slate-400 hover:text-white border border-slate-900 transition-colors cursor-pointer"
                     title="Copy Password"
                   >
-                    {copiedField === 'Password' ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                    {copiedField === 'Password' ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
                   </button>
                 </div>
               </div>
@@ -267,21 +267,21 @@ export const EntryDetail: React.FC = () => {
 
           {/* Website URL */}
           {entry.url && (
-            <div className="flex items-center justify-between group pt-3 border-t border-slate-900/60">
-              <div className="flex items-center gap-3 min-w-0">
-                <Globe className="w-4 h-4 text-slate-500 shrink-0" />
-                <div className="min-w-0">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block">Website URL</span>
-                  <span className="text-xs font-mono text-blue-400 truncate block hover:underline cursor-pointer" onClick={handleOpenUrl}>
+            <div className="flex items-center justify-between group pt-3.5 border-t border-slate-900/60">
+              <div className="flex items-center gap-3 min-w-0 flex-1 pr-3">
+                <Globe className="w-4.5 h-4.5 text-slate-500 shrink-0" />
+                <div className="min-w-0 flex-1">
+                  <span className="text-xs font-bold uppercase tracking-wider text-slate-400 block mb-0.5">Website URL</span>
+                  <span className="text-sm font-mono text-blue-400 truncate block hover:underline cursor-pointer" onClick={handleOpenUrl}>
                     {entry.url}
                   </span>
                 </div>
               </div>
               <button
                 onClick={handleOpenUrl}
-                className="p-1.5 rounded-lg bg-slate-950/60 hover:bg-slate-800 text-slate-400 hover:text-white border border-slate-900 transition-colors flex items-center gap-1 text-[11px] font-medium cursor-pointer"
+                className="p-2 rounded-xl bg-slate-950/60 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-900 transition-colors flex items-center gap-1.5 text-xs font-semibold cursor-pointer shrink-0"
               >
-                <ExternalLink className="w-3.5 h-3.5" />
+                <ExternalLink className="w-4 h-4" />
                 <span>Open</span>
               </button>
             </div>
@@ -291,36 +291,36 @@ export const EntryDetail: React.FC = () => {
         {/* Custom Fields */}
         {entry.custom_fields && entry.custom_fields.length > 0 && (
           <div className="bg-[#0d1222]/90 border border-slate-900 rounded-2xl p-5 space-y-3 shadow-sm">
-            <h3 className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Custom Fields</h3>
+            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">Custom Fields</h3>
             {entry.custom_fields.map((field) => {
               const isSensitive = field.fieldType === 'sensitive' || field.field_type === 'sensitive';
               const isRevealed = visibleCustomFields[field.id];
               return (
-                <div key={field.id} className="flex items-center justify-between p-2 rounded-xl bg-slate-950/60 border border-slate-900/60">
-                  <div className="pl-1">
-                    <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500 block">{field.name}</span>
-                    <span className="text-xs font-mono text-slate-200">
+                <div key={field.id} className="flex items-center justify-between p-3 rounded-xl bg-slate-950/60 border border-slate-900/60">
+                  <div className="pl-1 min-w-0 flex-1 pr-3">
+                    <span className="text-xs font-bold uppercase tracking-wider text-slate-400 block">{field.name}</span>
+                    <span className="text-sm font-mono text-slate-200 select-all block truncate">
                       {isSensitive && !isRevealed ? '••••••••' : field.value}
                     </span>
                   </div>
-                  <div className="flex items-center gap-1.5">
+                  <div className="flex items-center gap-1.5 shrink-0">
                     {isSensitive && (
                       <button
                         onClick={() =>
                           setVisibleCustomFields((prev) => ({ ...prev, [field.id]: !prev[field.id] }))
                         }
-                        className="p-1.5 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white cursor-pointer"
+                        className="p-2 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white cursor-pointer"
                         title={isRevealed ? 'Hide Value' : 'Show Value'}
                       >
-                        {isRevealed ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                        {isRevealed ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                       </button>
                     )}
                     <button
                       onClick={() => handleCopy(field.value, field.name)}
-                      className="p-1.5 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white cursor-pointer"
+                      className="p-2 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white cursor-pointer"
                       title="Copy"
                     >
-                      <Copy className="w-3.5 h-3.5" />
+                      <Copy className="w-4 h-4" />
                     </button>
                   </div>
                 </div>
@@ -332,21 +332,21 @@ export const EntryDetail: React.FC = () => {
         {/* Secure Notes Section */}
         {entry.notes && (
           <div className="bg-[#0d1222]/90 border border-slate-900 rounded-2xl p-5 space-y-2 shadow-sm">
-            <h3 className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Secure Notes</h3>
-            <p className="text-xs text-slate-300 whitespace-pre-wrap leading-relaxed bg-[#070a13] p-4 rounded-xl border border-slate-900/80 font-mono">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400">Secure Notes</h3>
+            <p className="text-sm text-slate-200 whitespace-pre-wrap leading-relaxed bg-[#070a13] p-4 rounded-xl border border-slate-900/80 font-mono">
               {entry.notes}
             </p>
           </div>
         )}
 
         {/* Item Metadata */}
-        <div className="flex items-center gap-5 text-[10px] text-slate-500 font-mono pt-1">
+        <div className="flex items-center gap-5 text-xs text-slate-400 font-mono pt-1">
           <div className="flex items-center gap-1.5">
-            <Calendar className="w-3.5 h-3.5 text-slate-600" />
+            <Calendar className="w-4 h-4 text-slate-500" />
             <span>Created: {new Date(entry.created_at).toLocaleDateString()}</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <Calendar className="w-3.5 h-3.5 text-slate-600" />
+            <Calendar className="w-4 h-4 text-slate-500" />
             <span>Updated: {new Date(entry.updated_at).toLocaleDateString()}</span>
           </div>
         </div>

@@ -40,9 +40,11 @@ pub fn run() {
             commands::generate_totp_code,
             commands::get_vault_health,
             commands::export_vault_backup,
+            commands::export_vault_backup_string,
             commands::import_vault_backup,
             commands::change_master_password,
             commands::export_plaintext_csv,
+            commands::export_plaintext_csv_string,
             commands::import_plaintext_csv,
         ])
         .run(tauri::generate_context!())
