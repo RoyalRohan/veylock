@@ -16,9 +16,9 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - platform: 'ubuntu-22.04' # Builds the Linux .deb package
+          - platform: 'ubuntu-22.04' # Builds Linux .deb and .rpm (Fedora) packages
             args: ''
-          - platform: 'windows-latest' # Builds the Windows .exe installer
+          - platform: 'windows-latest' # Builds Windows .exe installer
             args: ''
 
     runs-on: ${{ matrix.platform }}
@@ -39,7 +39,7 @@ jobs:
         if: matrix.platform == 'ubuntu-22.04'
         run: |
           sudo apt-get update
-          sudo apt-get install -y libwebkit2gtk-4.1-dev build-essential curl wget file libxdo-dev libssl-dev libayatana-appindicator3-dev librsvg2-dev
+          sudo apt-get install -y libwebkit2gtk-4.1-dev build-essential curl wget file libxdo-dev libssl-dev libayatana-appindicator3-dev librsvg2-dev rpm
 
       - name: Install npm dependencies
         run: npm ci
@@ -51,7 +51,70 @@ jobs:
         with:
           tagName: ${{ github.ref_name }}
           releaseName: 'Veylock ${{ github.ref_name }}'
-          releaseBody: 'Production distribution packages for Veylock Password Manager.'
-          releaseDraft: true
+          releaseBody: 'Production distribution packages for Veylock Password Manager (Windows, Ubuntu/Debian, Fedora/RPM, and Android).'
+          releaseDraft: false
           prerelease: false
           args: ${{ matrix.args }}
+
+  build-android:
+    needs: publish-tauri
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Android NDK
+        run: |
+          ANDROID_NDK_VERSION="26.1.10909125"
+          echo "y" | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --install "ndk;$ANDROID_NDK_VERSION"
+          echo "NDK_HOME=$ANDROID_HOME/ndk/$ANDROID_NDK_VERSION" >> $GITHUB_ENV
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-linux-android, armv7-linux-androideabi
+
+      - name: Install npm dependencies
+        run: npm ci
+
+      - name: Initialize Android Target
+        run: npx tauri android init --ci
+
+      - name: Build Android APK
+        run: npx tauri android build --apk --target aarch64
+
+      - name: Sign APK with Default Keystore
+        run: |
+          keytool -genkey -v -keystore release.keystore -alias veylock -keyalg RSA -keysize 2048 -validity 10000 -storepass android -keypass android -dname "CN=Veylock, OU=Security, O=Veylock, L=City, S=State, C=US"
+          BUILD_TOOLS_DIR=$(ls -d $ANDROID_HOME/build-tools/* | sort -V | tail -n 1)
+          find src-tauri/gen/android/app/build/outputs/apk -type f -name "*.apk" | while read -r apk; do
+            echo "Signing $apk..."
+            $BUILD_TOOLS_DIR/apksigner sign --ks release.keystore --ks-pass pass:android --key-pass pass:android "$apk"
+          done
+
+      - name: Upload Android APK to GitHub Release
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref_name }}
+          files: |
+            src-tauri/gen/android/app/build/outputs/apk/**/*.apk
