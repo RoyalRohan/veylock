@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { VaultProvider, useVault } from './context/VaultContext';
+import { ThemeProvider } from './context/ThemeContext';
 import { LockScreen } from './components/LockScreen';
 import { SetupVaultModal } from './components/SetupVaultModal';
 import { Sidebar } from './components/Sidebar';
@@ -29,7 +30,7 @@ const MainAppContent: React.FC = () => {
   }
 
   return (
-    <div className="flex h-screen w-screen bg-dark-bg text-slate-100 overflow-hidden font-sans select-none flex-col md:flex-row">
+    <div className="flex h-screen w-screen bg-theme-bg text-theme-text overflow-hidden font-sans select-none flex-col md:flex-row transition-colors duration-150">
       {/* Navigation Sidebar (Desktop Permanent + Mobile Drawer) */}
       <Sidebar />
 
@@ -79,8 +80,10 @@ const MainAppContent: React.FC = () => {
 
 export default function App() {
   return (
-    <VaultProvider>
-      <MainAppContent />
-    </VaultProvider>
+    <ThemeProvider>
+      <VaultProvider>
+        <MainAppContent />
+      </VaultProvider>
+    </ThemeProvider>
   );
 }

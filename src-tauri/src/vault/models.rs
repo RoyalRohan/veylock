@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct CustomField {
     pub id: String,
     pub name: String,
@@ -9,7 +9,7 @@ pub struct CustomField {
     pub field_type: String, // "text" | "sensitive"
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct DecryptedEntry {
     pub id: String,
     pub title: String,
@@ -27,6 +27,68 @@ pub struct DecryptedEntry {
     pub created_at: String,
     pub updated_at: String,
     pub last_used_at: Option<String>,
+
+    // Authenticator extensions
+    #[serde(default)]
+    pub totp_algorithm: Option<String>, // "SHA1" | "SHA256" | "SHA512"
+    #[serde(default)]
+    pub totp_digits: Option<u32>, // 6 | 8
+    #[serde(default)]
+    pub totp_period: Option<u64>, // 30 | 60
+
+    // Card extensions
+    #[serde(default)]
+    pub cardholder_name: Option<String>,
+    #[serde(default)]
+    pub card_number: Option<String>,
+    #[serde(default)]
+    pub card_exp_month: Option<String>,
+    #[serde(default)]
+    pub card_exp_year: Option<String>,
+    #[serde(default)]
+    pub card_cvv: Option<String>,
+    #[serde(default)]
+    pub card_pin: Option<String>,
+    #[serde(default)]
+    pub card_type: Option<String>,
+    #[serde(default)]
+    pub card_billing_address: Option<String>,
+
+    // License extensions
+    #[serde(default)]
+    pub license_key: Option<String>,
+    #[serde(default)]
+    pub license_vendor: Option<String>,
+    #[serde(default)]
+    pub license_version: Option<String>,
+    #[serde(default)]
+    pub license_purchase_date: Option<String>,
+    #[serde(default)]
+    pub license_expires_at: Option<String>,
+
+    // Server extensions
+    #[serde(default)]
+    pub server_host: Option<String>,
+    #[serde(default)]
+    pub server_port: Option<String>,
+    #[serde(default)]
+    pub server_protocol: Option<String>,
+    #[serde(default)]
+    pub server_key: Option<String>,
+    #[serde(default)]
+    pub server_environment: Option<String>,
+
+    // API Credential extensions
+    #[serde(default)]
+    pub api_key: Option<String>,
+    #[serde(default)]
+    pub api_secret: Option<String>,
+    #[serde(default)]
+    pub api_client_id: Option<String>,
+    #[serde(default)]
+    pub api_client_secret: Option<String>,
+    #[serde(default)]
+    pub api_environment: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

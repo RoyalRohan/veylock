@@ -2,7 +2,7 @@ use std::fs;
 use tauri::{Manager, State};
 use uuid::Uuid;
 
-use crate::totp::generator::generate_totp_code as calc_totp;
+use crate::totp::generator::{generate_totp_code as calc_totp, validate_totp_secret};
 use crate::vault::health::evaluate_vault_health;
 use crate::vault::manager::SharedVaultManager;
 use crate::vault::models::{
@@ -102,12 +102,24 @@ pub fn generate_password(config: PwGenConfig) -> Result<String, String> {
 }
 
 #[tauri::command]
-pub fn generate_totp_code(secret: String) -> Result<TotpResult, String> {
+pub fn generate_totp_code(
+    secret: String,
+    digits: Option<u32>,
+    period: Option<u64>,
+) -> Result<TotpResult, String> {
     if secret.trim().is_empty() {
         return Err("Secret is empty".to_string());
     }
-    let (code, time_remaining) = calc_totp(&secret)?;
+    let (code, time_remaining) = calc_totp(&secret, digits, period)?;
     Ok(TotpResult { code, time_remaining })
+}
+
+#[tauri::command]
+pub fn validate_totp(secret: String) -> Result<bool, String> {
+    if secret.trim().is_empty() {
+        return Ok(false);
+    }
+    validate_totp_secret(&secret)
 }
 
 #[tauri::command]
@@ -491,6 +503,7 @@ pub fn import_plaintext_csv(
             created_at: chrono::Utc::now().to_rfc3339(),
             updated_at: chrono::Utc::now().to_rfc3339(),
             last_used_at: None,
+            ..Default::default()
         };
 
         if manager.save_entry(entry).is_ok() {

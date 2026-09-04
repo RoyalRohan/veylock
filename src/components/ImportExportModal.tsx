@@ -211,8 +211,8 @@ export const ImportExportModal: React.FC = () => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/80 backdrop-blur-md select-none">
-      <div className="w-full max-w-lg glass-panel rounded-2xl p-5 sm:p-6 shadow-2xl border border-slate-800 animate-scale-up max-h-[92vh] flex flex-col overflow-hidden">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-md select-none">
+      <div className="w-full max-w-lg glass-panel rounded-2xl p-5 sm:p-6 shadow-2xl border border-theme-border animate-scale-up max-h-[92vh] flex flex-col overflow-hidden">
         {/* Hidden File Input */}
         <input
           type="file"
@@ -223,16 +223,16 @@ export const ImportExportModal: React.FC = () => {
         />
 
         {/* Modal Header */}
-        <div className="flex items-center justify-between pb-3.5 border-b border-slate-800/80 shrink-0">
+        <div className="flex items-center justify-between pb-3.5 border-b border-theme-border shrink-0">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-400 flex items-center justify-center shadow-sm shrink-0">
+            <div className="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-500 flex items-center justify-center shadow-sm shrink-0">
               {mode === 'export' ? <HardDriveDownload className="w-5 h-5" /> : <HardDriveUpload className="w-5 h-5" />}
             </div>
             <div>
-              <h2 className="text-base font-semibold text-white tracking-tight">
+              <h2 className="text-base font-semibold text-theme-text tracking-tight">
                 {exportSuccess ? 'Export Completed' : mode === 'export' ? 'Export Vault' : 'Import Vault'}
               </h2>
-              <p className="text-xs text-slate-400">
+              <p className="text-xs text-theme-text-muted">
                 {exportSuccess
                   ? 'Backup saved and ready on your device'
                   : mode === 'export'
@@ -243,7 +243,7 @@ export const ImportExportModal: React.FC = () => {
           </div>
           <button
             onClick={handleClose}
-            className="p-2 rounded-xl hover:bg-slate-800 text-slate-400 hover:text-white transition-colors cursor-pointer"
+            className="p-2 rounded-xl hover:bg-theme-surface text-theme-text-muted hover:text-theme-text transition-colors cursor-pointer"
           >
             <X className="w-4 h-4" />
           </button>
@@ -253,31 +253,31 @@ export const ImportExportModal: React.FC = () => {
         {exportSuccess ? (
           <div className="flex-1 overflow-y-auto py-5 space-y-4 pr-0.5 animate-scale-up">
             <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-start gap-3.5">
-              <CheckCircle2 className="w-6 h-6 text-emerald-400 shrink-0 mt-0.5" />
+              <CheckCircle2 className="w-6 h-6 text-emerald-500 shrink-0 mt-0.5" />
               <div className="space-y-1 min-w-0">
-                <h3 className="text-sm font-bold text-emerald-300">
+                <h3 className="text-sm font-bold text-emerald-600 dark:text-emerald-300">
                   File Downloaded & Saved Successfully!
                 </h3>
-                <p className="text-xs text-emerald-200/80 leading-relaxed">
+                <p className="text-xs text-emerald-700 dark:text-emerald-200/80 leading-relaxed">
                   The file has been saved to your device's Downloads folder.
                 </p>
               </div>
             </div>
 
-            <div className="p-4 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-2.5">
+            <div className="p-4 rounded-2xl bg-theme-surface border border-theme-border space-y-2.5">
               <div>
-                <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1">
+                <span className="text-xs font-bold text-theme-text-muted uppercase tracking-wider block mb-1">
                   Saved Filename
                 </span>
-                <span className="text-sm font-mono font-semibold text-white break-all">
+                <span className="text-sm font-mono font-semibold text-theme-text break-all">
                   {exportSuccess.filename}
                 </span>
               </div>
-              <div className="pt-2 border-t border-slate-800/80">
-                <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1">
+              <div className="pt-2 border-t border-theme-border">
+                <span className="text-xs font-bold text-theme-text-muted uppercase tracking-wider block mb-1">
                   Storage Location
                 </span>
-                <span className="text-xs font-mono text-cyan-300 break-all bg-slate-950 px-2.5 py-1.5 rounded-lg block border border-slate-850">
+                <span className="text-xs font-mono text-cyan-600 dark:text-cyan-300 break-all bg-theme-bg px-2.5 py-1.5 rounded-lg block border border-theme-border">
                   {exportSuccess.path}
                 </span>
               </div>
@@ -287,16 +287,16 @@ export const ImportExportModal: React.FC = () => {
               <button
                 type="button"
                 onClick={handleCopyExportContent}
-                className="w-full py-3 px-4 rounded-xl bg-slate-850 hover:bg-slate-800 border border-slate-700 text-slate-200 hover:text-white text-sm font-semibold transition-all flex items-center justify-center gap-2 cursor-pointer"
+                className="w-full py-3 px-4 rounded-xl bg-theme-surface hover:bg-theme-bg border border-theme-border text-theme-text text-sm font-semibold transition-all flex items-center justify-center gap-2 cursor-pointer"
               >
                 {copiedContent ? (
                   <>
-                    <Check className="w-4 h-4 text-emerald-400" />
-                    <span className="text-emerald-300">Backup Content Copied!</span>
+                    <Check className="w-4 h-4 text-emerald-500" />
+                    <span className="text-emerald-600 dark:text-emerald-300">Backup Content Copied!</span>
                   </>
                 ) : (
                   <>
-                    <Copy className="w-4 h-4 text-slate-400" />
+                    <Copy className="w-4 h-4 text-theme-text-muted" />
                     <span>Copy Backup Content to Clipboard</span>
                   </>
                 )}
@@ -315,14 +315,14 @@ export const ImportExportModal: React.FC = () => {
         ) : (
           <>
             {/* Export / Import Mode Selector */}
-            <div className="flex bg-slate-900/80 p-1.5 rounded-xl border border-slate-800 my-4 text-sm shrink-0">
+            <div className="flex bg-theme-surface p-1.5 rounded-xl border border-theme-border my-4 text-sm shrink-0">
               <button
                 type="button"
                 onClick={() => setMode('export')}
                 className={`flex-1 py-2 rounded-lg font-semibold transition-all cursor-pointer flex items-center justify-center gap-2 ${
                   mode === 'export'
                     ? 'bg-blue-600 text-white shadow-sm'
-                    : 'text-slate-400 hover:text-slate-200'
+                    : 'text-theme-text-muted hover:text-theme-text'
                 }`}
               >
                 <HardDriveDownload className="w-4 h-4" />
@@ -334,7 +334,7 @@ export const ImportExportModal: React.FC = () => {
                 className={`flex-1 py-2 rounded-lg font-semibold transition-all cursor-pointer flex items-center justify-center gap-2 ${
                   mode === 'import'
                     ? 'bg-blue-600 text-white shadow-sm'
-                    : 'text-slate-400 hover:text-slate-200'
+                    : 'text-theme-text-muted hover:text-theme-text'
                 }`}
               >
                 <HardDriveUpload className="w-4 h-4" />
@@ -343,13 +343,14 @@ export const ImportExportModal: React.FC = () => {
             </div>
 
             {/* Content Area */}
+            {/* Content Area */}
             <div className="flex-1 overflow-y-auto space-y-4 pr-0.5">
               {mode === 'export' ? (
                 /* EXPORT SECTION */
                 <div className="space-y-4">
                   {/* Format Choice */}
                   <div className="space-y-2">
-                    <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block">
+                    <label className="text-xs font-bold text-theme-text-muted uppercase tracking-wider block">
                       Choose Format
                     </label>
                     <div className="grid grid-cols-2 gap-3">
@@ -358,15 +359,15 @@ export const ImportExportModal: React.FC = () => {
                         onClick={() => setExportFormat('vlock')}
                         className={`p-3.5 sm:p-4 rounded-xl border text-left transition-all cursor-pointer ${
                           exportFormat === 'vlock'
-                            ? 'bg-blue-600/15 border-blue-500/50 text-white shadow-sm'
-                            : 'bg-slate-900/60 border-slate-800 text-slate-400 hover:text-slate-200'
+                            ? 'bg-blue-600/15 border-blue-500/50 text-blue-600 dark:text-blue-300 shadow-sm font-semibold'
+                            : 'bg-theme-surface border-theme-border text-theme-text-muted hover:text-theme-text'
                         }`}
                       >
                         <div className="flex items-center gap-2 mb-1.5">
-                          <Shield className={`w-4 h-4 ${exportFormat === 'vlock' ? 'text-blue-400' : 'text-slate-500'}`} />
+                          <Shield className={`w-4 h-4 ${exportFormat === 'vlock' ? 'text-blue-500' : 'text-theme-text-muted'}`} />
                           <span className="text-sm font-semibold">Encrypted</span>
                         </div>
-                        <span className="text-xs text-slate-400 block">.vlock (Safe Backup)</span>
+                        <span className="text-xs text-theme-text-muted block">.vlock (Safe Backup)</span>
                       </button>
 
                       <button
@@ -374,35 +375,35 @@ export const ImportExportModal: React.FC = () => {
                         onClick={() => setExportFormat('csv')}
                         className={`p-3.5 sm:p-4 rounded-xl border text-left transition-all cursor-pointer ${
                           exportFormat === 'csv'
-                            ? 'bg-amber-600/15 border-amber-500/50 text-white shadow-sm'
-                            : 'bg-slate-900/60 border-slate-800 text-slate-400 hover:text-slate-200'
+                            ? 'bg-amber-600/15 border-amber-500/50 text-amber-600 dark:text-amber-300 shadow-sm font-semibold'
+                            : 'bg-theme-surface border-theme-border text-theme-text-muted hover:text-theme-text'
                         }`}
                       >
                         <div className="flex items-center gap-2 mb-1.5">
-                          <FileSpreadsheet className={`w-4 h-4 ${exportFormat === 'csv' ? 'text-amber-400' : 'text-slate-500'}`} />
+                          <FileSpreadsheet className={`w-4 h-4 ${exportFormat === 'csv' ? 'text-amber-500' : 'text-theme-text-muted'}`} />
                           <span className="text-sm font-semibold">CSV</span>
                         </div>
-                        <span className="text-xs text-slate-400 block">.csv (Spreadsheet)</span>
+                        <span className="text-xs text-theme-text-muted block">.csv (Spreadsheet)</span>
                       </button>
                     </div>
                   </div>
 
                   {/* Save Location */}
                   <div className="space-y-2">
-                    <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block">
+                    <label className="text-xs font-bold text-theme-text-muted uppercase tracking-wider block">
                       Save Location
                     </label>
-                    <div className="flex items-center gap-2 bg-slate-900/60 p-1.5 rounded-xl border border-slate-800">
+                    <div className="flex items-center gap-2 bg-theme-surface p-1.5 rounded-xl border border-theme-border">
                       <button
                         type="button"
                         onClick={() => setSaveLocation('downloads')}
                         className={`flex-1 py-2 rounded-lg text-xs font-medium transition-colors cursor-pointer flex items-center justify-center gap-2 ${
                           saveLocation === 'downloads'
-                            ? 'bg-slate-800 text-white border border-slate-700 font-semibold'
-                            : 'text-slate-400 hover:text-slate-200'
+                            ? 'bg-theme-bg text-theme-text border border-theme-border font-semibold shadow-sm'
+                            : 'text-theme-text-muted hover:text-theme-text'
                         }`}
                       >
-                        <Folder className="w-4 h-4 text-blue-400" />
+                        <Folder className="w-4 h-4 text-blue-500" />
                         <span>Downloads Folder</span>
                       </button>
                       <button
@@ -410,11 +411,11 @@ export const ImportExportModal: React.FC = () => {
                         onClick={() => setSaveLocation('documents')}
                         className={`flex-1 py-2 rounded-lg text-xs font-medium transition-colors cursor-pointer flex items-center justify-center gap-2 ${
                           saveLocation === 'documents'
-                            ? 'bg-slate-800 text-white border border-slate-700 font-semibold'
-                            : 'text-slate-400 hover:text-slate-200'
+                            ? 'bg-theme-bg text-theme-text border border-theme-border font-semibold shadow-sm'
+                            : 'text-theme-text-muted hover:text-theme-text'
                         }`}
                       >
-                        <Folder className="w-4 h-4 text-blue-400" />
+                        <Folder className="w-4 h-4 text-blue-500" />
                         <span>Documents Folder</span>
                       </button>
                     </div>
@@ -422,13 +423,13 @@ export const ImportExportModal: React.FC = () => {
 
                   {/* Security Hint */}
                   {exportFormat === 'csv' ? (
-                    <div className="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs flex items-start gap-2.5">
-                      <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+                    <div className="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-600 dark:text-amber-300 text-xs flex items-start gap-2.5">
+                      <AlertTriangle className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
                       <span>CSV files are unencrypted. Anyone who opens the file can see your passwords in plain text.</span>
                     </div>
                   ) : (
-                    <div className="p-3.5 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-300 text-xs flex items-center gap-2.5">
-                      <Shield className="w-4 h-4 text-blue-400 shrink-0" />
+                    <div className="p-3.5 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-600 dark:text-blue-300 text-xs flex items-center gap-2.5">
+                      <Shield className="w-4 h-4 text-blue-500 shrink-0" />
                       <span>Protected with your current master password using AES-256-GCM.</span>
                     </div>
                   )}
@@ -449,22 +450,22 @@ export const ImportExportModal: React.FC = () => {
                 <div className="space-y-4">
                   {/* File Selector */}
                   <div className="space-y-2">
-                    <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block">
+                    <label className="text-xs font-bold text-theme-text-muted uppercase tracking-wider block">
                       Select Backup or CSV File
                     </label>
                     <button
                       type="button"
                       onClick={() => fileInputRef.current?.click()}
-                      className="w-full p-5 rounded-xl border border-dashed border-slate-700 hover:border-blue-500/60 bg-slate-900/40 hover:bg-slate-900/80 transition-all flex flex-col items-center justify-center gap-2.5 cursor-pointer group"
+                      className="w-full p-5 rounded-xl border border-dashed border-theme-border hover:border-blue-500/60 bg-theme-surface/50 hover:bg-theme-surface transition-all flex flex-col items-center justify-center gap-2.5 cursor-pointer group"
                     >
-                      <div className="w-11 h-11 rounded-xl bg-slate-800 group-hover:bg-blue-600/20 text-slate-400 group-hover:text-blue-400 flex items-center justify-center transition-colors">
+                      <div className="w-11 h-11 rounded-xl bg-theme-surface group-hover:bg-blue-600/20 text-theme-text-muted group-hover:text-blue-500 flex items-center justify-center transition-colors">
                         <FileUp className="w-5 h-5" />
                       </div>
                       <div className="text-center">
-                        <span className="text-sm font-semibold text-slate-200 block">
+                        <span className="text-sm font-semibold text-theme-text block">
                           {selectedFileName || 'Tap to choose file'}
                         </span>
-                        <span className="text-xs text-slate-400 mt-0.5 block">
+                        <span className="text-xs text-theme-text-muted mt-0.5 block">
                           Supports .vlock (encrypted backup) and .csv
                         </span>
                       </div>
@@ -474,7 +475,7 @@ export const ImportExportModal: React.FC = () => {
                   {/* Password Field (Only for .vlock files) */}
                   {detectedType !== 'csv' && selectedFileName && (
                     <div className="space-y-1.5 animate-scale-up">
-                      <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block">
+                      <label className="text-xs font-bold text-theme-text-muted uppercase tracking-wider block">
                         Backup Master Password
                       </label>
                       <div className="relative">
@@ -483,9 +484,9 @@ export const ImportExportModal: React.FC = () => {
                           value={importPass}
                           onChange={(e) => setImportPass(e.target.value)}
                           placeholder="Enter password for this backup..."
-                          className="w-full bg-[#0d1222] border border-slate-800 rounded-xl pl-9 pr-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500"
+                          className="input-themed w-full rounded-xl pl-9 pr-3.5 py-2.5 text-sm"
                         />
-                        <Lock className="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                        <Lock className="w-4 h-4 text-theme-text-muted absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                       </div>
                     </div>
                   )}

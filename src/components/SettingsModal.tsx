@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
-import { X } from 'lucide-react';
+import { X, Moon, Sun, Laptop } from 'lucide-react';
 import { useVault } from '../context/VaultContext';
+import { useTheme } from '../context/ThemeContext';
 import { calculatePasswordStrength, calculateEntropy } from '../utils/cryptoUtils';
 import logoImg from '../assets/logo.png';
 
 export const SettingsModal: React.FC = () => {
   const { isSettingsOpen, setIsSettingsOpen, status, setAutoLockTimer, changeMasterPassword } =
     useVault();
+  const { theme, setTheme, resolvedTheme } = useTheme();
 
   const [oldPass, setOldPass] = useState('');
   const [newPass, setNewPass] = useState('');
@@ -46,33 +48,87 @@ export const SettingsModal: React.FC = () => {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-slate-950/80 backdrop-blur-md select-none">
-      <div className="w-full max-w-lg glass-panel rounded-2xl p-4 sm:p-6 shadow-2xl border border-slate-850 animate-scale-up max-h-[94vh] flex flex-col overflow-hidden">
+      <div className="w-full max-w-lg glass-panel rounded-2xl p-4 sm:p-6 shadow-2xl border border-theme-border animate-scale-up max-h-[94vh] flex flex-col overflow-hidden text-theme-text">
         {/* Header */}
-        <div className="flex items-center justify-between pb-4 border-b border-slate-900 shrink-0">
+        <div className="flex items-center justify-between pb-4 border-b border-theme-border shrink-0">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl shadow-md shadow-cyan-500/10 flex items-center justify-center p-0.5 border border-cyan-500/25 bg-[#0d1222]/80 shrink-0">
+            <div className="w-10 h-10 rounded-xl shadow-md shadow-cyan-500/10 flex items-center justify-center p-0.5 border border-cyan-500/25 bg-theme-surface shrink-0">
               <img src={logoImg} alt="Veylock" className="w-full h-full object-cover rounded-[10px]" />
             </div>
             <div>
-              <h2 className="text-base font-semibold text-white tracking-tight">Veylock Settings</h2>
-              <p className="text-xs text-slate-400">Manage local vault policies</p>
+              <h2 className="text-base font-semibold text-theme-text tracking-tight">Veylock Settings</h2>
+              <p className="text-xs text-theme-text-muted">Manage local vault preferences</p>
             </div>
           </div>
           <button
             onClick={() => setIsSettingsOpen(false)}
-            className="p-2 rounded-xl hover:bg-slate-900 text-slate-400 hover:text-white transition-colors cursor-pointer"
+            className="p-2 rounded-xl hover:bg-theme-hover text-theme-text-muted hover:text-theme-text transition-colors cursor-pointer"
           >
             <X className="w-4 h-4" />
           </button>
         </div>
 
         <div className="flex-1 overflow-y-auto py-4 space-y-5 pr-1">
+          {/* Appearance Section */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <label className="text-xs font-bold uppercase tracking-wider text-theme-text-muted block">
+                Appearance
+              </label>
+              <span className="text-xs font-mono text-cyan-400 capitalize">
+                Active: {resolvedTheme}
+              </span>
+            </div>
+            <p className="text-xs text-theme-text-muted">
+              Choose your interface theme or let Veylock match your operating system.
+            </p>
+            <div className="grid grid-cols-3 gap-2.5 pt-1 text-xs">
+              <button
+                type="button"
+                onClick={() => setTheme('dark')}
+                className={`py-3 px-3 rounded-xl font-semibold border transition-all cursor-pointer flex flex-col items-center gap-1.5 ${
+                  theme === 'dark'
+                    ? 'bg-blue-600/15 text-blue-400 border-blue-500/40 shadow-sm'
+                    : 'bg-theme-surface border-theme-border text-theme-text-muted hover:text-theme-text hover:bg-theme-hover'
+                }`}
+              >
+                <Moon className="w-4 h-4" />
+                <span>Dark</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setTheme('light')}
+                className={`py-3 px-3 rounded-xl font-semibold border transition-all cursor-pointer flex flex-col items-center gap-1.5 ${
+                  theme === 'light'
+                    ? 'bg-blue-600/15 text-blue-500 border-blue-500/40 shadow-sm'
+                    : 'bg-theme-surface border-theme-border text-theme-text-muted hover:text-theme-text hover:bg-theme-hover'
+                }`}
+              >
+                <Sun className="w-4 h-4" />
+                <span>Light</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setTheme('system')}
+                className={`py-3 px-3 rounded-xl font-semibold border transition-all cursor-pointer flex flex-col items-center gap-1.5 ${
+                  theme === 'system'
+                    ? 'bg-blue-600/15 text-blue-400 border-blue-500/40 shadow-sm'
+                    : 'bg-theme-surface border-theme-border text-theme-text-muted hover:text-theme-text hover:bg-theme-hover'
+                }`}
+              >
+                <Laptop className="w-4 h-4" />
+                <span>System</span>
+              </button>
+            </div>
+          </div>
           {/* Auto-Lock Settings */}
           <div className="space-y-2">
-            <label className="text-xs font-bold uppercase tracking-wider text-slate-400 block">
+            <label className="text-xs font-bold uppercase tracking-wider text-theme-text-muted block">
               Auto-Lock Timer
             </label>
-            <p className="text-xs text-slate-400">
+            <p className="text-xs text-theme-text-muted">
               Automatically lock vault after a period of user inactivity.
             </p>
             <div className="grid grid-cols-3 gap-2.5 pt-1 text-xs">
@@ -84,8 +140,8 @@ export const SettingsModal: React.FC = () => {
                     onClick={() => setAutoLockTimer(mins)}
                     className={`py-2.5 px-3 rounded-xl font-semibold border transition-all cursor-pointer ${
                       isSelected
-                        ? 'bg-slate-900 text-blue-400 border-slate-800 shadow-sm'
-                        : 'bg-[#0d1222] border-slate-900 text-slate-400 hover:text-slate-200'
+                        ? 'bg-blue-600/15 text-blue-400 border-blue-500/40 shadow-sm'
+                        : 'bg-theme-surface border-theme-border text-theme-text-muted hover:text-theme-text hover:bg-theme-hover'
                     }`}
                   >
                     {mins === 0 ? 'Never' : `${mins} min`}
@@ -96,65 +152,65 @@ export const SettingsModal: React.FC = () => {
           </div>
 
           {/* Change Master Password Form */}
-          <form onSubmit={handleChangePassword} className="space-y-3.5 pt-4 border-t border-slate-900">
-            <label className="text-xs font-bold uppercase tracking-wider text-slate-400 block">
+          <form onSubmit={handleChangePassword} className="space-y-3.5 pt-4 border-t border-theme-border">
+            <label className="text-xs font-bold uppercase tracking-wider text-theme-text-muted block">
               Change Master Password
             </label>
 
             <div>
-              <label className="text-xs font-bold text-slate-400 block mb-1.5">Current Master Password</label>
+              <label className="text-xs font-bold text-theme-text-muted block mb-1.5">Current Master Password</label>
               <input
                 type="password"
                 value={oldPass}
                 onChange={(e) => setOldPass(e.target.value)}
                 placeholder="Enter current password..."
-                className="w-full bg-[#0d1222] border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white placeholder-slate-650 focus:outline-none focus:border-blue-500"
+                className="w-full input-themed rounded-xl px-3.5 py-2.5 text-sm placeholder-slate-400 focus:outline-none"
               />
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="text-xs font-bold text-slate-400 block mb-1.5">New Master Password</label>
+                <label className="text-xs font-bold text-theme-text-muted block mb-1.5">New Master Password</label>
                 <input
                   type="password"
                   value={newPass}
                   onChange={(e) => setNewPass(e.target.value)}
                   placeholder="At least 8 chars..."
-                  className="w-full bg-[#0d1222] border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white placeholder-slate-650 focus:outline-none focus:border-blue-500 font-mono"
+                  className="w-full input-themed rounded-xl px-3.5 py-2.5 text-sm placeholder-slate-400 focus:outline-none font-mono"
                 />
               </div>
               <div>
-                <label className="text-xs font-bold text-slate-400 block mb-1.5">Confirm New Password</label>
+                <label className="text-xs font-bold text-theme-text-muted block mb-1.5">Confirm New Password</label>
                 <input
                   type="password"
                   value={confirmPass}
                   onChange={(e) => setConfirmPass(e.target.value)}
                   placeholder="Confirm new password..."
-                  className="w-full bg-[#0d1222] border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white placeholder-slate-650 focus:outline-none focus:border-blue-500 font-mono"
+                  className="w-full input-themed rounded-xl px-3.5 py-2.5 text-sm placeholder-slate-400 focus:outline-none font-mono"
                 />
               </div>
             </div>
 
             {/* New Password Strength Indicator */}
             {newPass && (
-              <div className="p-3 rounded-xl bg-[#080d1a] border border-slate-850 space-y-2 animate-scale-up">
+              <div className="p-3 rounded-xl bg-theme-elevated border border-theme-border space-y-2 animate-scale-up">
                 <div className="flex items-center justify-between text-xs">
                   <div className="flex items-center gap-2">
-                    <span className="text-slate-400 font-medium">Complexity:</span>
+                    <span className="text-theme-text-muted font-medium">Complexity:</span>
                     <span className={`px-2 py-0.5 rounded font-bold text-white text-xs ${newPassStrength.color}`}>
                       {newPassStrength.label}
                     </span>
                   </div>
-                  <span className="font-mono text-xs text-cyan-300">
+                  <span className="font-mono text-xs text-cyan-400">
                     {newPassEntropy.bits} bits • {newPassEntropy.crackTimeDisplay}
                   </span>
                 </div>
-                <div className="h-1.5 w-full bg-slate-900 rounded-full overflow-hidden flex gap-1">
+                <div className="h-1.5 w-full bg-theme-hover rounded-full overflow-hidden flex gap-1">
                   {[0, 1, 2, 3].map((idx) => (
                     <div
                       key={idx}
                       className={`h-full flex-1 rounded-full transition-all ${
-                        idx <= newPassStrength.score ? newPassStrength.color : 'bg-slate-800'
+                        idx <= newPassStrength.score ? newPassStrength.color : 'bg-slate-700/30'
                       }`}
                     />
                   ))}
@@ -173,12 +229,12 @@ export const SettingsModal: React.FC = () => {
             </button>
           </form>
 
-          <div className="pt-3 border-t border-slate-900 flex items-center justify-between text-xs text-slate-400">
+          <div className="pt-3 border-t border-theme-border flex items-center justify-between text-xs text-theme-text-muted">
             <div className="flex items-center gap-1.5">
               <img src={logoImg} alt="Veylock" className="w-4 h-4 rounded object-cover" />
-              <span className="font-medium text-slate-300">Veylock Vault</span>
+              <span className="font-medium text-theme-text">Veylock Vault</span>
             </div>
-            <span className="font-mono text-slate-400">v1.1.0 • Offline</span>
+            <span className="font-mono text-theme-text-muted">v1.1.0 • Offline</span>
           </div>
         </div>
       </div>

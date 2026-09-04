@@ -38,6 +38,7 @@ pub fn run() {
             commands::delete_entry,
             commands::generate_password,
             commands::generate_totp_code,
+            commands::validate_totp,
             commands::get_vault_health,
             commands::export_vault_backup,
             commands::export_vault_backup_string,

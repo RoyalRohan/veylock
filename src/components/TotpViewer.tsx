@@ -5,13 +5,17 @@ import { TotpResult } from '../types';
 
 interface TotpViewerProps {
   secret: string;
+  digits?: number;
+  period?: number;
   onCopy: (text: string, label: string) => void;
 }
 
-export const TotpViewer: React.FC<TotpViewerProps> = ({ secret, onCopy }) => {
+export const TotpViewer: React.FC<TotpViewerProps> = ({ secret, digits, period, onCopy }) => {
   const [totp, setTotp] = useState<TotpResult | null>(null);
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState(false);
+
+  const stepPeriod = period || 30;
 
   useEffect(() => {
     let mounted = true;
@@ -19,12 +23,16 @@ export const TotpViewer: React.FC<TotpViewerProps> = ({ secret, onCopy }) => {
     const fetchCode = async () => {
       if (!secret) return;
       try {
-        const res = await invoke<TotpResult>('generate_totp_code', { secret });
+        const res = await invoke<TotpResult>('generate_totp_code', {
+          secret,
+          digits: digits || null,
+          period: period || null,
+        });
         if (mounted) {
           setTotp(res);
           setError(false);
         }
-      } catch (err) {
+      } catch {
         if (mounted) setError(true);
       }
     };
@@ -35,11 +43,11 @@ export const TotpViewer: React.FC<TotpViewerProps> = ({ secret, onCopy }) => {
       mounted = false;
       clearInterval(interval);
     };
-  }, [secret]);
+  }, [secret, digits, period]);
 
   if (error || !secret) {
     return (
-      <div className="p-3 rounded-xl bg-[#0d1222] border border-slate-900 text-xs text-rose-450 font-medium">
+      <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/25 text-xs text-rose-400 font-medium">
         Invalid or corrupt TOTP secret format.
       </div>
     );
@@ -47,7 +55,7 @@ export const TotpViewer: React.FC<TotpViewerProps> = ({ secret, onCopy }) => {
 
   if (!totp) {
     return (
-      <div className="p-4 rounded-xl bg-[#0d1222] border border-slate-900 flex items-center gap-2.5 text-xs text-slate-500">
+      <div className="p-4 rounded-xl bg-theme-surface border border-theme-border flex items-center gap-2.5 text-xs text-theme-text-muted">
         <Clock className="w-4 h-4 animate-spin text-cyan-400" />
         <span>Calculating TOTP code...</span>
       </div>
@@ -60,23 +68,30 @@ export const TotpViewer: React.FC<TotpViewerProps> = ({ secret, onCopy }) => {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const progressPercent = (totp.time_remaining / 30) * 100;
+  const progressPercent = (totp.time_remaining / stepPeriod) * 100;
+
+  const splitCode = (code: string) => {
+    if (code.length === 8) {
+      return `${code.slice(0, 4)} ${code.slice(4)}`;
+    }
+    return `${code.slice(0, 3)} ${code.slice(3)}`;
+  };
 
   return (
-    <div className="p-4 rounded-2xl bg-[#0d1222]/90 border border-slate-900 shadow-sm flex items-center justify-between">
+    <div className="p-4 rounded-2xl bg-theme-surface border border-theme-border shadow-sm flex items-center justify-between">
       <div className="flex items-center gap-4">
         {/* Countdown Ring */}
-        <div className="relative w-9 h-9 flex items-center justify-center">
+        <div className="relative w-9 h-9 flex items-center justify-center shrink-0">
           <svg className="w-full h-full -rotate-90" viewBox="0 0 36 36">
             <path
-              className="text-slate-800"
+              className="text-theme-border"
               strokeWidth="3"
               stroke="currentColor"
               fill="none"
               d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
             />
             <path
-              className="text-cyan-450 transition-all duration-1000 ease-linear"
+              className="text-cyan-400 transition-all duration-1000 ease-linear"
               strokeDasharray={`${progressPercent}, 100`}
               strokeWidth="3"
               strokeLinecap="round"
@@ -94,15 +109,15 @@ export const TotpViewer: React.FC<TotpViewerProps> = ({ secret, onCopy }) => {
           <span className="text-[10px] font-bold uppercase tracking-wider text-cyan-400 block mb-0.5">
             2FA Code
           </span>
-          <span className="text-lg font-mono font-bold tracking-widest text-white">
-            {totp.code.slice(0, 3)} {totp.code.slice(3)}
+          <span className="text-lg font-mono font-bold tracking-widest text-theme-text">
+            {splitCode(totp.code)}
           </span>
         </div>
       </div>
 
       <button
         onClick={handleCopyCode}
-        className="p-1.5 rounded-lg bg-slate-950/60 hover:bg-slate-800 text-cyan-300 border border-slate-900 transition-colors flex items-center gap-1 text-xs font-semibold cursor-pointer"
+        className="p-2 rounded-xl bg-theme-elevated hover:bg-theme-hover text-cyan-400 border border-theme-border transition-colors flex items-center gap-1.5 text-xs font-semibold cursor-pointer"
       >
         {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
         <span>{copied ? 'Copied' : 'Copy'}</span>

@@ -52,26 +52,26 @@ export const SecurityHealthDashboard: React.FC = () => {
   });
 
   return (
-    <div className="flex-1 overflow-y-auto p-3.5 sm:p-6 space-y-4 sm:space-y-6 select-none bg-[#070a13]/10 pb-safe">
+    <div className="flex-1 overflow-y-auto p-3.5 sm:p-6 space-y-4 sm:space-y-6 select-none bg-theme-bg pb-safe text-theme-text">
       {/* Dashboard Top Header */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2.5">
           {/* Mobile Back Button */}
           <button
             onClick={() => setActiveCategory('all')}
-            className="md:hidden flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-slate-900/90 hover:bg-slate-850 border border-slate-800 text-slate-300 hover:text-white transition-colors cursor-pointer shrink-0 shadow-sm"
+            className="md:hidden flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-theme-surface hover:bg-theme-bg border border-theme-border text-theme-text transition-colors cursor-pointer shrink-0 shadow-sm"
             title="Back to vault items"
           >
-            <ChevronLeft className="w-4 h-4 text-blue-400" />
+            <ChevronLeft className="w-4 h-4 text-blue-500" />
             <span className="text-xs font-semibold">Back</span>
           </button>
 
           <div>
-            <h2 className="text-base sm:text-lg font-bold text-white flex items-center gap-2">
-              <ShieldCheck className="w-5 h-5 text-blue-400 shrink-0" />
+            <h2 className="text-base sm:text-lg font-bold text-theme-text flex items-center gap-2">
+              <ShieldCheck className="w-5 h-5 text-blue-500 shrink-0" />
               <span>Vault Security Dashboard</span>
             </h2>
-            <p className="text-xs text-slate-400 mt-0.5">
+            <p className="text-xs text-theme-text-muted mt-0.5">
               Audit password strength, reuse, and two-factor authentication coverage
             </p>
           </div>
@@ -79,7 +79,7 @@ export const SecurityHealthDashboard: React.FC = () => {
 
         <button
           onClick={fetchHealthReport}
-          className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#0d1222]/90 hover:bg-slate-900 border border-slate-800 text-xs font-medium text-slate-300 transition-colors cursor-pointer ml-auto"
+          className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-theme-surface hover:bg-theme-bg border border-theme-border text-xs font-medium text-theme-text transition-colors cursor-pointer ml-auto"
         >
           <RefreshCw className="w-4 h-4" />
           <span>Re-audit</span>
@@ -89,11 +89,11 @@ export const SecurityHealthDashboard: React.FC = () => {
       {/* Main Score & Metrics Section */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         {/* Score Ring Card */}
-        <div className="bg-[#0d1222]/90 border border-slate-900 p-5 sm:p-6 rounded-2xl flex flex-col items-center justify-center text-center col-span-1 shadow-sm">
+        <div className="bg-theme-surface border border-theme-border p-5 sm:p-6 rounded-2xl flex flex-col items-center justify-center text-center col-span-1 shadow-sm">
           <div className="relative w-20 h-20 flex items-center justify-center mb-3">
             <svg className="w-full h-full -rotate-90" viewBox="0 0 36 36">
               <path
-                className="text-slate-800"
+                className="text-slate-200 dark:text-slate-800"
                 strokeWidth="3.5"
                 stroke="currentColor"
                 fill="none"
@@ -115,47 +115,47 @@ export const SecurityHealthDashboard: React.FC = () => {
                 d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
               />
             </svg>
-            <span className="absolute text-xl font-bold font-mono text-white">
+            <span className="absolute text-xl font-bold font-mono text-theme-text">
               {healthReport.total_score}
             </span>
           </div>
-          <span className="text-xs font-bold uppercase tracking-wider text-slate-300">
+          <span className="text-xs font-bold uppercase tracking-wider text-theme-text">
             {healthReport.total_score >= 80 ? 'Vault Healthy' : healthReport.total_score >= 50 ? 'Attention Needed' : 'Vulnerable Vault'}
           </span>
         </div>
 
         {/* Metrics Grid */}
         <div className="col-span-1 sm:col-span-1 lg:col-span-3 grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
-          <div className="bg-[#0d1222]/90 border border-slate-900 p-4 sm:p-5 rounded-2xl flex flex-col justify-between shadow-sm">
+          <div className="bg-theme-surface border border-theme-border p-4 sm:p-5 rounded-2xl flex flex-col justify-between shadow-sm">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-semibold text-slate-400">Weak Passwords</span>
+              <span className="text-xs font-semibold text-theme-text-muted">Weak Passwords</span>
               <AlertTriangle className="w-4.5 h-4.5 text-rose-500" />
             </div>
             <div className="mt-3 sm:mt-4">
-              <span className="text-2xl font-bold font-mono text-white">{healthReport.weak_passwords}</span>
-              <span className="text-xs text-rose-400 block mt-1">Low complexity</span>
+              <span className="text-2xl font-bold font-mono text-theme-text">{healthReport.weak_passwords}</span>
+              <span className="text-xs text-rose-500 dark:text-rose-400 block mt-1 font-medium">Low complexity</span>
             </div>
           </div>
 
-          <div className="bg-[#0d1222]/90 border border-slate-900 p-4 sm:p-5 rounded-2xl flex flex-col justify-between shadow-sm">
+          <div className="bg-theme-surface border border-theme-border p-4 sm:p-5 rounded-2xl flex flex-col justify-between shadow-sm">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-semibold text-slate-400">Reused Passwords</span>
+              <span className="text-xs font-semibold text-theme-text-muted">Reused Passwords</span>
               <KeyRound className="w-4.5 h-4.5 text-amber-500" />
             </div>
             <div className="mt-3 sm:mt-4">
-              <span className="text-2xl font-bold font-mono text-white">{healthReport.reused_passwords}</span>
-              <span className="text-xs text-amber-400 block mt-1">Reused on multiple sites</span>
+              <span className="text-2xl font-bold font-mono text-theme-text">{healthReport.reused_passwords}</span>
+              <span className="text-xs text-amber-600 dark:text-amber-400 block mt-1 font-medium">Reused on multiple sites</span>
             </div>
           </div>
 
-          <div className="bg-[#0d1222]/90 border border-slate-900 p-4 sm:p-5 rounded-2xl flex flex-col justify-between shadow-sm">
+          <div className="bg-theme-surface border border-theme-border p-4 sm:p-5 rounded-2xl flex flex-col justify-between shadow-sm">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-semibold text-slate-400">Missing 2FA</span>
+              <span className="text-xs font-semibold text-theme-text-muted">Missing 2FA</span>
               <Clock className="w-4.5 h-4.5 text-cyan-500" />
             </div>
             <div className="mt-3 sm:mt-4">
-              <span className="text-2xl font-bold font-mono text-white">{healthReport.missing_totp}</span>
-              <span className="text-xs text-slate-400 block mt-1">Without TOTP keys</span>
+              <span className="text-2xl font-bold font-mono text-theme-text">{healthReport.missing_totp}</span>
+              <span className="text-xs text-theme-text-muted block mt-1">Without TOTP keys</span>
             </div>
           </div>
         </div>
@@ -164,22 +164,24 @@ export const SecurityHealthDashboard: React.FC = () => {
       {/* Flagged Vulnerabilities with Category Tabs */}
       <div className="space-y-4">
         <div className="flex items-center justify-between flex-wrap gap-2">
-          <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+          <h3 className="text-xs font-bold text-theme-text-muted uppercase tracking-wider">
             Flagged Vault Vulnerabilities
           </h3>
 
           {/* Interactive Filter Tabs */}
-          <div className="flex items-center bg-[#0d1222] p-1.5 rounded-xl border border-slate-900 text-xs">
+          <div className="flex items-center bg-theme-surface p-1.5 rounded-xl border border-theme-border text-xs">
             <button
               onClick={() => setActiveTab('all')}
               className={`px-3 py-1.5 rounded-lg font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
                 activeTab === 'all'
-                  ? 'bg-slate-900 text-white border border-slate-800 shadow-sm'
-                  : 'text-slate-400 hover:text-slate-200'
+                  ? 'bg-blue-600 text-white shadow-sm'
+                  : 'text-theme-text-muted hover:text-theme-text'
               }`}
             >
               <span>All</span>
-              <span className="text-xs px-2 py-0.5 rounded-full bg-slate-800 text-slate-300 font-mono">
+              <span className={`text-xs px-2 py-0.5 rounded-full font-mono ${
+                activeTab === 'all' ? 'bg-blue-700 text-white' : 'bg-theme-bg text-theme-text-muted'
+              }`}>
                 {weakEntries.length + reusedEntries.length}
               </span>
             </button>
@@ -187,12 +189,14 @@ export const SecurityHealthDashboard: React.FC = () => {
               onClick={() => setActiveTab('weak')}
               className={`px-3 py-1.5 rounded-lg font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
                 activeTab === 'weak'
-                  ? 'bg-rose-950/40 text-rose-300 border border-rose-900/50 shadow-sm'
-                  : 'text-slate-400 hover:text-rose-300'
+                  ? 'bg-rose-500 text-white shadow-sm'
+                  : 'text-theme-text-muted hover:text-rose-500'
               }`}
             >
               <span>Weak</span>
-              <span className="text-xs px-2 py-0.5 rounded-full bg-rose-950/60 text-rose-300 font-mono">
+              <span className={`text-xs px-2 py-0.5 rounded-full font-mono ${
+                activeTab === 'weak' ? 'bg-rose-600 text-white' : 'bg-theme-bg text-theme-text-muted'
+              }`}>
                 {weakEntries.length}
               </span>
             </button>
@@ -200,12 +204,14 @@ export const SecurityHealthDashboard: React.FC = () => {
               onClick={() => setActiveTab('reused')}
               className={`px-3 py-1.5 rounded-lg font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
                 activeTab === 'reused'
-                  ? 'bg-amber-950/40 text-amber-300 border border-amber-900/50 shadow-sm'
-                  : 'text-slate-400 hover:text-amber-300'
+                  ? 'bg-amber-500 text-white shadow-sm'
+                  : 'text-theme-text-muted hover:text-amber-500'
               }`}
             >
               <span>Reused</span>
-              <span className="text-xs px-2 py-0.5 rounded-full bg-amber-950/60 text-amber-300 font-mono">
+              <span className={`text-xs px-2 py-0.5 rounded-full font-mono ${
+                activeTab === 'reused' ? 'bg-amber-600 text-white' : 'bg-theme-bg text-theme-text-muted'
+              }`}>
                 {reusedEntries.length}
               </span>
             </button>
@@ -213,12 +219,14 @@ export const SecurityHealthDashboard: React.FC = () => {
               onClick={() => setActiveTab('totp')}
               className={`px-3 py-1.5 rounded-lg font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
                 activeTab === 'totp'
-                  ? 'bg-cyan-950/40 text-cyan-300 border border-cyan-900/50 shadow-sm'
-                  : 'text-slate-400 hover:text-cyan-300'
+                  ? 'bg-cyan-500 text-white shadow-sm'
+                  : 'text-theme-text-muted hover:text-cyan-500'
               }`}
             >
               <span>Missing 2FA</span>
-              <span className="text-xs px-2 py-0.5 rounded-full bg-cyan-950/60 text-cyan-300 font-mono">
+              <span className={`text-xs px-2 py-0.5 rounded-full font-mono ${
+                activeTab === 'totp' ? 'bg-cyan-600 text-white' : 'bg-theme-bg text-theme-text-muted'
+              }`}>
                 {missingTotpEntries.length}
               </span>
             </button>
@@ -227,29 +235,29 @@ export const SecurityHealthDashboard: React.FC = () => {
 
         {/* Tab Content Display */}
         {activeTab === 'all' && weakEntries.length === 0 && reusedEntries.length === 0 && (
-          <div className="p-5 rounded-2xl bg-emerald-950/20 border border-emerald-900/30 flex items-center gap-3 text-emerald-300 text-xs">
-            <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
+          <div className="p-5 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center gap-3 text-emerald-600 dark:text-emerald-300 text-xs">
+            <CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0" />
             <span>No weak or reused passwords detected! Your credentials meet high strength standards.</span>
           </div>
         )}
 
         {activeTab === 'weak' && weakEntries.length === 0 && (
-          <div className="p-5 rounded-2xl bg-emerald-950/20 border border-emerald-900/30 flex items-center gap-3 text-emerald-300 text-xs">
-            <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
+          <div className="p-5 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center gap-3 text-emerald-600 dark:text-emerald-300 text-xs">
+            <CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0" />
             <span>All vault passwords meet complexity and entropy standards.</span>
           </div>
         )}
 
         {activeTab === 'reused' && reusedEntries.length === 0 && (
-          <div className="p-5 rounded-2xl bg-emerald-950/20 border border-emerald-900/30 flex items-center gap-3 text-emerald-300 text-xs">
-            <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
+          <div className="p-5 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center gap-3 text-emerald-600 dark:text-emerald-300 text-xs">
+            <CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0" />
             <span>No duplicated passwords found across your stored accounts.</span>
           </div>
         )}
 
         {activeTab === 'totp' && missingTotpEntries.length === 0 && (
-          <div className="p-5 rounded-2xl bg-emerald-950/20 border border-emerald-900/30 flex items-center gap-3 text-emerald-300 text-xs">
-            <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
+          <div className="p-5 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center gap-3 text-emerald-600 dark:text-emerald-300 text-xs">
+            <CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0" />
             <span>All login credentials have two-factor authenticator keys configured.</span>
           </div>
         )}
@@ -261,17 +269,17 @@ export const SecurityHealthDashboard: React.FC = () => {
               return (
                 <div
                   key={'weak-' + item.id}
-                  className="p-4 rounded-xl bg-[#0d1222]/90 border border-slate-900 flex items-center justify-between shadow-sm animate-scale-up"
+                  className="p-4 rounded-xl bg-theme-surface border border-theme-border flex items-center justify-between shadow-sm animate-scale-up"
                 >
                   <div className="flex items-center gap-3.5 min-w-0 flex-1 pr-3">
-                    <div className="p-2.5 rounded-xl bg-rose-500/10 text-rose-400 border border-rose-500/20 shrink-0">
+                    <div className="p-2.5 rounded-xl bg-rose-500/10 text-rose-500 border border-rose-500/20 shrink-0">
                       <AlertTriangle className="w-4.5 h-4.5" />
                     </div>
                     <div className="min-w-0 flex-1">
-                      <h4 className="text-sm font-semibold text-white truncate">{item.title}</h4>
+                      <h4 className="text-sm font-semibold text-theme-text truncate">{item.title}</h4>
                       <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-                        <span className="text-xs text-rose-400 font-medium">Weak Password</span>
-                        <span className="text-xs font-mono text-slate-400">
+                        <span className="text-xs text-rose-500 font-medium">Weak Password</span>
+                        <span className="text-xs font-mono text-theme-text-muted">
                           {entropy.bits} bits • Crack time: {entropy.crackTimeDisplay}
                         </span>
                       </div>
@@ -279,9 +287,9 @@ export const SecurityHealthDashboard: React.FC = () => {
                   </div>
                   <button
                     onClick={() => openEditor(item)}
-                    className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-850 text-xs font-semibold text-slate-200 border border-slate-800 transition-colors cursor-pointer shrink-0"
+                    className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-theme-bg hover:bg-theme-surface text-xs font-semibold text-theme-text border border-theme-border transition-colors cursor-pointer shrink-0"
                   >
-                    <Edit3 className="w-4 h-4 text-blue-400" />
+                    <Edit3 className="w-4 h-4 text-blue-500" />
                     <span>Fix</span>
                   </button>
                 </div>
@@ -294,24 +302,24 @@ export const SecurityHealthDashboard: React.FC = () => {
               return (
                 <div
                   key={'reused-' + item.id}
-                  className="p-4 rounded-xl bg-[#0d1222]/90 border border-slate-900 flex items-center justify-between shadow-sm animate-scale-up"
+                  className="p-4 rounded-xl bg-theme-surface border border-theme-border flex items-center justify-between shadow-sm animate-scale-up"
                 >
                   <div className="flex items-center gap-3.5 min-w-0 flex-1 pr-3">
-                    <div className="p-2.5 rounded-xl bg-amber-500/10 text-amber-400 border border-amber-500/20 shrink-0">
+                    <div className="p-2.5 rounded-xl bg-amber-500/10 text-amber-500 border border-amber-500/20 shrink-0">
                       <KeyRound className="w-4.5 h-4.5" />
                     </div>
                     <div className="min-w-0 flex-1">
-                      <h4 className="text-sm font-semibold text-white truncate">{item.title}</h4>
-                      <span className="text-xs text-amber-400 block mt-0.5">
+                      <h4 className="text-sm font-semibold text-theme-text truncate">{item.title}</h4>
+                      <span className="text-xs text-amber-600 dark:text-amber-400 block mt-0.5 font-medium">
                         Reused Password (Shared across {timesReused} accounts)
                       </span>
                     </div>
                   </div>
                   <button
                     onClick={() => openEditor(item)}
-                    className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-850 text-xs font-semibold text-slate-200 border border-slate-800 transition-colors cursor-pointer shrink-0"
+                    className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-theme-bg hover:bg-theme-surface text-xs font-semibold text-theme-text border border-theme-border transition-colors cursor-pointer shrink-0"
                   >
-                    <Edit3 className="w-4 h-4 text-amber-400" />
+                    <Edit3 className="w-4 h-4 text-amber-500" />
                     <span>Fix</span>
                   </button>
                 </div>
@@ -322,24 +330,24 @@ export const SecurityHealthDashboard: React.FC = () => {
             missingTotpEntries.map((item) => (
               <div
                 key={'totp-' + item.id}
-                className="p-4 rounded-xl bg-[#0d1222]/90 border border-slate-900 flex items-center justify-between shadow-sm animate-scale-up"
+                className="p-4 rounded-xl bg-theme-surface border border-theme-border flex items-center justify-between shadow-sm animate-scale-up"
               >
                 <div className="flex items-center gap-3.5 min-w-0 flex-1 pr-3">
-                  <div className="p-2.5 rounded-xl bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 shrink-0">
+                  <div className="p-2.5 rounded-xl bg-cyan-500/10 text-cyan-500 border border-cyan-500/20 shrink-0">
                     <Clock className="w-4.5 h-4.5" />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <h4 className="text-sm font-semibold text-white truncate">{item.title}</h4>
-                    <span className="text-xs text-cyan-400 block mt-0.5">
+                    <h4 className="text-sm font-semibold text-theme-text truncate">{item.title}</h4>
+                    <span className="text-xs text-cyan-600 dark:text-cyan-400 block mt-0.5 font-medium">
                       Missing 2FA Authenticator TOTP Key
                     </span>
                   </div>
                 </div>
                 <button
                   onClick={() => openEditor(item)}
-                  className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-850 text-xs font-semibold text-slate-200 border border-slate-800 transition-colors cursor-pointer shrink-0"
+                  className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-theme-bg hover:bg-theme-surface text-xs font-semibold text-theme-text border border-theme-border transition-colors cursor-pointer shrink-0"
                 >
-                  <Edit3 className="w-4 h-4 text-cyan-400" />
+                  <Edit3 className="w-4 h-4 text-cyan-500" />
                   <span>Add 2FA</span>
                 </button>
               </div>
