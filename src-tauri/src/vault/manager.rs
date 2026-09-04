@@ -284,6 +284,12 @@ impl VaultManager {
         let json_str = serde_json::to_string_pretty(&backup)
             .map_err(|e| format!("Failed to build backup JSON: {}", e))?;
 
+        if let Some(parent) = std::path::Path::new(dest_path).parent() {
+            if !parent.as_os_str().is_empty() {
+                let _ = fs::create_dir_all(parent);
+            }
+        }
+
         fs::write(dest_path, json_str)
             .map_err(|e| format!("Failed to write backup file to disk: {}", e))?;
 
@@ -291,9 +297,13 @@ impl VaultManager {
         Ok(())
     }
 
-    pub fn import_backup(&mut self, src_path: &str, master_password: &str) -> Result<(), String> {
-        let json_str = fs::read_to_string(src_path)
-            .map_err(|e| format!("Failed to read backup file: {}", e))?;
+    pub fn import_backup(&mut self, src_path_or_content: &str, master_password: &str) -> Result<(), String> {
+        let json_str = if src_path_or_content.trim().starts_with('{') {
+            src_path_or_content.to_string()
+        } else {
+            fs::read_to_string(src_path_or_content)
+                .map_err(|e| format!("Failed to read backup file: {}", e))?
+        };
 
         let backup: PortableVaultBackup = serde_json::from_str(&json_str)
             .map_err(|e| format!("Invalid Veylock backup file format: {}", e))?;

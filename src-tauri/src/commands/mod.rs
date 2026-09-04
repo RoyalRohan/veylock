@@ -69,6 +69,13 @@ pub fn set_auto_lock_timer(state: State<'_, SharedVaultManager>, minutes: u32) -
 }
 
 #[tauri::command]
+pub fn touch_user_activity(state: State<'_, SharedVaultManager>) -> Result<(), String> {
+    let mut manager = state.lock().map_err(|_| "Failed to acquire vault lock")?;
+    manager.touch_activity();
+    Ok(())
+}
+
+#[tauri::command]
 pub fn get_entries(state: State<'_, SharedVaultManager>) -> Result<Vec<DecryptedEntry>, String> {
     let mut manager = state.lock().map_err(|_| "Failed to acquire vault lock")?;
     manager.get_entries()
@@ -147,7 +154,7 @@ pub fn export_plaintext_csv(
     let mut manager = state.lock().map_err(|_| "Failed to acquire vault lock")?;
     let entries = manager.get_entries()?;
 
-    let mut csv_out = String::from("title,username,email,password,url,category,notes,totp_secret\n");
+    let mut csv_out = String::from("title,username,email,password,url,category,notes,totp_secret\r\n");
     for e in entries {
         let title = escape_csv(&e.title);
         let user = escape_csv(&e.username);
@@ -159,9 +166,15 @@ pub fn export_plaintext_csv(
         let totp = escape_csv(e.totp_secret.as_deref().unwrap_or(""));
 
         csv_out.push_str(&format!(
-            "{},{},{},{},{},{},{},{}\n",
+            "{},{},{},{},{},{},{},{}\r\n",
             title, user, email, pass, url, cat, notes, totp
         ));
+    }
+
+    if let Some(parent) = std::path::Path::new(&dest_path).parent() {
+        if !parent.as_os_str().is_empty() {
+            let _ = fs::create_dir_all(parent);
+        }
     }
 
     fs::write(dest_path, csv_out).map_err(|e| format!("Failed to write CSV: {}", e))?;
@@ -169,11 +182,99 @@ pub fn export_plaintext_csv(
 }
 
 fn escape_csv(val: &str) -> String {
-    if val.contains(',') || val.contains('"') || val.contains('\n') {
-        format!("\"{}\"", val.replace('"', "\"\""))
-    } else {
-        val.to_string()
+    let mut sanitized = val.to_string();
+    // Neutralize formula injection in spreadsheet software (Excel, LibreOffice)
+    if let Some(first) = sanitized.chars().next() {
+        if matches!(first, '=' | '+' | '-' | '@' | '\t' | '\r') {
+            sanitized = format!("'{}", sanitized);
+        }
     }
+
+    if sanitized.contains(',')
+        || sanitized.contains('"')
+        || sanitized.contains('\n')
+        || sanitized.contains('\r')
+        || sanitized.starts_with('\'')
+    {
+        format!("\"{}\"", sanitized.replace('"', "\"\""))
+    } else {
+        sanitized
+    }
+}
+
+fn clean_csv_field(val: &str) -> String {
+    let trimmed = val.trim();
+    if let Some(stripped) = trimmed.strip_prefix('\'') {
+        if let Some(first) = stripped.chars().next() {
+            if matches!(first, '=' | '+' | '-' | '@' | '\t' | '\r') {
+                return stripped.to_string();
+            }
+        }
+    }
+    trimmed.to_string()
+}
+
+fn parse_rfc4180_csv(input: &str) -> Vec<Vec<String>> {
+    let mut records = Vec::new();
+    let mut current_record = Vec::new();
+    let mut current_field = String::new();
+    let mut in_quotes = false;
+    let mut chars = input.chars().peekable();
+
+    while let Some(c) = chars.next() {
+        if in_quotes {
+            if c == '"' {
+                if chars.peek() == Some(&'"') {
+                    chars.next(); // consume escaped quote
+                    current_field.push('"');
+                } else {
+                    in_quotes = false;
+                }
+            } else {
+                current_field.push(c);
+            }
+        } else {
+            match c {
+                '"' => {
+                    in_quotes = true;
+                }
+                ',' => {
+                    current_record.push(std::mem::take(&mut current_field));
+                }
+                '\r' => {
+                    if chars.peek() == Some(&'\n') {
+                        chars.next();
+                    }
+                    current_record.push(std::mem::take(&mut current_field));
+                    if !current_record.iter().all(|f| f.trim().is_empty()) {
+                        records.push(std::mem::take(&mut current_record));
+                    } else {
+                        current_record.clear();
+                    }
+                }
+                '\n' => {
+                    current_record.push(std::mem::take(&mut current_field));
+                    if !current_record.iter().all(|f| f.trim().is_empty()) {
+                        records.push(std::mem::take(&mut current_record));
+                    } else {
+                        current_record.clear();
+                    }
+                }
+                _ => {
+                    current_field.push(c);
+                }
+            }
+        }
+    }
+
+    if !current_field.is_empty() || !current_record.is_empty() {
+        current_record.push(current_field);
+        if !current_record.iter().all(|f| f.trim().is_empty()) {
+            records.push(current_record);
+        }
+    }
+
+    records
 }
 
 #[tauri::command]
@@ -181,42 +282,104 @@ pub fn import_plaintext_csv(
     state: State<'_, SharedVaultManager>,
     src_path: String,
 ) -> Result<usize, String> {
-    let content = fs::read_to_string(src_path)
-        .map_err(|e| format!("Failed to read CSV file: {}", e))?;
+    let content = if src_path.contains('\n') || src_path.starts_with("title") || src_path.starts_with("Title") {
+        src_path
+    } else {
+        match fs::read_to_string(&src_path) {
+            Ok(c) => c,
+            Err(_) => src_path, // fallback if raw CSV was passed
+        }
+    };
 
     let mut manager = state.lock().map_err(|_| "Failed to acquire vault lock")?;
     if !manager.is_unlocked() {
         return Err("Vault is locked".to_string());
     }
 
+    let records = parse_rfc4180_csv(&content);
+    if records.is_empty() {
+        return Ok(0);
+    }
+
     let mut count = 0;
-    for (i, line) in content.lines().enumerate() {
-        if i == 0 && (line.starts_with("title") || line.starts_with("Title")) {
-            continue; // Header row
-        }
-        let cols: Vec<&str> = line.split(',').collect();
-        if cols.len() >= 4 {
-            let entry = DecryptedEntry {
-                id: Uuid::new_v4().to_string(),
-                title: cols.first().unwrap_or(&"").trim().trim_matches('"').to_string(),
-                username: cols.get(1).unwrap_or(&"").trim().trim_matches('"').to_string(),
-                email: cols.get(2).unwrap_or(&"").trim().trim_matches('"').to_string(),
-                password: cols.get(3).unwrap_or(&"").trim().trim_matches('"').to_string(),
-                url: cols.get(4).unwrap_or(&"").trim().trim_matches('"').to_string(),
-                category: cols.get(5).unwrap_or(&"logins").trim().trim_matches('"').to_string(),
-                notes: cols.get(6).unwrap_or(&"").trim().trim_matches('"').to_string(),
-                favorite: false,
-                tags: vec![],
-                custom_fields: vec![],
-                totp_secret: cols.get(7).map(|s| s.trim().trim_matches('"').to_string()).filter(|s| !s.is_empty()),
-                totp_issuer: None,
-                created_at: chrono::Utc::now().to_rfc3339(),
-                updated_at: chrono::Utc::now().to_rfc3339(),
-                last_used_at: None,
-            };
-            if manager.save_entry(entry).is_ok() {
-                count += 1;
+    let mut title_idx = 0;
+    let mut user_idx = 1;
+    let mut email_idx = 2;
+    let mut pass_idx = 3;
+    let mut url_idx = 4;
+    let mut cat_idx = 5;
+    let mut notes_idx = 6;
+    let mut totp_idx = 7;
+    let mut start_row = 0;
+
+    // Check if first row is header
+    if let Some(first_row) = records.first() {
+        let is_header = first_row.iter().any(|h| {
+            let lh = h.trim().to_lowercase();
+            lh == "title" || lh == "password" || lh == "username"
+        });
+
+        if is_header {
+            start_row = 1;
+            for (idx, col) in first_row.iter().enumerate() {
+                let name = col.trim().to_lowercase();
+                match name.as_str() {
+                    "title" => title_idx = idx,
+                    "username" | "user" | "login" => user_idx = idx,
+                    "email" => email_idx = idx,
+                    "password" | "pass" => pass_idx = idx,
+                    "url" | "website" => url_idx = idx,
+                    "category" => cat_idx = idx,
+                    "notes" | "note" => notes_idx = idx,
+                    "totp_secret" | "totp" | "otp" => totp_idx = idx,
+                    _ => {}
+                }
             }
+        }
+    }
+
+    for row in records.into_iter().skip(start_row) {
+        if row.is_empty() {
+            continue;
+        }
+
+        let title = row.get(title_idx).map(|s| clean_csv_field(s)).unwrap_or_default();
+        let pass = row.get(pass_idx).map(|s| clean_csv_field(s)).unwrap_or_default();
+        if title.is_empty() && pass.is_empty() {
+            continue;
+        }
+
+        let user = row.get(user_idx).map(|s| clean_csv_field(s)).unwrap_or_default();
+        let email = row.get(email_idx).map(|s| clean_csv_field(s)).unwrap_or_default();
+        let url = row.get(url_idx).map(|s| clean_csv_field(s)).unwrap_or_default();
+        let mut category = row.get(cat_idx).map(|s| clean_csv_field(s)).unwrap_or_else(|| "logins".to_string());
+        if category.is_empty() {
+            category = "logins".to_string();
+        }
+        let notes = row.get(notes_idx).map(|s| clean_csv_field(s)).unwrap_or_default();
+        let totp_secret = row.get(totp_idx).map(|s| clean_csv_field(s)).filter(|s| !s.is_empty());
+
+        let entry = DecryptedEntry {
+            id: Uuid::new_v4().to_string(),
+            title: if title.is_empty() { "Imported Credential".to_string() } else { title },
+            username: user,
+            email,
+            password: pass,
+            url,
+            category,
+            notes,
+            favorite: false,
+            tags: vec![],
+            custom_fields: vec![],
+            totp_secret,
+            totp_issuer: None,
+            created_at: chrono::Utc::now().to_rfc3339(),
+            updated_at: chrono::Utc::now().to_rfc3339(),
+            last_used_at: None,
+        };
+
+        if manager.save_entry(entry).is_ok() {
+            count += 1;
         }
     }
 

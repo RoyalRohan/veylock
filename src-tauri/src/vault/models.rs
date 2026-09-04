@@ -5,6 +5,7 @@ pub struct CustomField {
     pub id: String,
     pub name: String,
     pub value: String,
+    #[serde(rename = "fieldType", alias = "field_type")]
     pub field_type: String, // "text" | "sensitive"
 }
 

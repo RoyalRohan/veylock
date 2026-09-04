@@ -18,26 +18,28 @@ pub fn evaluate_vault_health(entries: &[DecryptedEntry]) -> VaultHealthReport {
     let mut password_counts: HashMap<String, usize> = HashMap::new();
 
     for entry in entries {
-        // Password weakness check
-        let pwd = &entry.password;
-        if is_weak_password(pwd) {
+        let pwd = entry.password.trim();
+        let is_login_item = entry.category == "logins" || entry.category.is_empty();
+
+        // Password weakness check (only for login items or entries with a password)
+        if is_login_item && (pwd.is_empty() || is_weak_password(pwd)) {
+            weak_count += 1;
+        } else if !is_login_item && !pwd.is_empty() && is_weak_password(pwd) {
             weak_count += 1;
         }
 
         // Count password occurrences for reuse detection
-        if !pwd.trim().is_empty() {
-            *password_counts.entry(pwd.clone()).or_insert(0) += 1;
+        if !pwd.is_empty() {
+            *password_counts.entry(pwd.to_string()).or_insert(0) += 1;
         }
 
         // Missing TOTP check for login items
-        if (entry.category == "logins" || entry.category.is_empty())
-            && entry.totp_secret.as_deref().unwrap_or("").trim().is_empty()
-        {
+        if is_login_item && entry.totp_secret.as_deref().unwrap_or("").trim().is_empty() {
             missing_totp_count += 1;
         }
     }
 
-    let reused_count = password_counts.values().filter(|&&c| c > 1).count();
+    let reused_count: usize = password_counts.values().filter(|&&c| c > 1).sum();
 
     // Calculate score
     let mut score: i32 = 100;
@@ -57,7 +59,7 @@ pub fn evaluate_vault_health(entries: &[DecryptedEntry]) -> VaultHealthReport {
 }
 
 pub fn is_weak_password(password: &str) -> bool {
-    if password.len() < 10 {
+    if password.len() < 8 {
         return true;
     }
     let has_upper = password.chars().any(|c| c.is_ascii_uppercase());
@@ -65,5 +67,17 @@ pub fn is_weak_password(password: &str) -> bool {
     let has_digit = password.chars().any(|c| c.is_ascii_digit());
     let has_symbol = password.chars().any(|c| !c.is_alphanumeric());
 
-    !(has_upper && has_lower && has_digit && has_symbol)
+    let classes_count = [has_upper, has_lower, has_digit, has_symbol]
+        .iter()
+        .filter(|&&b| b)
+        .count();
+
+    if password.len() < 12 && classes_count < 3 {
+        return true;
+    }
+    if classes_count < 2 {
+        return true;
+    }
+
+    false
 }

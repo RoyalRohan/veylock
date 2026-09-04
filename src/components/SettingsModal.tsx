@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { X, Shield } from 'lucide-react';
 import { useVault } from '../context/VaultContext';
+import { calculatePasswordStrength, calculateEntropy } from '../utils/cryptoUtils';
 
 export const SettingsModal: React.FC = () => {
   const { isSettingsOpen, setIsSettingsOpen, status, setAutoLockTimer, changeMasterPassword } =
@@ -13,6 +14,9 @@ export const SettingsModal: React.FC = () => {
   const [isChanging, setIsChanging] = useState(false);
 
   if (!isSettingsOpen) return null;
+
+  const newPassStrength = calculatePasswordStrength(newPass);
+  const newPassEntropy = calculateEntropy(newPass);
 
   const handleChangePassword = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -115,7 +119,7 @@ export const SettingsModal: React.FC = () => {
                   value={newPass}
                   onChange={(e) => setNewPass(e.target.value)}
                   placeholder="At least 8 chars..."
-                  className="w-full bg-[#0d1222] border border-slate-800 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-650 focus:outline-none focus:border-blue-500"
+                  className="w-full bg-[#0d1222] border border-slate-800 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-650 focus:outline-none focus:border-blue-500 font-mono"
                 />
               </div>
               <div>
@@ -125,17 +129,44 @@ export const SettingsModal: React.FC = () => {
                   value={confirmPass}
                   onChange={(e) => setConfirmPass(e.target.value)}
                   placeholder="Confirm new password..."
-                  className="w-full bg-[#0d1222] border border-slate-800 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-650 focus:outline-none focus:border-blue-500"
+                  className="w-full bg-[#0d1222] border border-slate-800 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-650 focus:outline-none focus:border-blue-500 font-mono"
                 />
               </div>
             </div>
+
+            {/* New Password Strength Indicator */}
+            {newPass && (
+              <div className="p-2 rounded-xl bg-[#080d1a] border border-slate-850 space-y-1.5 animate-scale-up">
+                <div className="flex items-center justify-between text-[10px]">
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-slate-400">Complexity:</span>
+                    <span className={`px-1.5 py-0.2 rounded font-bold text-white text-[9px] ${newPassStrength.color}`}>
+                      {newPassStrength.label}
+                    </span>
+                  </div>
+                  <span className="font-mono text-[9px] text-cyan-300">
+                    {newPassEntropy.bits} bits • {newPassEntropy.crackTimeDisplay}
+                  </span>
+                </div>
+                <div className="h-1 w-full bg-slate-900 rounded-full overflow-hidden flex gap-1">
+                  {[0, 1, 2, 3].map((idx) => (
+                    <div
+                      key={idx}
+                      className={`h-full flex-1 rounded-full transition-all ${
+                        idx <= newPassStrength.score ? newPassStrength.color : 'bg-slate-800'
+                      }`}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
 
             {passError && <p className="text-[11px] text-rose-450 leading-tight">{passError}</p>}
 
             <button
               type="submit"
               disabled={isChanging || !oldPass || !newPass}
-              className="w-full py-2.5 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-white text-xs font-semibold transition-colors disabled:opacity-50 cursor-pointer"
+              className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white text-xs font-semibold transition-all shadow-lg shadow-blue-600/25 disabled:opacity-50 cursor-pointer"
             >
               {isChanging ? 'Updating Password...' : 'Update Master Password'}
             </button>

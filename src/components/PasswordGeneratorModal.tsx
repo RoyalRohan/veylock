@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { X, RefreshCw, Copy, Check, Sparkles } from 'lucide-react';
 import { useVault } from '../context/VaultContext';
 import { PwGenConfig } from '../types';
-import { calculatePasswordStrength } from '../utils/cryptoUtils';
+import { calculatePasswordStrength, calculateEntropy } from '../utils/cryptoUtils';
 
 export const PasswordGeneratorModal: React.FC = () => {
   const { isGeneratorOpen, setIsGeneratorOpen, generatePassword, copyToClipboard } = useVault();
@@ -36,11 +36,28 @@ export const PasswordGeneratorModal: React.FC = () => {
   if (!isGeneratorOpen) return null;
 
   const strength = calculatePasswordStrength(generatedPw);
+  const entropy = calculateEntropy(generatedPw);
 
   const handleCopy = () => {
     copyToClipboard(generatedPw, 'Generated Password');
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const toggleCharSet = (key: 'use_uppercase' | 'use_lowercase' | 'use_numbers' | 'use_symbols', val: boolean) => {
+    if (!val) {
+      const activeCount = [
+        key === 'use_uppercase' ? false : config.use_uppercase,
+        key === 'use_lowercase' ? false : config.use_lowercase,
+        key === 'use_numbers' ? false : config.use_numbers,
+        key === 'use_symbols' ? false : config.use_symbols,
+      ].filter(Boolean).length;
+
+      if (activeCount === 0) {
+        return; // Disallow unchecking all character sets
+      }
+    }
+    setConfig({ ...config, [key]: val });
   };
 
   return (
@@ -91,11 +108,16 @@ export const PasswordGeneratorModal: React.FC = () => {
           </div>
 
           {/* Strength Meter */}
-          <div className="flex items-center justify-between text-[10px] px-1">
-            <span className="text-slate-500">Security Score:</span>
-            <span className="font-bold text-slate-200">{strength.label}</span>
+          <div className="flex items-center justify-between text-[10px] px-1 flex-wrap gap-1">
+            <div className="flex items-center gap-1.5">
+              <span className="text-slate-400">Security Score:</span>
+              <span className={`px-1.5 py-0.2 rounded font-bold text-white text-[9px] ${strength.color}`}>{strength.label}</span>
+            </div>
+            <span className="font-mono text-[10px] text-cyan-300 bg-cyan-950/40 px-2 py-0.5 rounded border border-cyan-900/40">
+              {entropy.bits} bits • {entropy.crackTimeDisplay}
+            </span>
           </div>
-          <div className="h-1 w-full bg-slate-900 rounded-full overflow-hidden flex gap-1">
+          <div className="h-1.5 w-full bg-slate-900 rounded-full overflow-hidden flex gap-1">
             {[0, 1, 2, 3].map((idx) => (
               <div
                 key={idx}
@@ -131,8 +153,8 @@ export const PasswordGeneratorModal: React.FC = () => {
 
           {!config.passphrase_mode ? (
             <>
-              {/* Length Slider */}
-              <div className="space-y-1.5">
+              {/* Length Slider & Presets */}
+              <div className="space-y-2">
                 <div className="flex justify-between text-[10px] font-bold uppercase tracking-wider text-slate-400">
                   <span>Password Length</span>
                   <span className="font-mono font-bold text-blue-400">{config.length} characters</span>
@@ -145,6 +167,23 @@ export const PasswordGeneratorModal: React.FC = () => {
                   onChange={(e) => setConfig({ ...config, length: parseInt(e.target.value) })}
                   className="w-full accent-blue-500 cursor-pointer"
                 />
+                <div className="flex items-center gap-1.5 pt-0.5">
+                  <span className="text-[9px] text-slate-500 uppercase font-bold tracking-wider mr-1">Presets:</span>
+                  {[16, 20, 24, 32, 48].map((len) => (
+                    <button
+                      key={len}
+                      type="button"
+                      onClick={() => setConfig({ ...config, length: len })}
+                      className={`px-2 py-0.5 rounded-md text-[10px] font-mono font-medium transition-colors cursor-pointer ${
+                        config.length === len
+                          ? 'bg-blue-600 text-white shadow-sm'
+                          : 'bg-slate-900 text-slate-400 hover:text-white border border-slate-800'
+                      }`}
+                    >
+                      {len}
+                    </button>
+                  ))}
+                </div>
               </div>
 
               {/* Toggles */}
@@ -153,7 +192,7 @@ export const PasswordGeneratorModal: React.FC = () => {
                   <input
                     type="checkbox"
                     checked={config.use_uppercase}
-                    onChange={(e) => setConfig({ ...config, use_uppercase: e.target.checked })}
+                    onChange={(e) => toggleCharSet('use_uppercase', e.target.checked)}
                     className="rounded text-blue-500 accent-blue-500"
                   />
                   <span>Uppercase (A-Z)</span>
@@ -162,7 +201,7 @@ export const PasswordGeneratorModal: React.FC = () => {
                   <input
                     type="checkbox"
                     checked={config.use_lowercase}
-                    onChange={(e) => setConfig({ ...config, use_lowercase: e.target.checked })}
+                    onChange={(e) => toggleCharSet('use_lowercase', e.target.checked)}
                     className="rounded text-blue-500 accent-blue-500"
                   />
                   <span>Lowercase (a-z)</span>
@@ -171,7 +210,7 @@ export const PasswordGeneratorModal: React.FC = () => {
                   <input
                     type="checkbox"
                     checked={config.use_numbers}
-                    onChange={(e) => setConfig({ ...config, use_numbers: e.target.checked })}
+                    onChange={(e) => toggleCharSet('use_numbers', e.target.checked)}
                     className="rounded text-blue-500 accent-blue-500"
                   />
                   <span>Numbers (0-9)</span>
@@ -180,7 +219,7 @@ export const PasswordGeneratorModal: React.FC = () => {
                   <input
                     type="checkbox"
                     checked={config.use_symbols}
-                    onChange={(e) => setConfig({ ...config, use_symbols: e.target.checked })}
+                    onChange={(e) => toggleCharSet('use_symbols', e.target.checked)}
                     className="rounded text-blue-500 accent-blue-500"
                   />
                   <span>Symbols (!@#$)</span>
@@ -199,7 +238,7 @@ export const PasswordGeneratorModal: React.FC = () => {
             </>
           ) : (
             <div className="space-y-4 text-xs">
-              <div className="space-y-1.5">
+              <div className="space-y-2">
                 <div className="flex justify-between text-[10px] font-bold uppercase tracking-wider text-slate-400">
                   <span>Word Count</span>
                   <span className="font-mono font-bold text-blue-400">{config.word_count} words</span>
@@ -212,6 +251,23 @@ export const PasswordGeneratorModal: React.FC = () => {
                   onChange={(e) => setConfig({ ...config, word_count: parseInt(e.target.value) })}
                   className="w-full accent-blue-500 cursor-pointer"
                 />
+                <div className="flex items-center gap-1.5 pt-0.5">
+                  <span className="text-[9px] text-slate-500 uppercase font-bold tracking-wider mr-1">Presets:</span>
+                  {[3, 4, 5, 6].map((cnt) => (
+                    <button
+                      key={cnt}
+                      type="button"
+                      onClick={() => setConfig({ ...config, word_count: cnt })}
+                      className={`px-2 py-0.5 rounded-md text-[10px] font-mono font-medium transition-colors cursor-pointer ${
+                        config.word_count === cnt
+                          ? 'bg-blue-600 text-white shadow-sm'
+                          : 'bg-slate-900 text-slate-400 hover:text-white border border-slate-800'
+                      }`}
+                    >
+                      {cnt} words
+                    </button>
+                  ))}
+                </div>
               </div>
 
               <div>

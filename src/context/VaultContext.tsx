@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { CategoryType, DecryptedEntry, PwGenConfig, VaultHealthReport, VaultStatus } from '../types';
 
@@ -21,7 +21,7 @@ interface VaultContextType {
   createVault: (password: string) => Promise<void>;
   unlockVault: (password: string) => Promise<boolean>;
   lockVault: () => Promise<void>;
-  saveEntry: (entry: DecryptedEntry) => Promise<void>;
+  saveEntry: (entry: DecryptedEntry, isFavoriteToggle?: boolean) => Promise<void>;
   deleteEntry: (id: string) => Promise<void>;
   setSelectedEntryId: (id: string | null) => void;
   setActiveCategory: (cat: CategoryType) => void;
@@ -128,26 +128,46 @@ export const VaultProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   }, [showToast, refreshStatus]);
 
+  const clipboardTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const clipboardClearTimeRef = useRef<number | null>(null);
+  const lastActivityRef = useRef<number>(Date.now());
+  const lastBackendTouchRef = useRef<number>(Date.now());
+
   const lockVault = useCallback(async () => {
+    if (clipboardTimeoutRef.current) {
+      clearTimeout(clipboardTimeoutRef.current);
+      clipboardTimeoutRef.current = null;
+    }
+    clipboardClearTimeRef.current = null;
     try {
       await invoke('lock_vault');
-      await navigator.clipboard.writeText('');
     } catch (err: any) {
       console.error('Lock vault failed:', err);
+    }
+    try {
+      await navigator.clipboard.writeText('');
+    } catch {
+      // ignore when window does not have clipboard focus
     }
     setStatus((prev) => ({ ...prev, unlocked: false }));
     setEntries([]);
     setSelectedEntryId(null);
+    setEditingEntry(null);
+    setHealthReport(null);
     showToast('Vault locked', 'info');
   }, [showToast]);
 
-  const saveEntry = useCallback(async (entry: DecryptedEntry) => {
+  const saveEntry = useCallback(async (entry: DecryptedEntry, isFavoriteToggle = false) => {
     try {
       const id = await invoke<string>('save_entry', { entry });
-      showToast('Entry saved securely', 'success');
+      if (isFavoriteToggle) {
+        showToast(entry.favorite ? 'Added to favorites' : 'Removed from favorites', 'info');
+      } else {
+        showToast('Entry saved securely', 'success');
+        setIsEditorOpen(false);
+      }
       await refreshStatus();
       setSelectedEntryId(id);
-      setIsEditorOpen(false);
     } catch (err: any) {
       showToast(err.toString(), 'error');
     }
@@ -179,8 +199,18 @@ export const VaultProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     try {
       await navigator.clipboard.writeText(text);
       showToast(`${label} copied! Will auto-clear in 30s.`, 'success');
-      setTimeout(() => {
-        navigator.clipboard.writeText('');
+      clipboardClearTimeRef.current = Date.now() + 30000;
+
+      if (clipboardTimeoutRef.current) {
+        clearTimeout(clipboardTimeoutRef.current);
+      }
+      clipboardTimeoutRef.current = setTimeout(async () => {
+        try {
+          await navigator.clipboard.writeText('');
+        } catch {
+          // ignore focus errors
+        }
+        clipboardClearTimeRef.current = null;
       }, 30000);
     } catch (err) {
       showToast('Failed to copy to clipboard', 'error');
@@ -275,6 +305,82 @@ export const VaultProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     refreshStatus();
   }, [refreshStatus]);
 
+  // Safe category selector that deselects entry if it does not belong to new category
+  const handleSetActiveCategory = useCallback((cat: CategoryType) => {
+    setActiveCategory(cat);
+    if (selectedEntryId) {
+      const selected = entries.find((e) => e.id === selectedEntryId);
+      if (selected) {
+        if (cat === 'favorites' && !selected.favorite) setSelectedEntryId(null);
+        else if (cat === 'totp' && !selected.totp_secret) setSelectedEntryId(null);
+        else if (cat !== 'all' && cat !== 'favorites' && cat !== 'totp' && cat !== 'health' && selected.category !== cat) {
+          setSelectedEntryId(null);
+        }
+      }
+    }
+  }, [selectedEntryId, entries]);
+
+  // Track user activity to determine idle time & sync with Rust backend
+  useEffect(() => {
+    const handleActivity = () => {
+      lastActivityRef.current = Date.now();
+      if (status.unlocked && Date.now() - lastBackendTouchRef.current > 25000) {
+        lastBackendTouchRef.current = Date.now();
+        invoke('touch_user_activity').catch(() => {});
+      }
+    };
+
+    const handleFocus = () => {
+      handleActivity();
+      if (clipboardClearTimeRef.current && Date.now() >= clipboardClearTimeRef.current) {
+        navigator.clipboard.writeText('').catch(() => {});
+        clipboardClearTimeRef.current = null;
+      }
+    };
+
+    window.addEventListener('mousemove', handleActivity, { passive: true });
+    window.addEventListener('mousedown', handleActivity, { passive: true });
+    window.addEventListener('keydown', handleActivity, { passive: true });
+    window.addEventListener('touchstart', handleActivity, { passive: true });
+    window.addEventListener('focus', handleFocus);
+
+    return () => {
+      window.removeEventListener('mousemove', handleActivity);
+      window.removeEventListener('mousedown', handleActivity);
+      window.removeEventListener('keydown', handleActivity);
+      window.removeEventListener('touchstart', handleActivity);
+      window.removeEventListener('focus', handleFocus);
+    };
+  }, [status.unlocked]);
+
+  // Periodic heartbeat to enforce auto-lock
+  useEffect(() => {
+    if (!status.unlocked) return;
+
+    const interval = setInterval(async () => {
+      const idleMs = Date.now() - lastActivityRef.current;
+      const autoLockMs = status.auto_lock_minutes * 60 * 1000;
+
+      if (status.auto_lock_minutes > 0 && idleMs >= autoLockMs) {
+        await lockVault();
+      } else {
+        try {
+          const res = await invoke<VaultStatus>('get_vault_status');
+          if (!res.unlocked) {
+            setStatus(res);
+            setEntries([]);
+            setSelectedEntryId(null);
+            setEditingEntry(null);
+          }
+        } catch {
+          // ignore transient poll error
+        }
+      }
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [status.unlocked, status.auto_lock_minutes, lockVault]);
+
   // Keyboard Shortcuts Setup (Ctrl/Cmd + K, Ctrl/Cmd + N, Ctrl/Cmd + L, Ctrl/Cmd + G)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -319,7 +425,7 @@ export const VaultProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         saveEntry,
         deleteEntry,
         setSelectedEntryId,
-        setActiveCategory,
+        setActiveCategory: handleSetActiveCategory,
         setSearchQuery,
         openEditor,
         closeEditor,

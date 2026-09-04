@@ -34,13 +34,15 @@ pub fn unwrap_vault_key(
     nonce_b64: &str,
     ciphertext_b64: &str,
 ) -> Result<VaultKey, String> {
-    let decrypted = decrypt_bytes(&kek.0, nonce_b64, ciphertext_b64)?;
+    let mut decrypted = decrypt_bytes(&kek.0, nonce_b64, ciphertext_b64)?;
     if decrypted.len() != VEK_LEN {
+        decrypted.zeroize();
         return Err("Invalid unwrapped key length".to_string());
     }
 
     let mut vek = [0u8; VEK_LEN];
     vek.copy_from_slice(&decrypted);
+    decrypted.zeroize();
     Ok(VaultKey(vek))
 }
 

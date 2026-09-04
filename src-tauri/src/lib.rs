@@ -32,6 +32,7 @@ pub fn run() {
             commands::unlock_vault,
             commands::lock_vault,
             commands::set_auto_lock_timer,
+            commands::touch_user_activity,
             commands::get_entries,
             commands::save_entry,
             commands::delete_entry,

@@ -5,6 +5,27 @@ All notable changes to Veylock will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0] - 2026-09-04
+
+### Added
+- **Shannon Entropy Engine**: Real-time entropy scoring (bits) and crack-time estimator embedded in credential details, password generator, and setup modals.
+- **Interactive Tag Chip Editor**: Dynamic tag chip creation (via Enter or comma) and deletion in credential editor, with badges rendered in list and detail views.
+- **Interactive Security Dashboard Tabs**: Filter tabs ("All", "Weak", "Reused", "Missing 2FA") with live badge counters and instant one-click "Fix" action.
+- **Caps Lock Detection & Shake Animation**: Caps Lock alert banner on master password fields and animated error shake feedback.
+- **Obsidian & Sapphire Glass UI**: Redesigned dark aesthetic with ambient glows, glassmorphism panels, and custom minimalist dark scrollbars.
+- **Activity Keepalive Auto-Lock Guard**: User activity IPC ping (`touch_user_activity`) to prevent premature auto-lock while actively browsing.
+- **Quick Keyboard Shortcuts Cheatsheet**: Shortcut badges (`⌘N`, `⌘K`, `⌘G`, `⌘L`, `Esc`) in Header and empty detail pane.
+
+### Fixed
+- **Premature Auto-Lock**: Resolved issue where reading or browsing entries caused the backend timer to unexpectedly lock the vault.
+- **Category Filter Reset Bug**: Fixed state loss when editing or saving credentials from specific categories.
+- **CSV Formula Injection Sanitization**: Prevented CSV injection vulnerabilities (`=`, `+`, `-`, `@`) without stripping legitimate apostrophes from passwords or titles.
+- **Directory Resolution on Export**: Added recursive `fs::create_dir_all` to prevent filesystem crashes when exporting backups or CSVs to non-existent folders.
+- **Tag Data Retention**: Resolved bug where saving an entry wiped existing tags.
+- **Tauri Path Capability**: Added `core:path:default` capability to permissions for reliable OS directory resolution.
+- **Password Generator Character Set Guard**: Prevented unchecking all character sets in CSPRNG password generation.
+- **TypeScript Compilation Errors**: Resolved all type mismatches in modal components and crypto utility functions.
+
 ## [1.0.0] - 2026-08-14
 
 ### Added

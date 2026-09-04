@@ -4,12 +4,29 @@ use std::path::Path;
 pub fn init_db(db_path: &Path) -> Result<Connection, String> {
     if let Some(parent) = db_path.parent() {
         std::fs::create_dir_all(parent).map_err(|e| format!("Failed to create DB directory: {}", e))?;
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+            let _ = std::fs::set_permissions(parent, std::fs::Permissions::from_mode(0o700));
+        }
     }
 
     let conn = Connection::open(db_path).map_err(|e| format!("Failed to open SQLite DB: {}", e))?;
 
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        if db_path.exists() {
+            let _ = std::fs::set_permissions(db_path, std::fs::Permissions::from_mode(0o600));
+        }
+    }
+
     conn.execute_batch(
         "
+        PRAGMA journal_mode = WAL;
+        PRAGMA foreign_keys = ON;
+        PRAGMA synchronous = NORMAL;
+
         CREATE TABLE IF NOT EXISTS vault_metadata (
             key TEXT PRIMARY KEY,
             value TEXT NOT NULL

@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { X, Plus, Trash2, Sparkles, Eye, EyeOff, Lock, Check, ChevronDown, KeyRound, Globe, User, Mail, FileText } from 'lucide-react';
+import { X, Plus, Trash2, Sparkles, Eye, EyeOff, Lock, Check, ChevronDown, KeyRound, Globe, User, Mail, FileText, Star, Tag } from 'lucide-react';
 import { useVault } from '../context/VaultContext';
 import { CustomField, DecryptedEntry } from '../types';
+import { calculatePasswordStrength, calculateEntropy } from '../utils/cryptoUtils';
 
 export const EntryEditorModal: React.FC = () => {
   const { isEditorOpen, closeEditor, editingEntry, saveEntry, generatePassword } = useVault();
@@ -17,6 +18,8 @@ export const EntryEditorModal: React.FC = () => {
   const [totpSecret, setTotpSecret] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [customFields, setCustomFields] = useState<CustomField[]>([]);
+  const [tags, setTags] = useState<string[]>([]);
+  const [tagInput, setTagInput] = useState('');
 
   useEffect(() => {
     if (editingEntry) {
@@ -30,6 +33,7 @@ export const EntryEditorModal: React.FC = () => {
       setFavorite(editingEntry.favorite || false);
       setTotpSecret(editingEntry.totp_secret || '');
       setCustomFields(editingEntry.custom_fields || []);
+      setTags(editingEntry.tags || []);
     } else {
       setTitle('');
       setUsername('');
@@ -41,7 +45,9 @@ export const EntryEditorModal: React.FC = () => {
       setFavorite(false);
       setTotpSecret('');
       setCustomFields([]);
+      setTags([]);
     }
+    setTagInput('');
   }, [editingEntry, isEditorOpen]);
 
   if (!isEditorOpen) return null;
@@ -72,9 +78,35 @@ export const EntryEditorModal: React.FC = () => {
     setCustomFields(customFields.filter((f) => f.id !== id));
   };
 
+  const handleAddTag = (text: string) => {
+    const clean = text.trim().toLowerCase();
+    if (clean && !tags.includes(clean)) {
+      setTags([...tags, clean]);
+    }
+    setTagInput('');
+  };
+
+  const handleKeyDownTag = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' || e.key === ',') {
+      e.preventDefault();
+      handleAddTag(tagInput);
+    } else if (e.key === 'Backspace' && !tagInput && tags.length > 0) {
+      setTags(tags.slice(0, -1));
+    }
+  };
+
+  const handleRemoveTag = (tagToRemove: string) => {
+    setTags(tags.filter((t) => t !== tagToRemove));
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim()) return;
+
+    let finalTags = [...tags];
+    if (tagInput.trim() && !finalTags.includes(tagInput.trim().toLowerCase())) {
+      finalTags.push(tagInput.trim().toLowerCase());
+    }
 
     const entryToSave: DecryptedEntry = {
       id: editingEntry ? editingEntry.id : '',
@@ -86,7 +118,7 @@ export const EntryEditorModal: React.FC = () => {
       notes: notes.trim(),
       category,
       favorite,
-      tags: [],
+      tags: finalTags,
       custom_fields: customFields.filter((f) => f.name.trim()),
       totp_secret: totpSecret.trim() || undefined,
       created_at: editingEntry ? editingEntry.created_at : '',
@@ -139,14 +171,25 @@ export const EntryEditorModal: React.FC = () => {
                   <option value="cards" className="bg-[#070a13] text-slate-100">Card / License</option>
                   <option value="servers" className="bg-[#070a13] text-slate-100">Server / API</option>
                 </select>
-                <ChevronDown className="w-3.5 h-3.5 text-slate-500 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                <ChevronDown className="w-3.5 h-3.5 text-slate-550 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
               </div>
             </div>
 
             <div className="col-span-2">
-              <label className="text-[10px] font-bold text-slate-400 mb-1.5 block uppercase tracking-wider">
-                Title <span className="text-rose-400">*</span>
-              </label>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="text-[10px] font-bold text-slate-400 block uppercase tracking-wider">
+                  Title <span className="text-rose-400">*</span>
+                </label>
+                <button
+                  type="button"
+                  onClick={() => setFavorite(!favorite)}
+                  className="flex items-center gap-1 text-[10px] text-slate-400 hover:text-amber-400 transition-colors cursor-pointer"
+                  title={favorite ? 'Favorite item' : 'Mark as favorite'}
+                >
+                  <Star className={`w-3.5 h-3.5 ${favorite ? 'fill-amber-400 text-amber-400' : 'text-slate-500'}`} />
+                  <span className={favorite ? 'text-amber-400 font-semibold' : 'text-slate-500'}>Favorite</span>
+                </button>
+              </div>
               <input
                 type="text"
                 value={title}
@@ -215,11 +258,41 @@ export const EntryEditorModal: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 p-1 transition-colors"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 p-1 transition-colors cursor-pointer"
               >
                 {showPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
               </button>
             </div>
+
+            {/* Live Strength & Entropy Meter */}
+            {password && (
+              <div className="mt-2 p-2.5 rounded-xl bg-[#080d1a] border border-slate-850 space-y-1.5 animate-scale-up">
+                <div className="flex items-center justify-between text-[10px]">
+                  <div className="flex items-center gap-2">
+                    <span className="text-slate-400 font-medium">Complexity:</span>
+                    <span className={`px-1.5 py-0.2 rounded font-bold text-white text-[9px] ${calculatePasswordStrength(password).color}`}>
+                      {calculatePasswordStrength(password).label}
+                    </span>
+                  </div>
+                  <span className="font-mono text-[9px] text-cyan-300">
+                    {calculateEntropy(password).bits} bits • {calculateEntropy(password).crackTimeDisplay}
+                  </span>
+                </div>
+                <div className="h-1 w-full bg-slate-900 rounded-full overflow-hidden flex gap-1">
+                  {[0, 1, 2, 3].map((idx) => {
+                    const pwStrength = calculatePasswordStrength(password);
+                    return (
+                      <div
+                        key={idx}
+                        className={`h-full flex-1 rounded-full transition-all ${
+                          idx <= pwStrength.score ? pwStrength.color : 'bg-slate-800'
+                        }`}
+                      />
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Website URL */}
@@ -249,6 +322,43 @@ export const EntryEditorModal: React.FC = () => {
               placeholder="e.g. JBSWY3DPEHPK3PXP (Base32 Key)"
               className="w-full bg-[#0d1222] border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-slate-200 font-mono uppercase tracking-wider placeholder-slate-650 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
             />
+          </div>
+
+          {/* Tags Section */}
+          <div>
+            <label className="text-[10px] font-bold text-slate-400 mb-1.5 block uppercase tracking-wider flex items-center gap-1.5">
+              <Tag className="w-3.5 h-3.5 text-slate-550" />
+              <span>Tags</span>
+              <span className="text-slate-600 font-normal lowercase">(press Enter or comma)</span>
+            </label>
+            <div className="min-h-[38px] w-full bg-[#0d1222] border border-slate-800 rounded-xl px-2.5 py-1.5 flex flex-wrap items-center gap-1.5 focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500">
+              {tags.map((tag) => (
+                <span
+                  key={tag}
+                  className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-slate-900 border border-slate-750 text-cyan-300 text-xs font-medium"
+                >
+                  <span>{tag}</span>
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveTag(tag)}
+                    className="text-slate-400 hover:text-white p-0.5 cursor-pointer"
+                  >
+                    <X className="w-2.5 h-2.5" />
+                  </button>
+                </span>
+              ))}
+              <input
+                type="text"
+                value={tagInput}
+                onChange={(e) => setTagInput(e.target.value)}
+                onKeyDown={handleKeyDownTag}
+                onBlur={() => {
+                  if (tagInput.trim()) handleAddTag(tagInput);
+                }}
+                placeholder={tags.length === 0 ? "Add tags (e.g. work, banking)..." : ""}
+                className="flex-1 min-w-[120px] bg-transparent text-xs text-white placeholder-slate-650 focus:outline-none py-0.5"
+              />
+            </div>
           </div>
 
           {/* Custom Fields Section */}

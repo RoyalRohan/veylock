@@ -5,6 +5,7 @@ export interface CustomField {
   name: string;
   value: string;
   fieldType: 'text' | 'sensitive';
+  field_type?: 'text' | 'sensitive';
 }
 
 export interface DecryptedEntry {

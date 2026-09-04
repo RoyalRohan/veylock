@@ -14,19 +14,19 @@ export const Toast: React.FC = () => {
   };
 
   const borders = {
-    success: 'border-emerald-500/30 bg-emerald-950/80 text-emerald-200',
-    error: 'border-rose-500/30 bg-rose-950/80 text-rose-200',
-    warning: 'border-amber-500/30 bg-amber-950/80 text-amber-200',
-    info: 'border-blue-500/30 bg-blue-950/80 text-blue-200',
+    success: 'border-emerald-500/30 bg-[#071a12]/95 text-emerald-200 shadow-emerald-950/40',
+    error: 'border-rose-500/30 bg-[#1c080d]/95 text-rose-200 shadow-rose-950/40',
+    warning: 'border-amber-500/30 bg-[#1c1306]/95 text-amber-200 shadow-amber-950/40',
+    info: 'border-blue-500/30 bg-[#071324]/95 text-blue-200 shadow-blue-950/40',
   };
 
   const type = toast.type || 'info';
 
   return (
-    <div className="fixed bottom-5 right-5 z-55 animate-toast-slide-in max-w-sm">
-      <div className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl border backdrop-blur-md shadow-lg ${borders[type]}`}>
+    <div className="fixed bottom-5 right-5 z-55 animate-toast-slide-in max-w-sm pointer-events-none">
+      <div className={`flex items-center gap-3 px-4 py-3 rounded-2xl border backdrop-blur-xl shadow-2xl ${borders[type]}`}>
         {icons[type]}
-        <span className="text-xs font-semibold">{toast.message}</span>
+        <span className="text-xs font-semibold tracking-wide">{toast.message}</span>
       </div>
     </div>
   );

@@ -21,28 +21,61 @@ import {
 } from 'lucide-react';
 import { useVault } from '../context/VaultContext';
 import { TotpViewer } from './TotpViewer';
-import { calculatePasswordStrength } from '../utils/cryptoUtils';
+import { calculatePasswordStrength, calculateEntropy } from '../utils/cryptoUtils';
+import { openUrl } from '@tauri-apps/plugin-opener';
+import { Tag, Command } from 'lucide-react';
 
 export const EntryDetail: React.FC = () => {
   const { entries, selectedEntryId, openEditor, deleteEntry, copyToClipboard, saveEntry } = useVault();
   const [showPassword, setShowPassword] = useState(false);
   const [copiedField, setCopiedField] = useState<string | null>(null);
+  const [visibleCustomFields, setVisibleCustomFields] = useState<Record<string, boolean>>({});
 
   const entry = entries.find((e) => e.id === selectedEntryId);
 
   if (!entry) {
+    const isMac = typeof navigator !== 'undefined' && /Mac|iPod|iPhone|iPad/.test(navigator.platform);
+    const mod = isMac ? '⌘' : 'Ctrl+';
+
     return (
-      <div className="flex-1 flex flex-col items-center justify-center p-12 text-center text-slate-500 bg-[#070a13]/10 select-none">
-        <Shield className="w-10 h-10 mb-3 text-slate-700 stroke-[1.5]" />
-        <h3 className="text-xs font-semibold text-slate-400 mb-1">No Item Selected</h3>
-        <p className="text-[11px] text-slate-600 max-w-[240px] leading-relaxed">
-          Select an entry from the list to view decrypted details or edit credentials.
+      <div className="flex-1 flex flex-col items-center justify-center p-8 text-center bg-[#070a13]/20 select-none">
+        <div className="w-14 h-14 rounded-2xl bg-[#0d1222]/80 border border-slate-800/80 flex items-center justify-center mb-4 shadow-inner text-slate-600">
+          <Shield className="w-7 h-7 stroke-[1.5]" />
+        </div>
+        <h3 className="text-sm font-semibold text-slate-300 mb-1 tracking-tight">No Item Selected</h3>
+        <p className="text-xs text-slate-500 max-w-[280px] leading-relaxed mb-6">
+          Select an entry from the list to view decrypted details or manage credentials.
         </p>
+
+        {/* Keyboard Shortcuts Cheatsheet */}
+        <div className="w-full max-w-xs bg-[#0d1222]/60 border border-slate-800/60 rounded-xl p-3.5 space-y-2 text-left">
+          <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-2">
+            <Command className="w-3 h-3 text-cyan-400" />
+            <span>Quick Shortcuts</span>
+          </div>
+          <div className="flex items-center justify-between text-xs text-slate-400">
+            <span>New Credential</span>
+            <kbd className="px-2 py-0.5 rounded bg-slate-900 border border-slate-800 text-[10px] font-mono text-slate-300 font-semibold">{mod}N</kbd>
+          </div>
+          <div className="flex items-center justify-between text-xs text-slate-400">
+            <span>Quick Search</span>
+            <kbd className="px-2 py-0.5 rounded bg-slate-900 border border-slate-800 text-[10px] font-mono text-slate-300 font-semibold">{mod}K</kbd>
+          </div>
+          <div className="flex items-center justify-between text-xs text-slate-400">
+            <span>Password Generator</span>
+            <kbd className="px-2 py-0.5 rounded bg-slate-900 border border-slate-800 text-[10px] font-mono text-slate-300 font-semibold">{mod}G</kbd>
+          </div>
+          <div className="flex items-center justify-between text-xs text-slate-400">
+            <span>Lock Vault</span>
+            <kbd className="px-2 py-0.5 rounded bg-slate-900 border border-slate-800 text-[10px] font-mono text-slate-300 font-semibold">{mod}L</kbd>
+          </div>
+        </div>
       </div>
     );
   }
 
   const strength = calculatePasswordStrength(entry.password);
+  const entropy = calculateEntropy(entry.password);
 
   const handleCopy = (text: string, label: string) => {
     copyToClipboard(text, label);
@@ -51,16 +84,24 @@ export const EntryDetail: React.FC = () => {
   };
 
   const toggleFavorite = () => {
-    saveEntry({ ...entry, favorite: !entry.favorite });
+    saveEntry({ ...entry, favorite: !entry.favorite }, true);
   };
 
-  const handleOpenUrl = () => {
+  const handleOpenUrl = async () => {
     if (!entry.url) return;
-    let validUrl = entry.url;
+    let validUrl = entry.url.trim();
     if (!validUrl.startsWith('http://') && !validUrl.startsWith('https://')) {
       validUrl = 'https://' + validUrl;
     }
-    window.open(validUrl, '_blank', 'noopener,noreferrer');
+    try {
+      const parsed = new URL(validUrl);
+      if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+        return;
+      }
+      await openUrl(validUrl);
+    } catch {
+      window.open(validUrl, '_blank', 'noopener,noreferrer');
+    }
   };
 
   const getCategoryIcon = (category: string) => {
@@ -84,7 +125,7 @@ export const EntryDetail: React.FC = () => {
           <div className="w-10 h-10 rounded-xl bg-[#0d1222] border border-slate-800 flex items-center justify-center shadow-md">
             {getCategoryIcon(entry.category)}
           </div>
-          <div>
+            <div>
             <div className="flex items-center gap-2">
               <h2 className="text-base font-bold text-white tracking-wide">{entry.title}</h2>
               <button
@@ -99,7 +140,22 @@ export const EntryDetail: React.FC = () => {
                 />
               </button>
             </div>
-            <span className="text-[10px] text-slate-500 capitalize font-medium">{entry.category.replace('_', ' ')}</span>
+            <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+              <span className="text-[10px] text-slate-500 capitalize font-medium">{entry.category.replace('_', ' ')}</span>
+              {entry.tags && entry.tags.length > 0 && (
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  {entry.tags.map((tag) => (
+                    <span
+                      key={tag}
+                      className="inline-flex items-center gap-0.5 text-[9px] px-1.5 py-0.5 rounded-md bg-slate-900 border border-slate-800 text-cyan-300 font-medium"
+                    >
+                      <Tag className="w-2.5 h-2.5 text-cyan-400/80" />
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
@@ -175,23 +231,37 @@ export const EntryDetail: React.FC = () => {
           {/* Password */}
           {entry.password && (
             <div className="pt-3 border-t border-slate-900/60">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <Lock className="w-4 h-4 text-slate-500 shrink-0" />
-                  <div>
-                    <div className="flex items-center gap-2 mb-0.5">
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block">Password</span>
-                      <span className={`text-[9px] px-1.5 py-0.2 rounded font-bold ${strength.color} text-white`}>
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex items-start gap-3 min-w-0">
+                  <Lock className="w-4 h-4 text-slate-500 shrink-0 mt-0.5" />
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2 mb-1 flex-wrap">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Password</span>
+                      <span className={`text-[9px] px-1.5 py-0.5 rounded font-bold ${strength.color} text-white`}>
                         {strength.label}
                       </span>
+                      <span className="text-[9px] font-mono text-cyan-300 bg-cyan-950/60 px-1.5 py-0.5 rounded border border-cyan-800/40">
+                        {entropy.bits} bits • {entropy.crackTimeDisplay}
+                      </span>
                     </div>
-                    <span className="text-xs font-mono text-slate-200">
+                    <span className="text-xs font-mono text-slate-200 block break-all">
                       {showPassword ? entry.password : '••••••••••••••••'}
                     </span>
+                    {/* Visual 4-step strength bar */}
+                    <div className="h-1 w-32 bg-slate-900 rounded-full overflow-hidden flex gap-1 mt-2">
+                      {[0, 1, 2, 3].map((idx) => (
+                        <div
+                          key={idx}
+                          className={`h-full flex-1 rounded-full transition-all ${
+                            idx <= strength.score ? strength.color : 'bg-slate-800'
+                          }`}
+                        />
+                      ))}
+                    </div>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-1.5">
+                <div className="flex items-center gap-1.5 shrink-0">
                   <button
                     onClick={() => setShowPassword(!showPassword)}
                     className="p-1.5 rounded-lg bg-slate-950/60 hover:bg-slate-800 text-slate-400 hover:text-white border border-slate-900 transition-colors cursor-pointer"
@@ -238,22 +308,40 @@ export const EntryDetail: React.FC = () => {
         {entry.custom_fields && entry.custom_fields.length > 0 && (
           <div className="bg-[#0d1222]/90 border border-slate-900 rounded-2xl p-5 space-y-3 shadow-sm">
             <h3 className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Custom Fields</h3>
-            {entry.custom_fields.map((field) => (
-              <div key={field.id} className="flex items-center justify-between p-2 rounded-xl bg-slate-950/60 border border-slate-900/60">
-                <div className="pl-1">
-                  <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500 block">{field.name}</span>
-                  <span className="text-xs font-mono text-slate-200">
-                    {field.fieldType === 'sensitive' ? '••••••••' : field.value}
-                  </span>
+            {entry.custom_fields.map((field) => {
+              const isSensitive = field.fieldType === 'sensitive' || field.field_type === 'sensitive';
+              const isRevealed = visibleCustomFields[field.id];
+              return (
+                <div key={field.id} className="flex items-center justify-between p-2 rounded-xl bg-slate-950/60 border border-slate-900/60">
+                  <div className="pl-1">
+                    <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500 block">{field.name}</span>
+                    <span className="text-xs font-mono text-slate-200">
+                      {isSensitive && !isRevealed ? '••••••••' : field.value}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    {isSensitive && (
+                      <button
+                        onClick={() =>
+                          setVisibleCustomFields((prev) => ({ ...prev, [field.id]: !prev[field.id] }))
+                        }
+                        className="p-1.5 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white cursor-pointer"
+                        title={isRevealed ? 'Hide Value' : 'Show Value'}
+                      >
+                        {isRevealed ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                      </button>
+                    )}
+                    <button
+                      onClick={() => handleCopy(field.value, field.name)}
+                      className="p-1.5 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white cursor-pointer"
+                      title="Copy"
+                    >
+                      <Copy className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
                 </div>
-                <button
-                  onClick={() => handleCopy(field.value, field.name)}
-                  className="p-1.5 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white cursor-pointer"
-                >
-                  <Copy className="w-3.5 h-3.5" />
-                </button>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
 
