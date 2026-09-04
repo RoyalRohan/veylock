@@ -76,4 +76,5 @@ This document outlines the security boundaries, threat actors, attack vectors, a
 | Key Derivation | Argon2id | Memory: 64 MB, Time: 3, Parallelism: 4, Salt: 16-byte random |
 | Vault Encryption | AES-256-GCM | 256-bit key, 96-bit random nonce per record, 128-bit tag |
 | Randomness | Cryptographically Secure PRNG | `rand::rngs::OsRng` (OS CSPRNG) |
-| OTP Generator | HMAC-SHA1 TOTP | RFC 6238 compliant |
+| OTP Generator | HMAC-SHA1 / HMAC-SHA256 TOTP | RFC 6238 compliant, Base32 validation with zeroization, 6/8 digits, 30s/60s period |
+| Memory Sanitization | `zeroize` / `zeroize_on_drop` | Applied to master passwords, derived KEK, active VEK, and decoded secret buffers |

@@ -16,19 +16,28 @@ Thank you for your interest in contributing to Veylock! We welcome contributions
 ## 2. Setting Up Development Environment
 
 Prerequisites:
-* **Node.js**: v18+ and `npm`
+* **Node.js**: v20+ and `npm`
 * **Rust**: `rustc` and `cargo` (1.75+)
-* **Linux Dependencies** (if on Linux): `build-essential`, `libssl-dev`, `libgtk-3-dev`, `libwebkit2gtk-4.1-dev` / `libwebkit2gtk-4.0-dev`
+* **Linux Dependencies** (if on Linux): `build-essential`, `pkg-config`, `libssl-dev`, `libgtk-3-dev`, `libwebkit2gtk-4.1-dev`
 
 Commands:
 ```bash
-# Install dependencies
+# Install frontend dependencies
 npm install
 
-# Run application in development mode
+# Run frontend in browser preview mode
+npm run dev
+
+# Run full desktop application in development mode
 npm run tauri dev
 
-# Run Rust unit tests
+# Verify TypeScript compilation
+npx tsc --noEmit
+
+# Verify production frontend build
+npm run build
+
+# Run Rust cryptographic unit tests
 cargo test --manifest-path src-tauri/Cargo.toml
 ```
 
@@ -37,6 +46,7 @@ cargo test --manifest-path src-tauri/Cargo.toml
 ## 3. Pull Request Process
 
 1. Fork the repository and create a feature branch (`git checkout -b feature/my-feature`).
-2. Run unit tests and static security linters.
-3. Ensure no new dependencies introduce unnecessary telemetry or unvetted cryptographic algorithms.
-4. Submit a Pull Request with a clear explanation of changes and rationale.
+2. Run TypeScript check (`npx tsc --noEmit`) and Rust unit tests (`cargo test --manifest-path src-tauri/Cargo.toml`).
+3. Ensure no new dependencies introduce telemetry, remote network calls, or unvetted cryptographic algorithms.
+4. Ensure any new fields added to data models derive `Default` and use `#[serde(default)]` to guarantee 100% backward compatibility.
+5. Submit a Pull Request with a clear explanation of changes and rationale.

@@ -23,14 +23,18 @@ To help us triage and resolve the issue quickly, please include:
 ## Security Guarantees & Non-Guarantees
 
 ### What Veylock Protects
-* **Data at Rest**: Vault data is encrypted using AES-256-GCM authenticated encryption.
-* **Key Isolation**: Vault Encryption Keys (VEK) are derived using Argon2id and wrapped in RAM. Master passwords are never stored anywhere on disk or DB.
-* **Data Integrity**: Nonce collision prevention and AEAD authentication tags ensure tampered database records cannot be decrypted.
-* **Clipboard Leakage**: Secrets copied to clipboard are auto-cleared after a configurable timeout (default 30s).
+* **Data at Rest**: All credentials, secure notes, cards, licenses, server keys, and API secrets are encrypted using AES-256-GCM authenticated encryption.
+* **Key Isolation & Derivation**: Vault Encryption Keys (VEK) are wrapped in memory using keys derived via Argon2id (64MB RAM, 3 iterations, 4 threads). Master passwords are never stored on disk or in the database.
+* **Memory Zeroization**: Plaintext passwords, master keys, and decoded TOTP secret byte buffers implement `zeroize::Zeroize` and are immediately purged from RAM upon vault lock or window close.
+* **Data Integrity**: Authenticated Encryption with Associated Data (AEAD) ensures that any tampered or corrupted database records fail decryption immediately.
+* **TOTP Engine Security**: Pure offline RFC 6238 token generation with strict Base32 validation and in-memory zeroization of secret buffers.
+* **Clipboard Leakage**: Secrets copied to clipboard are auto-cleared after a configurable timeout (default 30s) or upon locking the vault.
+* **CSV Formula Injection Defense**: Exported spreadsheet data strips leading calculation triggers (`=`, `+`, `-`, `@`) to defend against spreadsheet formula execution vulnerabilities.
+* **Complete Offline Guarantee**: Zero external network connections, zero telemetry packages, zero analytics, and zero remote font requests.
 
 ### What Veylock Cannot Protect Against
-* **Compromised Host OS**: Active keyloggers, screen scrapers, or memory hooks running at host level.
+* **Compromised Host OS**: Active keyloggers, screen scrapers, or memory hooks running with administrative or root permissions on the host system.
 * **Cold Boot Attacks**: Direct physical RAM extraction while the application vault is currently unlocked.
-* **Hardware Physical Access**: Physical tampering of an unlocked active computer session without auto-lock.
+* **Hardware Physical Access**: Physical tampering of an unlocked active computer session without an auto-lock timer enabled.
 
 Thank you for helping keep Veylock secure!
