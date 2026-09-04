@@ -1,6 +1,6 @@
 # Veylock
 
-> **Offline-first, zero-trust, local-only password manager built for Windows and Linux.**
+> **Offline-first, zero-trust, local-only password manager built for Windows, Linux, and Android.**
 
 Veylock is engineered to keep your credentials completely under your control with **zero cloud synchronization**, **zero telemetry**, and **zero external network requests**. 
 
@@ -121,8 +121,9 @@ Veylock implements a dual-key envelope encryption architecture:
    ```bash
    npm run tauri build
    ```
-   * **Linux**: Generates `.deb` and `.AppImage` in `src-tauri/target/release/bundle/`
-   * **Windows**: Generates `.exe` installer (NSIS/MSI) in `src-tauri/target/release/bundle/`
+    * **Linux**: Generates `.deb` (Ubuntu/Debian) and `.rpm` (Fedora/RHEL/openSUSE) in `src-tauri/target/release/bundle/`
+    * **Windows**: Generates `.exe` installer (NSIS) in `src-tauri/target/release/bundle/nsis/`
+    * **Android**: Generates `.apk` package via `npm run tauri android build --apk`
 
 ---
 

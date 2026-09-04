@@ -98,15 +98,18 @@ jobs:
         run: npx tauri android init --ci
 
       - name: Build Android APK
-        run: npx tauri android build --apk --target aarch64
+        run: npx tauri android build --apk --target aarch64 --ci
 
-      - name: Sign APK with Default Keystore
+      - name: Sign & Package Android APK
         run: |
           keytool -genkey -v -keystore release.keystore -alias veylock -keyalg RSA -keysize 2048 -validity 10000 -storepass android -keypass android -dname "CN=Veylock, OU=Security, O=Veylock, L=City, S=State, C=US"
           BUILD_TOOLS_DIR=$(ls -d $ANDROID_HOME/build-tools/* | sort -V | tail -n 1)
+          mkdir -p release-apks
           find src-tauri/gen/android/app/build/outputs/apk -type f -name "*.apk" | while read -r apk; do
             echo "Signing $apk..."
             $BUILD_TOOLS_DIR/apksigner sign --ks release.keystore --ks-pass pass:android --key-pass pass:android "$apk"
+            $BUILD_TOOLS_DIR/apksigner verify "$apk"
+            cp "$apk" "release-apks/veylock-${{ github.ref_name }}-android-aarch64.apk"
           done
 
       - name: Upload Android APK to GitHub Release
@@ -116,5 +119,4 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: ${{ github.ref_name }}
-          files: |
-            src-tauri/gen/android/app/build/outputs/apk/**/*.apk
+          files: release-apks/*.apk
