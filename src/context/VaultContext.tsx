@@ -400,8 +400,13 @@ export const VaultProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
         e.preventDefault();
-        const searchInput = document.getElementById('vault-search-input');
-        if (searchInput) searchInput.focus();
+        const desktopInput = document.getElementById('vault-search-input');
+        const mobileInput = document.getElementById('vault-search-input-mobile');
+        if (desktopInput && desktopInput.offsetParent !== null) {
+          desktopInput.focus();
+        } else if (mobileInput) {
+          mobileInput.focus();
+        }
       } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'n') {
         e.preventDefault();
         openEditor();

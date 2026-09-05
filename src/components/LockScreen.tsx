@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Lock, Eye, EyeOff, Key, ArrowRight, AlertTriangle } from 'lucide-react';
+import { openUrl } from '@tauri-apps/plugin-opener';
 import { useVault } from '../context/VaultContext';
 import logoImg from '../assets/logo.png';
 
@@ -38,8 +39,18 @@ export const LockScreen: React.FC<LockScreenProps> = ({ onOpenSetup }) => {
     setCapsLockOn(e.getModifierState('CapsLock'));
   };
 
+  const handleOpenDeveloper = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    const url = 'https://github.com/RoyalRohan';
+    try {
+      await openUrl(url);
+    } catch {
+      window.open(url, '_blank', 'noopener,noreferrer');
+    }
+  };
+
   return (
-    <div className="relative min-h-screen w-full flex items-center justify-center bg-theme-bg text-theme-text p-4 sm:p-6 overflow-hidden select-none pt-safe pb-safe">
+    <div className="relative min-h-screen w-full flex flex-col items-center justify-center bg-theme-bg text-theme-text p-4 sm:p-6 overflow-hidden select-none pt-safe pb-safe">
       <div
         className={`w-full max-w-[400px] glass-panel p-6 sm:p-8 rounded-2xl shadow-xl relative z-10 border border-theme-border ${
           shake ? 'animate-shake border-rose-500/60 shadow-rose-500/10' : 'animate-scale-up'
@@ -132,6 +143,20 @@ export const LockScreen: React.FC<LockScreenProps> = ({ onOpenSetup }) => {
           </form>
         )}
       </div>
+
+      {/* Developer Credit Footer / Watermark */}
+      <footer className="mt-6 sm:mt-8 text-center text-xs text-theme-text-muted/60 select-none relative z-10">
+        Developed by{' '}
+        <a
+          href="https://github.com/RoyalRohan"
+          onClick={handleOpenDeveloper}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="font-medium text-theme-text-muted hover:text-blue-400 transition-colors underline underline-offset-4 decoration-theme-border hover:decoration-blue-400 cursor-pointer"
+        >
+          Rohan Ghimire
+        </a>
+      </footer>
     </div>
   );
 };
