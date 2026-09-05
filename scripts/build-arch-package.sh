@@ -15,8 +15,8 @@ cd "$BUILD_DIR"
 
 DEB_FILE=$(ls *.deb | head -n 1)
 ar x "$DEB_FILE"
-mkdir -p pkg-data
-tar -xf data.tar.* -C pkg-data
+mkdir -p "$BUILD_DIR/src/pkg-data"
+tar -xf data.tar.* -C "$BUILD_DIR/src/pkg-data"
 
 TAG="${1:-1.1.0}"
 VER="${TAG#v}"
@@ -35,7 +35,7 @@ conflicts=('veylock')
 options=('!strip')
 
 package() {
-  cp -r "${srcdir}/pkg-data/"* "${pkgdir}/"
+  cp -a "${srcdir}/pkg-data/." "${pkgdir}/"
 }
 INNER_EOF
 
