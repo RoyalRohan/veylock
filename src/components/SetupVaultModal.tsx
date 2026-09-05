@@ -121,7 +121,7 @@ export const SetupVaultModal: React.FC<SetupVaultModalProps> = ({ isOpen, onClos
                     {entropy.bits} bits • {entropy.crackTimeDisplay}
                   </span>
                 </div>
-                <div className="h-1.5 w-full bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden flex gap-1">
+                <div className="h-1.5 w-full bg-slate-200 dark:bg-[#21262d] rounded-full overflow-hidden flex gap-1">
                   {[0, 1, 2, 3].map((idx) => (
                     <div
                       key={idx}

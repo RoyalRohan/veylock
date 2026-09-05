@@ -14,10 +14,10 @@ export const Toast: React.FC = () => {
   };
 
   const borders = {
-    success: 'border-emerald-500/30 bg-emerald-50 text-emerald-900 dark:bg-[#071a12]/95 dark:text-emerald-200 shadow-lg',
-    error: 'border-rose-500/30 bg-rose-50 text-rose-900 dark:bg-[#1c080d]/95 dark:text-rose-200 shadow-lg',
-    warning: 'border-amber-500/30 bg-amber-50 text-amber-900 dark:bg-[#1c1306]/95 dark:text-amber-200 shadow-lg',
-    info: 'border-blue-500/30 bg-blue-50 text-blue-900 dark:bg-[#071324]/95 dark:text-blue-200 shadow-lg',
+    success: 'border-emerald-500/30 bg-emerald-50 text-emerald-900 dark:bg-[#161b22] dark:border-[#3fb950]/40 dark:text-[#f0f6fc] shadow-lg',
+    error: 'border-rose-500/30 bg-rose-50 text-rose-900 dark:bg-[#161b22] dark:border-[#f85149]/40 dark:text-[#f0f6fc] shadow-lg',
+    warning: 'border-amber-500/30 bg-amber-50 text-amber-900 dark:bg-[#161b22] dark:border-[#d29922]/40 dark:text-[#f0f6fc] shadow-lg',
+    info: 'border-blue-500/30 bg-blue-50 text-blue-900 dark:bg-[#161b22] dark:border-[#1f6feb]/40 dark:text-[#f0f6fc] shadow-lg',
   };
 
   const type = toast.type || 'info';

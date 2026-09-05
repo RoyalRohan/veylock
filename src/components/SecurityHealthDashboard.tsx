@@ -93,7 +93,7 @@ export const SecurityHealthDashboard: React.FC = () => {
           <div className="relative w-20 h-20 flex items-center justify-center mb-3">
             <svg className="w-full h-full -rotate-90" viewBox="0 0 36 36">
               <path
-                className="text-slate-200 dark:text-slate-800"
+                className="text-slate-200 dark:text-[#21262d]"
                 strokeWidth="3.5"
                 stroke="currentColor"
                 fill="none"

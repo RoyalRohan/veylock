@@ -209,7 +209,7 @@ export const EntryList: React.FC = () => {
                 onClick={() => setSelectedEntryId(item.id)}
                 className={`p-3.5 sm:p-4 cursor-pointer transition-all flex items-center justify-between group relative min-h-[68px] ${
                   isSelected
-                    ? 'bg-blue-50/80 dark:bg-blue-950/30 text-theme-text border-l-3 border-blue-500 shadow-sm'
+                    ? 'bg-blue-50/80 dark:bg-[#21262d] text-theme-text border-l-3 border-blue-500 shadow-sm'
                     : 'hover:bg-theme-hover text-theme-text-muted'
                 }`}
               >
