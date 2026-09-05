@@ -1,5 +1,7 @@
 use std::fs;
-use tauri::{Manager, State};
+#[cfg(not(target_os = "android"))]
+use tauri::Manager;
+use tauri::State;
 use uuid::Uuid;
 
 use crate::totp::generator::{generate_totp_code as calc_totp, validate_totp_secret};
