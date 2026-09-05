@@ -47,12 +47,12 @@ export const SettingsModal: React.FC = () => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-slate-950/80 backdrop-blur-md select-none">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/60 backdrop-blur-md select-none">
       <div className="w-full max-w-lg glass-panel rounded-2xl p-4 sm:p-6 shadow-2xl border border-theme-border animate-scale-up max-h-[94vh] flex flex-col overflow-hidden text-theme-text">
         {/* Header */}
         <div className="flex items-center justify-between pb-4 border-b border-theme-border shrink-0">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl shadow-md shadow-cyan-500/10 flex items-center justify-center p-0.5 border border-cyan-500/25 bg-theme-surface shrink-0">
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center p-1 border border-theme-border bg-theme-surface shrink-0 shadow-sm">
               <img src={logoImg} alt="Veylock" className="w-full h-full object-cover rounded-[10px]" />
             </div>
             <div>
@@ -75,7 +75,7 @@ export const SettingsModal: React.FC = () => {
               <label className="text-xs font-bold uppercase tracking-wider text-theme-text-muted block">
                 Appearance
               </label>
-              <span className="text-xs font-mono text-cyan-400 capitalize">
+              <span className="text-xs font-mono text-theme-text-muted capitalize">
                 Active: {resolvedTheme}
               </span>
             </div>
@@ -201,7 +201,7 @@ export const SettingsModal: React.FC = () => {
                       {newPassStrength.label}
                     </span>
                   </div>
-                  <span className="font-mono text-xs text-cyan-400">
+                  <span className="font-mono text-xs text-theme-text-muted font-medium">
                     {newPassEntropy.bits} bits • {newPassEntropy.crackTimeDisplay}
                   </span>
                 </div>
@@ -223,7 +223,7 @@ export const SettingsModal: React.FC = () => {
             <button
               type="submit"
               disabled={isChanging || !oldPass || !newPass}
-              className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white text-sm font-semibold transition-all shadow-lg shadow-blue-600/25 disabled:opacity-50 cursor-pointer"
+              className="w-full py-3 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white text-sm font-medium transition-colors shadow-sm disabled:opacity-50 cursor-pointer"
             >
               {isChanging ? 'Updating Password...' : 'Update Master Password'}
             </button>

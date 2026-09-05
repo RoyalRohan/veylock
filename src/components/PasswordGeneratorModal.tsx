@@ -99,7 +99,7 @@ export const PasswordGeneratorModal: React.FC = () => {
               </button>
               <button
                 onClick={handleCopy}
-                className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white transition-all flex items-center gap-1.5 text-xs font-semibold shadow-md shadow-blue-600/25 cursor-pointer"
+                className="px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white transition-colors flex items-center gap-1.5 text-xs font-medium shadow-sm cursor-pointer"
               >
                 {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
                 <span>{copied ? 'Copied' : 'Copy'}</span>
@@ -113,7 +113,7 @@ export const PasswordGeneratorModal: React.FC = () => {
               <span className="text-theme-text-muted">Security Score:</span>
               <span className={`px-2 py-0.5 rounded font-bold text-white text-xs ${strength.color}`}>{strength.label}</span>
             </div>
-            <span className="font-mono text-xs text-cyan-600 dark:text-cyan-300 bg-cyan-500/10 px-2.5 py-0.5 rounded border border-cyan-500/20 font-semibold">
+            <span className="font-mono text-xs text-theme-text-muted bg-theme-elevated px-2.5 py-0.5 rounded border border-theme-border font-medium">
               {entropy.bits} bits • {entropy.crackTimeDisplay}
             </span>
           </div>

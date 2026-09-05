@@ -1,5 +1,5 @@
 import React from 'react';
-import { X, Star, ChevronDown, KeyRound, FileText, Clock, CreditCard, Award, Server, Terminal } from 'lucide-react';
+import { X, Star, ChevronDown, Key, FileText, Clock, CreditCard, Scroll, Server, Terminal } from 'lucide-react';
 import { CategoryType } from '../../../types';
 
 interface EntryFormShellProps {
@@ -30,19 +30,19 @@ export const EntryFormShell: React.FC<EntryFormShellProps> = ({
   const getCategoryIcon = (cat: CategoryType) => {
     switch (cat) {
       case 'secure_notes':
-        return <FileText className="w-5 h-5 text-emerald-400" />;
+        return <FileText className="w-5 h-5 text-emerald-500" />;
       case 'totp':
-        return <Clock className="w-5 h-5 text-cyan-400" />;
+        return <Clock className="w-5 h-5 text-teal-500" />;
       case 'cards':
-        return <CreditCard className="w-5 h-5 text-indigo-400" />;
+        return <CreditCard className="w-5 h-5 text-indigo-500" />;
       case 'licenses':
-        return <Award className="w-5 h-5 text-amber-400" />;
+        return <Scroll className="w-5 h-5 text-amber-600 dark:text-amber-500" />;
       case 'servers':
-        return <Server className="w-5 h-5 text-purple-400" />;
+        return <Server className="w-5 h-5 text-purple-500" />;
       case 'api_credentials':
-        return <Terminal className="w-5 h-5 text-rose-400" />;
+        return <Terminal className="w-5 h-5 text-rose-500" />;
       default:
-        return <KeyRound className="w-5 h-5 text-blue-400" />;
+        return <Key className="w-5 h-5 text-blue-500" />;
     }
   };
 
@@ -122,7 +122,7 @@ export const EntryFormShell: React.FC<EntryFormShellProps> = ({
             <button
               type="submit"
               disabled={submitDisabled}
-              className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white text-xs sm:text-sm font-semibold shadow-md shadow-blue-600/25 transition-all disabled:opacity-50 cursor-pointer min-h-[44px] flex items-center justify-center"
+              className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white text-xs sm:text-sm font-medium shadow-sm transition-colors disabled:opacity-50 cursor-pointer min-h-[44px] flex items-center justify-center"
             >
               Save Encrypted
             </button>

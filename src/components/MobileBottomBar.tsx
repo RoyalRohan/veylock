@@ -1,5 +1,5 @@
 import React from 'react';
-import { Layers, Star, Clock, ShieldAlert, Menu } from 'lucide-react';
+import { Layers, Star, Clock, Shield, Menu } from 'lucide-react';
 import { useVault } from '../context/VaultContext';
 
 export const MobileBottomBar: React.FC = () => {
@@ -61,7 +61,7 @@ export const MobileBottomBar: React.FC = () => {
         }}
         className={`flex flex-col items-center justify-center gap-1 py-1.5 px-3 rounded-xl transition-all cursor-pointer min-h-[48px] ${
           activeCategory === 'totp'
-            ? 'text-cyan-500 font-semibold'
+            ? 'text-teal-600 dark:text-teal-400 font-semibold'
             : 'text-theme-text-muted hover:text-theme-text'
         }`}
       >
@@ -78,14 +78,14 @@ export const MobileBottomBar: React.FC = () => {
         }}
         className={`flex flex-col items-center justify-center gap-1 py-1.5 px-3 rounded-xl transition-all relative cursor-pointer min-h-[48px] ${
           activeCategory === 'health'
-            ? 'text-rose-500 font-semibold'
+            ? 'text-sky-600 dark:text-sky-400 font-semibold'
             : 'text-theme-text-muted hover:text-theme-text'
         }`}
       >
         <div className="relative">
-          <ShieldAlert className="w-4.5 h-4.5" />
+          <Shield className="w-4.5 h-4.5" />
           {totalVulnerabilities > 0 && (
-            <span className="absolute -top-1 -right-1.5 w-2 h-2 rounded-full bg-rose-500 animate-pulse ring-2 ring-theme-surface" />
+            <span className="absolute -top-1 -right-1.5 w-2 h-2 rounded-full bg-rose-500 ring-2 ring-theme-surface" />
           )}
         </div>
         <span className="text-xs tracking-tight">Audit</span>

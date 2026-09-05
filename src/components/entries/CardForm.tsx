@@ -212,7 +212,7 @@ export const CardForm: React.FC<CardFormProps> = ({
       </FormSection>
 
       {/* Billing Address */}
-      <FormSection title="Billing Address" icon={<MapPin className="w-3.5 h-3.5 text-cyan-400" />}>
+      <FormSection title="Billing Address" icon={<MapPin className="w-3.5 h-3.5 text-indigo-500" />}>
         <textarea
           rows={2}
           value={billingAddress}

@@ -19,7 +19,6 @@ export const CustomFieldsEditor: React.FC<CustomFieldsEditorProps> = ({
       name: '',
       value: '',
       fieldType: type,
-      field_type: type,
     };
     onChange([...fields, newField]);
   };
@@ -28,11 +27,7 @@ export const CustomFieldsEditor: React.FC<CustomFieldsEditorProps> = ({
     onChange(
       fields.map((f) => {
         if (f.id === id) {
-          const updated = { ...f, ...updates };
-          if (updates.fieldType) {
-            updated.field_type = updates.fieldType;
-          }
-          return updated;
+          return { ...f, ...updates };
         }
         return f;
       })
@@ -53,7 +48,7 @@ export const CustomFieldsEditor: React.FC<CustomFieldsEditorProps> = ({
           <button
             type="button"
             onClick={() => handleAdd('text')}
-            className="text-xs text-blue-400 hover:text-blue-300 flex items-center gap-1 font-semibold p-1 transition-colors cursor-pointer"
+            className="text-xs text-theme-text-muted hover:text-theme-text flex items-center gap-1 font-medium px-2 py-1 rounded-lg hover:bg-theme-elevated transition-colors cursor-pointer"
           >
             <Plus className="w-3.5 h-3.5" />
             <span>Text</span>
@@ -62,9 +57,9 @@ export const CustomFieldsEditor: React.FC<CustomFieldsEditorProps> = ({
           <button
             type="button"
             onClick={() => handleAdd('sensitive')}
-            className="text-xs text-cyan-400 hover:text-cyan-300 flex items-center gap-1 font-semibold p-1 transition-colors cursor-pointer"
+            className="text-xs text-theme-text-muted hover:text-theme-text flex items-center gap-1 font-medium px-2 py-1 rounded-lg hover:bg-theme-elevated transition-colors cursor-pointer"
           >
-            <Shield className="w-3.5 h-3.5" />
+            <Shield className="w-3.5 h-3.5 text-blue-500 dark:text-blue-400" />
             <span>Hidden</span>
           </button>
         </div>
@@ -114,7 +109,7 @@ export const CustomFieldsEditor: React.FC<CustomFieldsEditorProps> = ({
                   title={isSensitive ? 'Convert to regular text' : 'Convert to hidden/masked secret'}
                 >
                   {isSensitive ? (
-                    <Shield className="w-3.5 h-3.5 text-cyan-400" />
+                    <Shield className="w-3.5 h-3.5 text-blue-500 dark:text-blue-400" />
                   ) : (
                     <FileText className="w-3.5 h-3.5" />
                   )}

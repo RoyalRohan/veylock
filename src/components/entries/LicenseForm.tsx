@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Globe, KeyRound } from 'lucide-react';
+import { Globe, Key } from 'lucide-react';
 import { DecryptedEntry, CustomField, CategoryType } from '../../types';
 import { EntryFormShell } from './shared/EntryFormShell';
 import { SecretInput } from './shared/SecretInput';
@@ -104,7 +104,7 @@ export const LicenseForm: React.FC<LicenseFormProps> = ({
       </div>
 
       {/* License Key Hero Field */}
-      <FormSection title="Activation Details" icon={<KeyRound className="w-3.5 h-3.5 text-amber-400" />}>
+      <FormSection title="Activation Details" icon={<Key className="w-3.5 h-3.5 text-amber-500" />}>
         <SecretInput
           label="License Key / Serial Number"
           value={licenseKey}

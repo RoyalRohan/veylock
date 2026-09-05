@@ -166,7 +166,7 @@ export const ServerForm: React.FC<ServerFormProps> = ({
       </FormSection>
 
       {/* Authentication Group */}
-      <FormSection title="Authentication" icon={<Key className="w-3.5 h-3.5 text-cyan-400" />}>
+      <FormSection title="Authentication" icon={<Key className="w-3.5 h-3.5 text-purple-500" />}>
         <div>
           <label className="text-xs font-bold text-theme-text-muted uppercase tracking-wider block mb-1.5">
             Username / Login

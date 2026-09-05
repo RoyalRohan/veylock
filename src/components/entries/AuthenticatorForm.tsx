@@ -161,7 +161,7 @@ export const AuthenticatorForm: React.FC<AuthenticatorFormProps> = ({
       </div>
 
       {/* Secret Key with Validation */}
-      <FormSection title="Secret Key & Algorithm" icon={<Clock className="w-3.5 h-3.5 text-cyan-400" />}>
+      <FormSection title="Secret Key & Algorithm" icon={<Clock className="w-3.5 h-3.5 text-teal-500" />}>
         <SecretInput
           label="Base32 Secret Key"
           value={secret}

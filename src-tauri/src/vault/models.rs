@@ -1,12 +1,46 @@
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+#[derive(Debug, Clone, Serialize, Default, PartialEq, Eq)]
 pub struct CustomField {
     pub id: String,
     pub name: String,
     pub value: String,
-    #[serde(rename = "fieldType", alias = "field_type")]
+    #[serde(rename = "fieldType")]
     pub field_type: String, // "text" | "sensitive"
+}
+
+#[derive(Deserialize)]
+struct CustomFieldRaw {
+    #[serde(default)]
+    id: String,
+    #[serde(default)]
+    name: String,
+    #[serde(default)]
+    value: String,
+    #[serde(default)]
+    #[serde(rename = "fieldType")]
+    field_type_camel: Option<String>,
+    #[serde(default)]
+    field_type: Option<String>,
+}
+
+impl<'de> Deserialize<'de> for CustomField {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        let raw = CustomFieldRaw::deserialize(deserializer)?;
+        let ft = raw
+            .field_type_camel
+            .or(raw.field_type)
+            .unwrap_or_else(|| "text".to_string());
+        Ok(CustomField {
+            id: raw.id,
+            name: raw.name,
+            value: raw.value,
+            field_type: ft,
+        })
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
@@ -163,3 +197,40 @@ pub struct BackupEntryItem {
     pub nonce_b64: String,
     pub encrypted_payload_b64: String,
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_custom_field_deserialization_both_fields() {
+        let json = r#"{"id":"1","name":"PIN","value":"1234","fieldType":"sensitive","field_type":"sensitive"}"#;
+        let cf: CustomField = serde_json::from_str(json).expect("should deserialize when both fieldType and field_type are present");
+        assert_eq!(cf.id, "1");
+        assert_eq!(cf.name, "PIN");
+        assert_eq!(cf.value, "1234");
+        assert_eq!(cf.field_type, "sensitive");
+    }
+
+    #[test]
+    fn test_custom_field_deserialization_camel_only() {
+        let json = r#"{"id":"2","name":"Secret","value":"abc","fieldType":"text"}"#;
+        let cf: CustomField = serde_json::from_str(json).expect("should deserialize camelCase");
+        assert_eq!(cf.field_type, "text");
+    }
+
+    #[test]
+    fn test_custom_field_deserialization_snake_only() {
+        let json = r#"{"id":"3","name":"Secret","value":"abc","field_type":"sensitive"}"#;
+        let cf: CustomField = serde_json::from_str(json).expect("should deserialize snake_case");
+        assert_eq!(cf.field_type, "sensitive");
+    }
+
+    #[test]
+    fn test_custom_field_deserialization_defaults_to_text() {
+        let json = r#"{"id":"4","name":"Note","value":"abc"}"#;
+        let cf: CustomField = serde_json::from_str(json).expect("should default field_type");
+        assert_eq!(cf.field_type, "text");
+    }
+}
+

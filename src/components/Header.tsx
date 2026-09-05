@@ -80,7 +80,7 @@ export const Header: React.FC = () => {
         <button
           onClick={() => openEditor()}
           title={`New Item (${isMac ? '⌘N' : 'Ctrl+N'})`}
-          className="flex items-center gap-1.5 p-2.5 sm:px-3.5 sm:py-2 rounded-xl bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white text-xs sm:text-sm font-semibold transition-all shadow-md shadow-blue-600/25 cursor-pointer active:scale-98 min-h-[44px]"
+          className="flex items-center gap-1.5 p-2.5 sm:px-3.5 sm:py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm font-semibold transition-all shadow-sm cursor-pointer active:scale-98 min-h-[44px]"
         >
           <Plus className="w-4 h-4" />
           <span className="hidden sm:inline">New Entry</span>

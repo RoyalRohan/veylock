@@ -1,15 +1,15 @@
 @import "tailwindcss";
 
 :root, [data-theme="dark"] {
-  --bg-app: #090d16;
-  --bg-surface: #0d1222;
-  --bg-surface-elevated: #131b2e;
-  --bg-surface-hover: #1a253e;
-  --bg-subtle: #070a13;
-  --bg-input: #0d1222;
+  --bg-app: #0b0f19;
+  --bg-surface: #111827;
+  --bg-surface-elevated: #1f2937;
+  --bg-surface-hover: #374151;
+  --bg-subtle: #080c14;
+  --bg-input: #111827;
 
   --border-subtle: rgba(255, 255, 255, 0.08);
-  --border-strong: rgba(255, 255, 255, 0.14);
+  --border-strong: rgba(255, 255, 255, 0.16);
   --border-focus: #3b82f6;
 
   --text-primary: #f8fafc;
@@ -17,15 +17,15 @@
   --text-muted: #64748b;
   --text-dim: #475569;
 
-  --glass-bg: rgba(13, 18, 34, 0.95);
+  --glass-bg: rgba(17, 24, 39, 0.95);
   --glass-border: rgba(255, 255, 255, 0.08);
-  --glass-card-bg: rgba(19, 27, 46, 0.75);
-  --glass-card-hover: rgba(26, 37, 62, 0.9);
-  --glass-card-border: rgba(255, 255, 255, 0.06);
+  --glass-card-bg: rgba(31, 41, 55, 0.75);
+  --glass-card-hover: rgba(55, 65, 81, 0.85);
+  --glass-card-border: rgba(255, 255, 255, 0.08);
   --modal-overlay: rgba(3, 7, 18, 0.82);
 
-  --scrollbar-track: rgba(9, 13, 22, 0.6);
-  --scrollbar-thumb: rgba(51, 65, 85, 0.5);
+  --scrollbar-track: rgba(11, 15, 25, 0.6);
+  --scrollbar-thumb: rgba(55, 65, 81, 0.6);
 
   --color-scheme: dark;
 }
@@ -215,15 +215,6 @@
 
 .animate-scale-up {
   animation: scaleUp 0.18s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-
-@keyframes pulseGlow {
-  0%, 100% { opacity: 0.25; transform: scale(1); }
-  50% { opacity: 0.55; transform: scale(1.04); }
-}
-
-.animate-pulse-glow {
-  animation: pulseGlow 4s ease-in-out infinite;
 }
 
 @keyframes toastSlideIn {

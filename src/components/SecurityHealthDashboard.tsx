@@ -3,7 +3,7 @@ import {
   ShieldCheck,
   AlertTriangle,
   Clock,
-  KeyRound,
+  Key,
   Edit3,
   CheckCircle2,
   RefreshCw,
@@ -140,7 +140,7 @@ export const SecurityHealthDashboard: React.FC = () => {
           <div className="bg-theme-surface border border-theme-border p-4 sm:p-5 rounded-2xl flex flex-col justify-between shadow-sm">
             <div className="flex items-center justify-between">
               <span className="text-xs font-semibold text-theme-text-muted">Reused Passwords</span>
-              <KeyRound className="w-4.5 h-4.5 text-amber-500" />
+              <Key className="w-4.5 h-4.5 text-amber-500" />
             </div>
             <div className="mt-3 sm:mt-4">
               <span className="text-2xl font-bold font-mono text-theme-text">{healthReport.reused_passwords}</span>
@@ -151,7 +151,7 @@ export const SecurityHealthDashboard: React.FC = () => {
           <div className="bg-theme-surface border border-theme-border p-4 sm:p-5 rounded-2xl flex flex-col justify-between shadow-sm">
             <div className="flex items-center justify-between">
               <span className="text-xs font-semibold text-theme-text-muted">Missing 2FA</span>
-              <Clock className="w-4.5 h-4.5 text-cyan-500" />
+              <Clock className="w-4.5 h-4.5 text-teal-500" />
             </div>
             <div className="mt-3 sm:mt-4">
               <span className="text-2xl font-bold font-mono text-theme-text">{healthReport.missing_totp}</span>
@@ -219,13 +219,13 @@ export const SecurityHealthDashboard: React.FC = () => {
               onClick={() => setActiveTab('totp')}
               className={`px-3 py-1.5 rounded-lg font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
                 activeTab === 'totp'
-                  ? 'bg-cyan-500 text-white shadow-sm'
-                  : 'text-theme-text-muted hover:text-cyan-500'
+                  ? 'bg-blue-600 text-white shadow-sm'
+                  : 'text-theme-text-muted hover:text-theme-text'
               }`}
             >
               <span>Missing 2FA</span>
               <span className={`text-xs px-2 py-0.5 rounded-full font-mono ${
-                activeTab === 'totp' ? 'bg-cyan-600 text-white' : 'bg-theme-bg text-theme-text-muted'
+                activeTab === 'totp' ? 'bg-blue-700 text-white' : 'bg-theme-bg text-theme-text-muted'
               }`}>
                 {missingTotpEntries.length}
               </span>
@@ -306,7 +306,7 @@ export const SecurityHealthDashboard: React.FC = () => {
                 >
                   <div className="flex items-center gap-3.5 min-w-0 flex-1 pr-3">
                     <div className="p-2.5 rounded-xl bg-amber-500/10 text-amber-500 border border-amber-500/20 shrink-0">
-                      <KeyRound className="w-4.5 h-4.5" />
+                      <Key className="w-4.5 h-4.5" />
                     </div>
                     <div className="min-w-0 flex-1">
                       <h4 className="text-sm font-semibold text-theme-text truncate">{item.title}</h4>
@@ -333,12 +333,12 @@ export const SecurityHealthDashboard: React.FC = () => {
                 className="p-4 rounded-xl bg-theme-surface border border-theme-border flex items-center justify-between shadow-sm animate-scale-up"
               >
                 <div className="flex items-center gap-3.5 min-w-0 flex-1 pr-3">
-                  <div className="p-2.5 rounded-xl bg-cyan-500/10 text-cyan-500 border border-cyan-500/20 shrink-0">
+                  <div className="p-2.5 rounded-xl bg-teal-500/10 text-teal-600 dark:text-teal-400 border border-teal-500/20 shrink-0">
                     <Clock className="w-4.5 h-4.5" />
                   </div>
                   <div className="min-w-0 flex-1">
                     <h4 className="text-sm font-semibold text-theme-text truncate">{item.title}</h4>
-                    <span className="text-xs text-cyan-600 dark:text-cyan-400 block mt-0.5 font-medium">
+                    <span className="text-xs text-teal-600 dark:text-teal-400 block mt-0.5 font-medium">
                       Missing 2FA Authenticator TOTP Key
                     </span>
                   </div>
@@ -347,7 +347,7 @@ export const SecurityHealthDashboard: React.FC = () => {
                   onClick={() => openEditor(item)}
                   className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-theme-bg hover:bg-theme-surface text-xs font-semibold text-theme-text border border-theme-border transition-colors cursor-pointer shrink-0"
                 >
-                  <Edit3 className="w-4 h-4 text-cyan-500" />
+                  <Edit3 className="w-4 h-4 text-teal-500" />
                   <span>Add 2FA</span>
                 </button>
               </div>

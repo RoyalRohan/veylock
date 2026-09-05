@@ -34,7 +34,7 @@ export const TagEditor: React.FC<TagEditorProps> = ({ tags, onChange, className 
   return (
     <div className={`space-y-1.5 ${className}`}>
       <label className="text-xs font-bold text-theme-text-muted uppercase tracking-wider flex items-center gap-1.5">
-        <TagIcon className="w-3.5 h-3.5 text-cyan-400" />
+        <TagIcon className="w-3.5 h-3.5 text-theme-text-muted" />
         <span>Tags</span>
       </label>
 
@@ -42,7 +42,7 @@ export const TagEditor: React.FC<TagEditorProps> = ({ tags, onChange, className 
         {tags.map((tag) => (
           <span
             key={tag}
-            className="inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded-lg bg-blue-600/15 text-blue-400 border border-blue-500/30 font-medium shrink-0 animate-scale-up"
+            className="inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded-lg bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 font-medium shrink-0 animate-scale-up"
           >
             <span>#{tag}</span>
             <button

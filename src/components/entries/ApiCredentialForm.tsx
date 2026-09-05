@@ -141,7 +141,7 @@ export const ApiCredentialForm: React.FC<ApiCredentialFormProps> = ({
       </FormSection>
 
       {/* OAuth / Client Credentials */}
-      <FormSection title="OAuth 2.0 / Client Credentials (Optional)" icon={<Shield className="w-3.5 h-3.5 text-cyan-400" />}>
+      <FormSection title="OAuth 2.0 / Client Credentials (Optional)" icon={<Shield className="w-3.5 h-3.5 text-rose-500" />}>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <SecretInput
             label="Client ID"

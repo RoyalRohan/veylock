@@ -277,7 +277,7 @@ export const ImportExportModal: React.FC = () => {
                 <span className="text-xs font-bold text-theme-text-muted uppercase tracking-wider block mb-1">
                   Storage Location
                 </span>
-                <span className="text-xs font-mono text-cyan-600 dark:text-cyan-300 break-all bg-theme-bg px-2.5 py-1.5 rounded-lg block border border-theme-border">
+                <span className="text-xs font-mono text-theme-text-muted break-all bg-theme-bg px-2.5 py-1.5 rounded-lg block border border-theme-border">
                   {exportSuccess.path}
                 </span>
               </div>
@@ -297,18 +297,17 @@ export const ImportExportModal: React.FC = () => {
                 ) : (
                   <>
                     <Copy className="w-4 h-4 text-theme-text-muted" />
-                    <span>Copy Backup Content to Clipboard</span>
+                    <span>Copy Raw Content to Clipboard</span>
                   </>
                 )}
               </button>
 
               <button
                 type="button"
-                onClick={handleClose}
-                className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white text-sm font-semibold shadow-md shadow-blue-600/25 transition-all flex items-center justify-center gap-2 cursor-pointer"
+                onClick={() => setExportSuccess(null)}
+                className="w-full py-3 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white text-sm font-medium shadow-sm transition-colors flex items-center justify-center gap-2 cursor-pointer"
               >
-                <Check className="w-4 h-4" />
-                <span>Done</span>
+                Done
               </button>
             </div>
           </div>
@@ -439,7 +438,7 @@ export const ImportExportModal: React.FC = () => {
                     type="button"
                     onClick={handleExport}
                     disabled={isProcessing}
-                    className="w-full py-3.5 rounded-xl bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white text-sm font-semibold shadow-md shadow-blue-600/25 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                    className="w-full py-3.5 rounded-xl bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white text-sm font-medium shadow-sm transition-colors flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
                   >
                     <HardDriveDownload className="w-4 h-4" />
                     <span>{isProcessing ? 'Saving to Files...' : `Export ${exportFormat === 'vlock' ? 'Encrypted Backup' : 'CSV File'}`}</span>
@@ -496,7 +495,7 @@ export const ImportExportModal: React.FC = () => {
                     type="button"
                     onClick={handleImport}
                     disabled={isProcessing || !selectedFileName || (detectedType === 'vlock' && !importPass)}
-                    className="w-full py-3.5 rounded-xl bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white text-sm font-semibold shadow-md shadow-blue-600/25 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                    className="w-full py-3.5 rounded-xl bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white text-sm font-medium shadow-sm transition-colors flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
                   >
                     <Check className="w-4 h-4" />
                     <span>

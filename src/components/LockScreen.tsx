@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Lock, Eye, EyeOff, KeyRound, ArrowRight, AlertTriangle } from 'lucide-react';
+import { Lock, Eye, EyeOff, Key, ArrowRight, AlertTriangle } from 'lucide-react';
 import { useVault } from '../context/VaultContext';
 import logoImg from '../assets/logo.png';
 
@@ -40,22 +40,18 @@ export const LockScreen: React.FC<LockScreenProps> = ({ onOpenSetup }) => {
 
   return (
     <div className="relative min-h-screen w-full flex items-center justify-center bg-theme-bg text-theme-text p-4 sm:p-6 overflow-hidden select-none pt-safe pb-safe">
-      {/* Ambient background glows */}
-      <div className="absolute top-1/4 left-1/3 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-blue-600/10 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute bottom-1/4 right-1/3 translate-x-1/2 translate-y-1/2 w-96 h-96 bg-cyan-600/10 rounded-full blur-3xl pointer-events-none" />
-
       <div
-        className={`w-full max-w-[400px] glass-panel p-6 sm:p-8 rounded-2xl shadow-2xl relative z-10 border border-theme-border ${
+        className={`w-full max-w-[400px] glass-panel p-6 sm:p-8 rounded-2xl shadow-xl relative z-10 border border-theme-border ${
           shake ? 'animate-shake border-rose-500/60 shadow-rose-500/10' : 'animate-scale-up'
         }`}
       >
         {/* Brand Header */}
         <div className="flex flex-col items-center text-center mb-8">
-          <div className="w-18 h-18 sm:w-20 sm:h-20 rounded-2xl shadow-2xl shadow-cyan-500/15 mb-4 flex items-center justify-center p-0.5 border border-cyan-500/30 bg-theme-surface/80 backdrop-blur-sm group">
+          <div className="w-18 h-18 sm:w-20 sm:h-20 rounded-2xl shadow-md mb-4 flex items-center justify-center p-1 border border-theme-border bg-theme-surface select-none">
             <img
               src={logoImg}
               alt="Veylock Official Logo"
-              className="w-full h-full object-cover rounded-[14px] drop-shadow-md select-none transition-transform duration-300 group-hover:scale-105"
+              className="w-full h-full object-cover rounded-[14px]"
             />
           </div>
           <h1 className="text-2xl font-bold tracking-tight text-theme-text mb-1">Veylock</h1>
@@ -69,18 +65,18 @@ export const LockScreen: React.FC<LockScreenProps> = ({ onOpenSetup }) => {
             </p>
             <button
               onClick={onOpenSetup}
-              className="w-full py-3.5 px-5 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white font-semibold text-sm transition-all shadow-lg shadow-blue-600/25 flex items-center justify-center gap-2 group cursor-pointer"
+              className="w-full py-3.5 px-5 rounded-xl bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-medium text-sm transition-colors shadow-sm flex items-center justify-center gap-2 group cursor-pointer"
             >
-              <KeyRound className="w-4.5 h-4.5 text-cyan-200" />
+              <Key className="w-4 h-4 text-white" />
               <span>Initialize Local Vault</span>
-              <ArrowRight className="w-4.5 h-4.5 group-hover:translate-x-0.5 transition-transform text-cyan-200" />
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform text-white/80" />
             </button>
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-5">
             <div className="text-center">
               <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-theme-surface border border-theme-border text-xs text-theme-text font-medium shadow-sm">
-                <Lock className="w-3.5 h-3.5 text-cyan-500" />
+                <Lock className="w-3.5 h-3.5 text-blue-500 dark:text-blue-400" />
                 <span>Vault Locked</span>
               </div>
             </div>
@@ -122,13 +118,13 @@ export const LockScreen: React.FC<LockScreenProps> = ({ onOpenSetup }) => {
             <button
               type="submit"
               disabled={isSubmitting || !password}
-              className="w-full py-3.5 px-5 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white font-semibold text-sm transition-all shadow-lg shadow-blue-600/25 flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
+              className="w-full py-3.5 px-5 rounded-xl bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-medium text-sm transition-colors shadow-sm flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
             >
               {isSubmitting ? (
                 <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
               ) : (
                 <>
-                  <Lock className="w-4 h-4 text-cyan-200" />
+                  <Lock className="w-4 h-4 text-white" />
                   <span>Unlock Vault</span>
                 </>
               )}

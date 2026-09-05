@@ -56,7 +56,7 @@ export const TotpViewer: React.FC<TotpViewerProps> = ({ secret, digits, period, 
   if (!totp) {
     return (
       <div className="p-4 rounded-xl bg-theme-surface border border-theme-border flex items-center gap-2.5 text-xs text-theme-text-muted">
-        <Clock className="w-4 h-4 animate-spin text-cyan-400" />
+        <Clock className="w-4 h-4 animate-spin text-teal-600 dark:text-teal-400" />
         <span>Calculating TOTP code...</span>
       </div>
     );
@@ -91,7 +91,7 @@ export const TotpViewer: React.FC<TotpViewerProps> = ({ secret, digits, period, 
               d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
             />
             <path
-              className="text-cyan-400 transition-all duration-1000 ease-linear"
+              className="text-teal-600 dark:text-teal-400 transition-all duration-1000 ease-linear"
               strokeDasharray={`${progressPercent}, 100`}
               strokeWidth="3"
               strokeLinecap="round"
@@ -100,13 +100,13 @@ export const TotpViewer: React.FC<TotpViewerProps> = ({ secret, digits, period, 
               d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
             />
           </svg>
-          <span className="absolute text-[9px] font-mono font-bold text-cyan-400">
+          <span className="absolute text-[9px] font-mono font-bold text-teal-700 dark:text-teal-300">
             {totp.time_remaining}s
           </span>
         </div>
 
         <div>
-          <span className="text-[10px] font-bold uppercase tracking-wider text-cyan-400 block mb-0.5">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-theme-text-muted block mb-0.5">
             2FA Code
           </span>
           <span className="text-lg font-mono font-bold tracking-widest text-theme-text">
@@ -117,9 +117,9 @@ export const TotpViewer: React.FC<TotpViewerProps> = ({ secret, digits, period, 
 
       <button
         onClick={handleCopyCode}
-        className="p-2 rounded-xl bg-theme-elevated hover:bg-theme-hover text-cyan-400 border border-theme-border transition-colors flex items-center gap-1.5 text-xs font-semibold cursor-pointer"
+        className="p-2 rounded-xl bg-theme-elevated hover:bg-theme-hover text-theme-text border border-theme-border transition-colors flex items-center gap-1.5 text-xs font-semibold cursor-pointer"
       >
-        {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+        {copied ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5 text-theme-text-muted" />}
         <span>{copied ? 'Copied' : 'Copy'}</span>
       </button>
     </div>

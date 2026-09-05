@@ -99,7 +99,7 @@ export const PasswordField: React.FC<PasswordFieldProps> = ({
                 {strength.label}
               </span>
             </div>
-            <span className="font-mono text-xs text-cyan-400">
+            <span className="font-mono text-xs text-theme-text-muted">
               {entropy.bits} bits • {entropy.crackTimeDisplay}
             </span>
           </div>

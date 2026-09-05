@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import {
-  KeyRound,
+  Key,
   Star,
   Copy,
   ExternalLink,
@@ -18,7 +18,7 @@ import {
   FileText,
   CreditCard,
   Server,
-  Award,
+  Scroll,
   Terminal,
   Clock,
   ChevronLeft,
@@ -96,19 +96,19 @@ export const EntryDetail: React.FC = () => {
   const getCategoryIcon = (category: string) => {
     switch (category) {
       case 'secure_notes':
-        return <FileText className="w-5 h-5 text-emerald-400" />;
+        return <FileText className="w-5 h-5 text-emerald-500" />;
       case 'totp':
-        return <Clock className="w-5 h-5 text-cyan-400" />;
+        return <Clock className="w-5 h-5 text-teal-500" />;
       case 'cards':
-        return <CreditCard className="w-5 h-5 text-indigo-400" />;
+        return <CreditCard className="w-5 h-5 text-indigo-500" />;
       case 'licenses':
-        return <Award className="w-5 h-5 text-amber-400" />;
+        return <Scroll className="w-5 h-5 text-amber-600 dark:text-amber-500" />;
       case 'servers':
-        return <Server className="w-5 h-5 text-purple-400" />;
+        return <Server className="w-5 h-5 text-purple-500" />;
       case 'api_credentials':
-        return <Terminal className="w-5 h-5 text-rose-400" />;
+        return <Terminal className="w-5 h-5 text-rose-500" />;
       default:
-        return <KeyRound className="w-5 h-5 text-blue-400" />;
+        return <Key className="w-5 h-5 text-blue-500" />;
     }
   };
 
@@ -266,7 +266,7 @@ export const EntryDetail: React.FC = () => {
                       <span className={`text-xs px-2 py-0.5 rounded font-bold ${strength.color} text-white`}>
                         {strength.label}
                       </span>
-                      <span className="text-xs font-mono text-cyan-400 bg-cyan-950/40 px-2 py-0.5 rounded border border-cyan-800/40">
+                      <span className="text-xs font-mono text-theme-text-muted bg-theme-elevated px-2 py-0.5 rounded border border-theme-border font-medium">
                         {entropy.bits} bits • {entropy.crackTimeDisplay}
                       </span>
                     </div>
@@ -392,7 +392,7 @@ export const EntryDetail: React.FC = () => {
               </span>
               <span className="text-base font-semibold text-theme-text">{entry.totp_issuer}</span>
             </div>
-            <span className="text-xs px-2.5 py-1 rounded-full bg-cyan-600/15 text-cyan-400 border border-cyan-500/30 font-medium">
+            <span className="text-xs px-2.5 py-1 rounded-full bg-teal-500/10 text-teal-600 dark:text-teal-400 border border-teal-500/20 font-medium">
               2FA Active
             </span>
           </div>
@@ -640,7 +640,7 @@ export const EntryDetail: React.FC = () => {
         <div className="bg-theme-surface border border-theme-border rounded-2xl p-5 space-y-3 shadow-sm">
           <div className="flex items-center justify-between border-b border-theme-border pb-2.5">
             <div className="flex items-center gap-2">
-              <Award className="w-4 h-4 text-amber-400" />
+              <Scroll className="w-4 h-4 text-amber-400" />
               <span className="text-xs font-bold uppercase tracking-wider text-theme-text-muted">
                 Software License Key
               </span>
@@ -1070,9 +1070,9 @@ export const EntryDetail: React.FC = () => {
                   {entry.tags.map((tag) => (
                     <span
                       key={tag}
-                      className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-md bg-theme-elevated border border-theme-border text-cyan-400 font-medium"
+                      className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-md bg-theme-elevated border border-theme-border text-theme-text-muted font-medium"
                     >
-                      <Tag className="w-3 h-3 text-cyan-400/80" />
+                      <Tag className="w-3 h-3 text-theme-text-dim" />
                       {tag}
                     </span>
                   ))}

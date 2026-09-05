@@ -1,10 +1,10 @@
 import React from 'react';
 import {
-  KeyRound,
+  Key,
   FileText,
   CreditCard,
   Server,
-  Award,
+  Scroll,
   Terminal,
   Star,
   Clock,
@@ -60,19 +60,19 @@ export const EntryList: React.FC = () => {
   const getCategoryIcon = (category: string) => {
     switch (category) {
       case 'secure_notes':
-        return <FileText className="w-4 h-4 text-emerald-400" />;
+        return <FileText className="w-4 h-4 text-emerald-500" />;
       case 'totp':
-        return <Clock className="w-4 h-4 text-cyan-400" />;
+        return <Clock className="w-4 h-4 text-teal-500" />;
       case 'cards':
-        return <CreditCard className="w-4 h-4 text-indigo-400" />;
+        return <CreditCard className="w-4 h-4 text-indigo-500" />;
       case 'licenses':
-        return <Award className="w-4 h-4 text-amber-400" />;
+        return <Scroll className="w-4 h-4 text-amber-600 dark:text-amber-500" />;
       case 'servers':
-        return <Server className="w-4 h-4 text-purple-400" />;
+        return <Server className="w-4 h-4 text-purple-500" />;
       case 'api_credentials':
-        return <Terminal className="w-4 h-4 text-rose-400" />;
+        return <Terminal className="w-4 h-4 text-rose-500" />;
       default:
-        return <KeyRound className="w-4 h-4 text-blue-400" />;
+        return <Key className="w-4 h-4 text-blue-500" />;
     }
   };
 
@@ -183,8 +183,8 @@ export const EntryList: React.FC = () => {
               </>
             ) : (
               <>
-                <div className="w-11 h-11 rounded-2xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 mb-3">
-                  <KeyRound className="w-5 h-5" />
+                <div className="w-11 h-11 rounded-2xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-500 mb-3">
+                  <Key className="w-5 h-5" />
                 </div>
                 <p className="text-sm font-semibold text-theme-text mb-1">No entries yet</p>
                 <p className="text-xs text-theme-text-muted mb-4 max-w-[220px]">
@@ -192,7 +192,7 @@ export const EntryList: React.FC = () => {
                 </p>
                 <button
                   onClick={() => openEditor()}
-                  className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white text-xs font-semibold flex items-center gap-1.5 transition-all shadow-md shadow-blue-600/25 cursor-pointer"
+                  className="px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white text-xs font-medium flex items-center gap-1.5 transition-colors shadow-sm cursor-pointer"
                 >
                   <Plus className="w-4 h-4" />
                   <span>Create Item</span>
@@ -209,7 +209,7 @@ export const EntryList: React.FC = () => {
                 onClick={() => setSelectedEntryId(item.id)}
                 className={`p-3.5 sm:p-4 cursor-pointer transition-all flex items-center justify-between group relative min-h-[68px] ${
                   isSelected
-                    ? 'bg-blue-600/15 text-theme-text border-l-3 border-blue-500 shadow-sm'
+                    ? 'bg-blue-50/80 dark:bg-blue-950/30 text-theme-text border-l-3 border-blue-500 shadow-sm'
                     : 'hover:bg-theme-hover text-theme-text-muted'
                 }`}
               >
@@ -217,7 +217,7 @@ export const EntryList: React.FC = () => {
                   <div
                     className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 shadow-sm transition-transform group-hover:scale-105 ${
                       isSelected
-                        ? 'bg-theme-elevated border border-blue-500/40 shadow-blue-500/10'
+                        ? 'bg-theme-elevated border border-blue-500/40'
                         : 'bg-theme-elevated border border-theme-border'
                     }`}
                   >
@@ -230,7 +230,7 @@ export const EntryList: React.FC = () => {
                         {item.title}
                       </h3>
                       {item.favorite && (
-                        <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400 shrink-0" />
+                        <Star className="w-3.5 h-3.5 fill-amber-500 text-amber-500 shrink-0" />
                       )}
                     </div>
                     <p className="text-xs text-theme-text-muted truncate mt-0.5 font-mono">
@@ -239,11 +239,11 @@ export const EntryList: React.FC = () => {
 
                     {/* Tag Chips Preview */}
                     {item.tags && item.tags.length > 0 && (
-                      <div className="flex items-center gap-1 mt-1.5 overflow-hidden">
-                        {item.tags.slice(0, 2).map((t, i) => (
+                      <div className="flex flex-wrap gap-1 mt-1.5">
+                        {item.tags.slice(0, 2).map((t) => (
                           <span
-                            key={i}
-                            className="text-[11px] px-2 py-0.5 rounded-md bg-theme-surface text-theme-text-muted border border-theme-border truncate max-w-[90px]"
+                            key={t}
+                            className="text-[10px] px-1.5 py-0.5 rounded bg-theme-surface border border-theme-border text-theme-text-muted"
                           >
                             #{t}
                           </span>
@@ -259,7 +259,7 @@ export const EntryList: React.FC = () => {
                 <div className="flex items-center gap-2 shrink-0 pl-2">
                   {item.totp_secret && (
                     <span title="2FA Authenticator Active">
-                      <Clock className="w-4 h-4 text-cyan-400 shrink-0" />
+                      <Clock className="w-4 h-4 text-teal-500 shrink-0" />
                     </span>
                   )}
                   <ChevronRight

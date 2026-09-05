@@ -125,7 +125,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({
 
           <div>
             <label className="text-xs font-bold text-theme-text-muted uppercase tracking-wider block mb-1.5 flex items-center gap-1.5">
-              <Mail className="w-3.5 h-3.5 text-cyan-400" />
+              <Mail className="w-3.5 h-3.5 text-theme-text-muted" />
               <span>Email</span>
             </label>
             <input
@@ -147,7 +147,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({
       </FormSection>
 
       {/* Two-Factor Authentication */}
-      <FormSection title="Two-Factor Authentication" icon={<Clock className="w-3.5 h-3.5 text-cyan-400" />}>
+      <FormSection title="Two-Factor Authentication" icon={<Clock className="w-3.5 h-3.5 text-teal-500" />}>
         <SecretInput
           label="TOTP / 2FA Secret Key"
           value={totpSecret}

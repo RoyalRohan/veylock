@@ -1,17 +1,17 @@
 import React from 'react';
 import {
-  KeyRound,
+  Key,
   Star,
   FileText,
   Clock,
-  ShieldAlert,
+  Shield,
   Settings,
   Lock,
   HardDriveDownload,
   CreditCard,
   Layers,
   Server,
-  Award,
+  Scroll,
   Terminal,
   X,
 } from 'lucide-react';
@@ -42,15 +42,15 @@ export const Sidebar: React.FC = () => {
 
   const navItems: { id: CategoryType; label: string; icon: React.ReactNode }[] = [
     { id: 'all', label: 'All Items', icon: <Layers className="w-4 h-4" /> },
-    { id: 'favorites', label: 'Favorites', icon: <Star className="w-4 h-4 text-amber-400 fill-amber-400/20" /> },
-    { id: 'logins', label: 'Logins', icon: <KeyRound className="w-4 h-4 text-blue-400" /> },
-    { id: 'secure_notes', label: 'Secure Notes', icon: <FileText className="w-4 h-4 text-emerald-400" /> },
-    { id: 'totp', label: 'Authenticator (2FA)', icon: <Clock className="w-4 h-4 text-cyan-400" /> },
-    { id: 'cards', label: 'Payment Cards', icon: <CreditCard className="w-4 h-4 text-indigo-400" /> },
-    { id: 'licenses', label: 'Software Licenses', icon: <Award className="w-4 h-4 text-amber-400" /> },
-    { id: 'servers', label: 'Servers', icon: <Server className="w-4 h-4 text-purple-400" /> },
-    { id: 'api_credentials', label: 'API Credentials', icon: <Terminal className="w-4 h-4 text-rose-400" /> },
-    { id: 'health', label: 'Security Health', icon: <ShieldAlert className="w-4 h-4 text-rose-400" /> },
+    { id: 'favorites', label: 'Favorites', icon: <Star className="w-4 h-4 text-amber-500 fill-amber-500/20" /> },
+    { id: 'logins', label: 'Logins', icon: <Key className="w-4 h-4 text-blue-500" /> },
+    { id: 'secure_notes', label: 'Secure Notes', icon: <FileText className="w-4 h-4 text-emerald-500" /> },
+    { id: 'totp', label: 'Authenticator (2FA)', icon: <Clock className="w-4 h-4 text-teal-500" /> },
+    { id: 'cards', label: 'Payment Cards', icon: <CreditCard className="w-4 h-4 text-indigo-500" /> },
+    { id: 'licenses', label: 'Software Licenses', icon: <Scroll className="w-4 h-4 text-amber-600 dark:text-amber-500" /> },
+    { id: 'servers', label: 'Servers & SSH', icon: <Server className="w-4 h-4 text-purple-500" /> },
+    { id: 'api_credentials', label: 'API Credentials', icon: <Terminal className="w-4 h-4 text-rose-500" /> },
+    { id: 'health', label: 'Security Health', icon: <Shield className="w-4 h-4 text-sky-500" /> },
   ];
 
   const handleNavClick = (id: CategoryType) => {
@@ -70,7 +70,7 @@ export const Sidebar: React.FC = () => {
       {/* Brand Header */}
       <div className="p-4 border-b border-theme-border flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-xl shadow-md shadow-cyan-500/10 flex items-center justify-center p-0.5 border border-cyan-500/25 bg-theme-surface shrink-0">
+          <div className="w-8 h-8 rounded-xl flex items-center justify-center p-0.5 border border-theme-border bg-theme-surface shrink-0 shadow-sm">
             <img
               src={logoImg}
               alt="Veylock"
@@ -120,12 +120,12 @@ export const Sidebar: React.FC = () => {
               onClick={() => handleNavClick(item.id)}
               className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium transition-all cursor-pointer group min-h-[44px] ${
                 isActive
-                  ? 'bg-blue-600/15 text-blue-500 shadow-sm border border-blue-500/30'
+                  ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400 shadow-sm border border-blue-500/20 font-semibold'
                   : 'text-theme-text-muted hover:text-theme-text hover:bg-theme-hover border border-transparent'
               }`}
             >
               <div className="flex items-center gap-3">
-                <span className={`transition-transform group-hover:scale-110 ${isActive ? 'text-blue-500' : 'text-theme-text-muted'}`}>
+                <span className={`transition-transform group-hover:scale-105 ${isActive ? 'text-blue-600 dark:text-blue-400' : 'text-theme-text-muted'}`}>
                   {item.icon}
                 </span>
                 <span className="tracking-tight">{item.label}</span>
@@ -133,11 +133,11 @@ export const Sidebar: React.FC = () => {
 
               {item.id === 'health' ? (
                 totalVulnerabilities > 0 ? (
-                  <span className="text-xs px-2 py-0.5 rounded-full font-mono bg-rose-500/20 text-rose-400 border border-rose-500/30 font-bold animate-pulse">
+                  <span className="text-xs px-2 py-0.5 rounded-full font-mono bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/25 font-bold">
                     {totalVulnerabilities} alert{totalVulnerabilities > 1 ? 's' : ''}
                   </span>
                 ) : (
-                  <span className="text-xs px-2 py-0.5 rounded-full font-mono bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 font-medium">
+                  <span className="text-xs px-2 py-0.5 rounded-full font-mono bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/25 font-medium">
                     Secure
                   </span>
                 )
@@ -145,7 +145,7 @@ export const Sidebar: React.FC = () => {
                 <span
                   className={`text-xs px-2.5 py-0.5 rounded-full font-mono transition-colors ${
                     isActive
-                      ? 'bg-blue-500/25 text-blue-500 font-bold border border-blue-500/30'
+                      ? 'bg-blue-500/20 text-blue-700 dark:text-blue-300 font-bold'
                       : 'bg-theme-elevated text-theme-text-muted'
                   }`}
                 >

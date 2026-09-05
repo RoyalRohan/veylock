@@ -54,7 +54,7 @@ export const SetupVaultModal: React.FC<SetupVaultModalProps> = ({ isOpen, onClos
       <div className="w-full max-w-lg glass-panel rounded-2xl p-4 sm:p-6 shadow-2xl border border-theme-border animate-scale-up max-h-[94vh] overflow-y-auto">
         {/* Header */}
         <div className="flex items-center gap-3.5 mb-5 pb-4 border-b border-theme-border">
-          <div className="w-10 h-10 rounded-xl shadow-md shadow-cyan-500/10 flex items-center justify-center p-0.5 border border-cyan-500/25 bg-theme-surface shrink-0">
+          <div className="w-10 h-10 rounded-xl flex items-center justify-center p-1 border border-theme-border bg-theme-surface shrink-0 shadow-sm">
             <img src={logoImg} alt="Veylock" className="w-full h-full object-cover rounded-[10px]" />
           </div>
           <div>
@@ -117,7 +117,7 @@ export const SetupVaultModal: React.FC<SetupVaultModalProps> = ({ isOpen, onClos
                       {strength.label}
                     </span>
                   </div>
-                  <span className="font-mono text-xs text-cyan-500 font-semibold">
+                  <span className="font-mono text-xs text-theme-text-muted font-medium">
                     {entropy.bits} bits • {entropy.crackTimeDisplay}
                   </span>
                 </div>
@@ -164,7 +164,7 @@ export const SetupVaultModal: React.FC<SetupVaultModalProps> = ({ isOpen, onClos
             <button
               type="submit"
               disabled={isSubmitting || !password || password !== confirmPassword}
-              className="flex-1 py-3 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white text-sm font-semibold transition-colors flex items-center justify-center gap-2 shadow-lg shadow-blue-600/25 disabled:opacity-50 cursor-pointer"
+              className="flex-1 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white text-sm font-medium transition-colors flex items-center justify-center gap-2 shadow-sm disabled:opacity-50 cursor-pointer"
             >
               {isSubmitting ? (
                 <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
