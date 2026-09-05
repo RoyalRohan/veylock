@@ -1,80 +1,79 @@
 # Veylock Threat Model
 
-> **Veylock Security Philosophy**: Local-First, Zero-Trust Architecture.
+> **Security philosophy:** local-first, zero-trust boundaries, explicit user control.
 
-This document outlines the security boundaries, threat actors, attack vectors, and cryptographic mitigations designed into Veylock.
+This document describes the threats the application is designed to address and the environmental threats it cannot reasonably eliminate.
 
----
-
-## 1. System Overview & Trust Boundaries
+## 1. Trust boundaries
 
 ```text
-┌─────────────────────────────────────────────────────────────┐
-│                    TRUSTED BOUNDARY                         │
-│                                                             │
-│   ┌──────────────────┐               ┌──────────────────┐   │
-│   │ Veylock Frontend │  Secure IPC   │  Tauri/Rust Core │   │
-│   │   React / TS     │ ────────────► │ Argon2id / AES   │   │
-│   └──────────────────┘               └────────┬─────────┘   │
-│                                               │             │
-└───────────────────────────────────────────────┼─────────────┘
-                                                │ Encrypted
-                                                ▼
-┌─────────────────────────────────────────────────────────────┐
-│                   UNTRUSTED STORAGE / OS                    │
-│                                                             │
-│         SQLite DB (`vault.sqlite`) / Archives (`.vlock`)    │
-└─────────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────┐
+│                         TRUSTED CORE                         │
+│  React / TypeScript  ── Tauri IPC ──  Rust security core   │
+│                                      │                       │
+│                         Crypto / Vault / SQLite              │
+└──────────────────────────────────────┼───────────────────────┘
+                                       │ encrypted data
+┌──────────────────────────────────────▼───────────────────────┐
+│                    LOCAL FILE SYSTEM / OS                    │
+│            vault.sqlite · encrypted .vlock files            │
+└──────────────────────────────────────────────────────────────┘
 ```
 
----
+The documented architecture places React/TypeScript on one side of the IPC boundary and the Rust security/storage core on the other. fileciteturn0file6L11-L26
 
-## 2. Protected Threats (In-Scope)
+## 2. In-scope threats
 
-### T1: Theft of Local Vault Files (`vault.sqlite` / `.vlock`)
-* **Vector**: An attacker steals an unencrypted USB drive, accesses an offline backup, or steals the local SQLite database file.
-* **Mitigation**: All credential payloads are encrypted with **AES-256-GCM** using a 256-bit random Vault Encryption Key (VEK). The VEK is wrapped using a Key Encryption Key (KEK) derived via **Argon2id** (64MB memory, 3 iterations, 4 parallelism threads). Without the master password, brute-force is computationally infeasible.
+### T1 — Theft of an encrypted vault file
 
-### T2: Database Tampering & Bit-Flipping
-* **Vector**: An attacker modifies bytes within `vault.sqlite` to inject corrupted payloads or force cipher errors.
-* **Mitigation**: AES-256-GCM is an Authenticated Encryption with Associated Data (AEAD) cipher. Any tampered payload or altered authentication tag fails decryption immediately.
+**Threat:** An attacker obtains `vault.sqlite` or a `.vlock` backup.
 
-### T3: Master Password Exposure
-* **Vector**: Reverse-engineering database tables, log files, configuration files, or memory dumps to discover the master password.
-* **Mitigation**: The master password is **NEVER** saved to disk, database, config files, logs, or crash reports. It exists strictly in volatile Rust RAM during key derivation and is discarded.
+**Mitigation:** Sensitive entry payloads are protected with AES-256-GCM, while the vault encryption key is wrapped by a key derived through Argon2id. fileciteturn0file6L32-L36
 
-### T4: Residual Sensitive Data in Memory
-* **Vector**: Dump of process memory after locking the vault.
-* **Mitigation**: When locked or closed, Veylock zeroizes in-memory decryption keys using Rust's `zeroize` crate and clears all decrypted frontend React state.
+### T2 — Database tampering
 
-### T5: Clipboard Leakage
-* **Vector**: Clipboard monitoring malware or user forgetting copied passwords in the OS clipboard.
-* **Mitigation**: Copied secrets trigger an automatic background timer (default 30 seconds) that overwrites the OS clipboard with empty text.
+**Threat:** An attacker modifies encrypted database content.
 
----
+**Mitigation:** AES-GCM authentication should cause modified ciphertext or tags to fail verification rather than silently producing trusted plaintext. fileciteturn0file6L38-L40
 
-## 3. Unprotected Threats (Out-of-Scope / Environmental)
+### T3 — Master-password disclosure through storage
 
-### U1: Host System Malware & Keyloggers
-* **Vector**: Malware operating with user/root permissions on the host system capturing keystrokes or screen buffers.
-* **Mitigation / Technical Reality**: Veylock cannot defend against an OS environment that is already fully compromised by kernel-level keyloggers or screen scrapers.
+**Threat:** The master password is recovered from files, configuration, or logs.
 
-### U2: Physical Memory Cold Boot Extraction
-* **Vector**: Physical RAM freezing and extraction while the vault is active/unlocked.
-* **Mitigation / Technical Reality**: Decrypted credentials must exist in memory while the user is actively viewing them. Users should configure Veylock's auto-lock feature (e.g., 5 minutes) to minimize the unlocked window.
+**Mitigation:** The documented design does not persist the master password to the vault database or configuration files. fileciteturn0file6L42-L44
 
-### U3: SSD Physical Flash Cell Wear-Leveling
-* **Vector**: Microscopic forensic recovery of SSD flash memory blocks after deleting entries.
-* **Mitigation / Technical Reality**: Operating systems and SSD controllers manage flash blocks asynchronously. File deletion removes database records, but physical bit sanitization depends on OS TRIM support.
+### T4 — Residual key material in memory
 
----
+**Threat:** Sensitive key material remains available after locking.
 
-## 4. Cryptographic Primitive Summary
+**Mitigation:** Rust key buffers use zeroization, and the renderer clears decrypted state when the vault is locked. fileciteturn0file6L46-L48
 
-| Component | Standard / Primitive | Parameters |
+### T5 — Clipboard leakage
+
+**Threat:** A copied secret remains in the OS clipboard longer than necessary.
+
+**Mitigation:** Veylock uses a timed clipboard-clearing mechanism, documented as 30 seconds by default in the current implementation. fileciteturn0file6L50-L52
+
+## 3. Out-of-scope environmental threats
+
+### U1 — Compromised operating system
+
+A keylogger, screen scraper, malicious browser, kernel-level malware, or process running with sufficient privileges can observe secrets while the vault is unlocked. Veylock does not claim to defeat a fully compromised host. fileciteturn0file6L56-L60
+
+### U2 — Cold-boot or direct RAM extraction
+
+Decrypted credentials necessarily exist in memory while users are viewing them. A short auto-lock period reduces exposure but cannot eliminate physical-memory attacks. fileciteturn0file6L62-L64
+
+### U3 — Physical storage remanence
+
+Deleting a database record does not guarantee physical sanitization of every underlying flash cell. Storage controllers and the operating system determine how blocks are reclaimed. fileciteturn0file6L66-L68
+
+## 4. Cryptographic summary
+
+| Function | Primitive | Current documented parameters |
 |---|---|---|
-| Key Derivation | Argon2id | Memory: 64 MB, Time: 3, Parallelism: 4, Salt: 16-byte random |
-| Vault Encryption | AES-256-GCM | 256-bit key, 96-bit random nonce per record, 128-bit tag |
-| Randomness | Cryptographically Secure PRNG | `rand::rngs::OsRng` (OS CSPRNG) |
-| OTP Generator | HMAC-SHA1 / HMAC-SHA256 TOTP | RFC 6238 compliant, Base32 validation with zeroization, 6/8 digits, 30s/60s period |
-| Memory Sanitization | `zeroize` / `zeroize_on_drop` | Applied to master passwords, derived KEK, active VEK, and decoded secret buffers |
+| Key derivation | Argon2id | 64 MB memory, time 3, parallelism 4, 16-byte salt |
+| Vault encryption | AES-256-GCM | 256-bit key, 96-bit random nonce, 128-bit tag |
+| Randomness | OS CSPRNG | `rand::rngs::OsRng` |
+| TOTP | HMAC-SHA1 / HMAC-SHA256 | RFC 6238, Base32 validation, 6/8 digits, 30/60s period |
+| Memory sanitization | `zeroize` | Password/key/decoded-secret buffers where implemented |

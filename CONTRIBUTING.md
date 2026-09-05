@@ -1,52 +1,94 @@
 # Contributing to Veylock
 
-Thank you for your interest in contributing to Veylock! We welcome contributions from developers, security researchers, and designers.
+Thank you for taking the time to improve Veylock.
 
----
+Veylock is a security-sensitive application. A small change to a form, storage layer, IPC command, or clipboard path can have consequences beyond the visible UI. Please keep changes focused, test them thoroughly, and favor simple, reviewable code.
 
-## 1. Development Guidelines
+## Before you start
 
-1. **Security First**: Code changes affecting cryptography, key derivation, or database storage MUST undergo peer review and pass automated security unit tests.
-2. **Zero Plaintext Secrets**: Never write or log plaintext passwords, master passwords, key structures, or secrets to stdout, stderr, filesystem, or database columns.
-3. **Rust Coding Standards**: Follow `clippy` and `rustfmt` formatting.
-4. **TypeScript / React Standards**: Use strict TypeScript definitions, clean hooks, and proper component decomposition.
+For larger changes, open an issue first so the approach can be discussed before implementation. For small fixes, documentation improvements, accessibility work, and straightforward maintenance, a pull request is usually enough.
 
----
+Before working on cryptography or vault storage, read:
 
-## 2. Setting Up Development Environment
+- [ARCHITECTURE.md](./ARCHITECTURE.md)
+- [SECURITY.md](./SECURITY.md)
+- [THREAT_MODEL.md](./THREAT_MODEL.md)
+
+## Development standards
+
+### Security first
+
+Never log, print, persist, or expose plaintext passwords, master passwords, encryption keys, TOTP secrets, API secrets, or other sensitive vault values. Security-sensitive changes should include tests and a clear explanation of the security impact.
+
+### Rust
+
+Use `rustfmt` and keep Clippy warnings under control. Avoid unnecessary unsafe code and keep cryptographic operations inside the established Rust security boundary.
+
+### TypeScript / React
+
+Use strict types, small focused components, predictable state management, and semantic HTML. Avoid duplicating business logic between views.
+
+### Data compatibility
+
+Veylock is intended to preserve existing vaults and backups. Changes to serialized entry data must be additive or include a migration strategy. New Rust fields should use sensible defaults when backward-compatible deserialization requires them. The current architecture deliberately uses optional item fields and Serde defaults to protect existing data. fileciteturn0file0L96-L176
+
+### Dependencies
+
+Do not add a dependency without a reason. Avoid packages that add telemetry, unnecessary remote services, or unreviewed cryptographic primitives.
+
+## Local setup
 
 Prerequisites:
-* **Node.js**: v20+ and `npm`
-* **Rust**: `rustc` and `cargo` (1.75+)
-* **Linux Dependencies** (if on Linux): `build-essential`, `pkg-config`, `libssl-dev`, `libgtk-3-dev`, `libwebkit2gtk-4.1-dev`
 
-Commands:
+- Node.js 20+
+- npm
+- Rust and Cargo 1.75+
+- Tauri platform dependencies
+
+Install frontend dependencies:
+
 ```bash
-# Install frontend dependencies
 npm install
-
-# Run frontend in browser preview mode
-npm run dev
-
-# Run full desktop application in development mode
-npm run tauri dev
-
-# Verify TypeScript compilation
-npx tsc --noEmit
-
-# Verify production frontend build
-npm run build
-
-# Run Rust cryptographic unit tests
-cargo test --manifest-path src-tauri/Cargo.toml
 ```
 
----
+Run the frontend:
 
-## 3. Pull Request Process
+```bash
+npm run dev
+```
 
-1. Fork the repository and create a feature branch (`git checkout -b feature/my-feature`).
-2. Run TypeScript check (`npx tsc --noEmit`) and Rust unit tests (`cargo test --manifest-path src-tauri/Cargo.toml`).
-3. Ensure no new dependencies introduce telemetry, remote network calls, or unvetted cryptographic algorithms.
-4. Ensure any new fields added to data models derive `Default` and use `#[serde(default)]` to guarantee 100% backward compatibility.
-5. Submit a Pull Request with a clear explanation of changes and rationale.
+Run the desktop app:
+
+```bash
+npm run tauri dev
+```
+
+## Checks before opening a pull request
+
+Run the checks relevant to your change:
+
+```bash
+npx tsc --noEmit
+npm run build
+cd src-tauri && cargo test
+```
+
+For security-sensitive Rust changes, also run the project's normal formatting and lint checks.
+
+## Pull requests
+
+1. Create a focused feature branch.
+2. Keep the change set small enough to review.
+3. Explain what changed and why.
+4. Include screenshots for meaningful UI changes.
+5. Include tests or a clear manual verification path for functional changes.
+6. Call out data-model, migration, IPC, or security implications explicitly.
+7. Do not include real credentials, vault files, private keys, or user data in commits or pull requests.
+
+## Security reports
+
+Do not use a public issue for an unverified security vulnerability. Follow the private reporting process in [SECURITY.md](./SECURITY.md).
+
+## Contributions and distribution
+
+Pull requests are welcome, but the project license controls how source code and official releases may be distributed. Read [LICENSE](./LICENSE) before publishing forks, packages, installers, or other redistributions.

@@ -1,223 +1,209 @@
 <p align="center">
-  <img src="public/logo.png" alt="Veylock Official Logo" width="120" height="120" style="border-radius: 26px; box-shadow: 0 12px 30px rgba(6, 182, 212, 0.25);" />
+  <img src="public/logo.png" alt="Veylock logo" width="112" height="112" />
 </p>
 
 <h1 align="center">Veylock</h1>
 
 <p align="center">
-  <strong>Offline-First, Zero-Trust, Local-Only Password & Credential Manager</strong><br>
-  <em>Engineered for Linux, Windows, and Android</em>
+  <strong>Your personal vault for passwords, credentials, codes, cards, and private notes.</strong><br>
+  Local-first. Encrypted. Designed to stay under your control.
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License: MIT" />
-  <img src="https://img.shields.io/badge/Tauri-2.x-24C8D8.svg?logo=tauri&logoColor=white" alt="Tauri 2" />
-  <img src="https://img.shields.io/badge/Rust-1.75+-orange.svg?logo=rust&logoColor=white" alt="Rust 1.75+" />
-  <img src="https://img.shields.io/badge/React-19.x-61DAFB.svg?logo=react&logoColor=black" alt="React 19" />
-  <img src="https://img.shields.io/badge/Tailwind-CSS_4-38BDF8.svg?logo=tailwindcss&logoColor=white" alt="Tailwind CSS 4" />
-  <img src="https://img.shields.io/badge/Security-Argon2id_%2B_AES--256--GCM-emerald.svg" alt="Argon2id + AES-256-GCM" />
+  <a href="https://github.com/RoyalRohan/veylock/releases">Releases</a> ·
+  <a href="https://github.com/RoyalRohan/veylock/issues">Issues</a> ·
+  <a href="https://github.com/RoyalRohan/veylock/blob/main/SECURITY.md">Security</a>
 </p>
 
 ---
 
-## Overview
+## What Veylock is
 
-**Veylock** is a high-security, local-first credential and password manager built to keep your sensitive data exclusively under your ownership. It operates with **zero cloud synchronization**, **zero telemetry**, and **zero external network requests**. 
+Veylock is a local-first password and credential manager built around one simple idea: your vault should belong to you.
 
-Combining **Tauri 2**, **Rust**, **React 19**, **SQLite**, and **Tailwind CSS 4**, Veylock delivers native performance, hardware-enforced memory safety, and an elegant tri-state interface that seamlessly transitions between **Obsidian Dark**, **Clean Slate Light**, and **System-adaptive** modes.
+The application stores vault data locally, uses authenticated encryption for sensitive payloads, does not require a Veylock account, and is designed to work without a cloud service. The project is built with Tauri 2, Rust, React, TypeScript, SQLite, and Tailwind CSS.
 
----
+Veylock supports purpose-built records for logins, secure notes, authenticators, payment cards, software licenses, servers, and API credentials. Each type has its own editor and presentation rather than forcing unrelated data into one generic form.
 
-## Core Security & Architecture Principles
+## Highlights
 
-* **100% Offline by Design**: Operates entirely without an internet connection. Credentials, notes, cards, and server keys never leave your device.
-* **Dual-Key Envelope Cryptography**: Master passwords derive a Key Encryption Key (KEK) via memory-hard Argon2id, which unwrap a random 256-bit Vault Encryption Key (VEK) stored in memory.
-* **Memory Zeroization**: Secret buffers in RAM (passwords, encryption keys, and decoded TOTP secrets) are zeroized on drop using Rust's `zeroize` crate upon vault lock or window close.
-* **Zero Telemetry & Tracking**: No Google Analytics, no Sentry, no telemetry pings, and no external font CDNs (all typefaces are bundled locally).
-* **Auditable Standard Primitives**: Built exclusively with peer-reviewed cryptographic libraries (`ring`, `argon2`, `aes-gcm`, `rand_core`).
+- **Local-first vault** — credentials stay on the device unless you explicitly export a backup.
+- **Encrypted storage** — sensitive entry payloads are protected with AES-256-GCM.
+- **Password-based key protection** — Argon2id is used to derive the key that unwraps the vault encryption key.
+- **Secure clipboard handling** — copied secrets can be cleared automatically.
+- **Built-in authenticator** — offline RFC 6238 TOTP generation with configurable parameters.
+- **Password generator** — cryptographically secure password and passphrase generation.
+- **Security health** — identify weak, reused, or missing-2FA credentials.
+- **Encrypted `.vlock` backups** — portable vault backups intended for user-controlled storage.
+- **Custom fields and tags** — keep extra credentials and metadata organized.
+- **Dark, Light, and System themes** — with a restrained, security-focused visual design.
+- **Desktop and Android builds** — with macOS support through the same Tauri project.
 
----
+## Vault item types
 
-## Specialized Item Types
+| Type | Intended for | Examples |
+|---|---|---|
+| **Logins** | Website and application accounts | Username, password, URL, optional TOTP |
+| **Secure Notes** | Private text and recovery information | Recovery codes, confidential notes |
+| **Authenticators** | Standalone 2FA secrets | TOTP secret, issuer, account |
+| **Payment Cards** | Card credentials | Card number, expiry, CVV, billing address |
+| **Software Licenses** | Product licenses | License key, publisher, version, dates |
+| **Servers & SSH** | Infrastructure credentials | Host, port, protocol, username, SSH key |
+| **API Credentials** | Developer/service secrets | Endpoint, API key, token, client credentials |
 
-Veylock replaces one-size-fits-all credential forms with **7 dedicated domain-specific editors and visual detail layouts**:
+## Download an official release
 
-| Item Type | Icon | Dedicated Capabilities & Fields |
-| :--- | :---: | :--- |
-| **Logins** | 🔑 | Web credentials, URL launcher, password entropy & crack-time analysis, embedded 2FA TOTP token with countdown timer, secure notes, tags, and custom fields. |
-| **Secure Notes** | 📝 | Distraction-free multi-line document editor for recovery keys, seed phrases, confidential memos, word/line count metrics, and one-click full copy. |
-| **2FA Authenticators** | ⏱️ | Standalone RFC 6238 TOTP replacement with Base32 secret key validation, configurable token length (6 or 8 digits), custom time steps (30s or 60s), SHA-1/SHA-256 algorithm support, and live code test preview. |
-| **Payment Cards** | 💳 | Cardholder name, auto-chunked 16-digit card number, live network identification (Visa, Mastercard, Amex, Discover), expiration dropdowns, masked CVV/PIN reveals, and billing address. |
-| **Software Licenses** | 📜 | Monospace license serial key block, publisher, edition/version, licensed user email, validity dates, order reference, and purchase link. |
-| **Servers & SSH** | 🖥️ | Protocol selector (SSH, SFTP, FTP, RDP, MySQL, PostgreSQL, Redis, HTTP, HTTPS), host/IP, port, credentials, multi-line private SSH key viewer, and one-click connection string copy (`ssh user@host -p 22`). |
-| **API Credentials** | ⚡ | Service header, environment badge (Production, Staging, Development, Test), base endpoint URL, masked API Key, Secret Token, Client ID, and Client Secret. |
+Official builds are published on GitHub:
 
----
+**[Download Veylock Releases →](https://github.com/RoyalRohan/veylock/releases)**
 
-## Cryptographic Key Hierarchy
+Open the newest release and download the artifact for your platform. Use the package that matches your operating system and CPU architecture.
 
-```text
-[Master Password] + Random Salt (16 bytes)
-                 │
-                 ▼
-          Argon2id KDF
-  (m=64MB, t=3, p=4, out=32B)
-                 │
-                 ▼
-     Key Encryption Key (KEK)
-                 │
-                 ▼
-  AES-256-GCM Unwrapping of 256-bit
-     Vault Encryption Key (VEK)
-                 │
-                 ▼
-  Decrypted VEK in RAM (Zeroized on Lock)
-                 │
-                 ▼
-  AES-256-GCM Encryption / Decryption
-      (Unique 96-bit Nonce per entry)
-                 │
-                 ▼
-  Local SQLite Database (`vault.sqlite`)
+### Windows
+
+Download the Windows installer from the release assets. Depending on the release, this may be an `.exe` installer or an `.msi` package.
+
+### Fedora / RHEL-based Linux
+
+Download the **x86_64 `.rpm`** package from the release assets, then install it with:
+
+```bash
+cd ~/Downloads
+sudo dnf install ./veylock-<version>-1.x86_64.rpm
 ```
 
-* **Argon2id Parameters**: 64 MB memory cost, 3 time iterations, 4 parallelism threads, defending against GPU and ASIC-accelerated brute-force attacks.
-* **AES-256-GCM AEAD**: Authenticated Encryption with Associated Data ensures that any bit-flip or database tampering immediately fails decryption.
-* **Database Format**: Local SQLite database with encrypted binary JSON payloads. Schema additions are 100% backward compatible via default deserialization.
+For example:
 
----
+```bash
+sudo dnf install ./veylock-1.1.0-1.x86_64.rpm
+```
 
-## Key Features
+### Ubuntu / Debian-based Linux
 
-### 1. Tri-State Theme Engine (Dark / Light / System)
-* **Obsidian Dark**: Signature deep slate and sapphire aesthetic with subtle glows and glassmorphism.
-* **Clean Slate Light**: High-contrast, clean slate surfaces designed for bright daylight environments.
-* **System Mode**: Dynamically follows your operating system's color scheme (`prefers-color-scheme`) via real-time media query listeners.
-* Persisted reliably in local storage and switchable in Settings with a single click.
+Download the `.deb` package and install it with:
 
-### 2. Shannon Entropy & Crack-Time Estimator
-Real-time entropy calculations (bits) and realistic crack-time estimates (from *Instant* to *Trillions of Years*) embedded directly into credential cards, password generator sliders, and vault setup.
+```bash
+cd ~/Downloads
+sudo apt install ./veylock-<version>-amd64.deb
+```
 
-### 3. CSPRNG Password & Passphrase Generator
-* **Random Mode**: Configurable length (8 to 64 chars) with length presets (16, 20, 24, 32, 48), character pool toggles (Uppercase, Lowercase, Numbers, Symbols), and ambiguous character exclusion (`1`, `l`, `I`, `0`, `O`, `8`).
-* **Passphrase Mode**: BIP39-based multi-word generation (3 to 8 words) with customizable word separators.
+### Linux AppImage
 
-### 4. Dual-Save Reliable Backup & Export
-* **Encrypted Backups (`.vlock`)**: Full AES-256-GCM portable snapshots of your entire vault.
-* **CSV Export**: Sanitized spreadsheet format with CSV formula injection mitigation (`=`, `+`, `-`, `@`).
-* **Dual-Save Architecture**: Directly writes to your system Downloads/Documents directory while simultaneously triggering a native browser download and offering a one-click clipboard fallback.
+Download the `.AppImage`, make it executable, and run it:
 
-### 5. Interactive Security Health Audit
-Live dashboard auditing your entire database:
-* Identifies weak passwords with low complexity or entropy.
-* Detects reused passwords across different accounts.
-* Highlights accounts missing two-factor authentication (TOTP).
-* Quick filter tabs ("All", "Weak", "Reused", "Missing 2FA") with one-click "Fix" actions.
+```bash
+chmod +x Veylock*.AppImage
+./Veylock*.AppImage
+```
 
-### 6. Mobile & Desktop Ergonomics
-* Minimum 44px touch targets across all buttons, inputs, and toggles.
-* Safe-area insets (`pt-safe`, `pb-safe`) for notched smartphones and gesture navigation bars.
-* Single-column adaptive drilldown on mobile screens with smooth back navigation.
-* Quick-action bottom bar on smartphones and collapsible sidebar on tablets and desktops.
+### Android
 
----
+Download the Android `.apk` from the release assets and install it on your device. Android may require permission to install applications from the browser or file manager you used to download the APK.
 
-## Keyboard Shortcuts
+### macOS
 
-| Shortcut | Action |
-| :--- | :--- |
-| <kbd>⌘</kbd> + <kbd>N</kbd> / <kbd>Ctrl</kbd> + <kbd>N</kbd> | Create new vault item |
-| <kbd>⌘</kbd> + <kbd>K</kbd> / <kbd>Ctrl</kbd> + <kbd>K</kbd> | Focus instant search |
-| <kbd>⌘</kbd> + <kbd>G</kbd> / <kbd>Ctrl</kbd> + <kbd>G</kbd> | Open Password Generator |
-| <kbd>⌘</kbd> + <kbd>L</kbd> / <kbd>Ctrl</kbd> + <kbd>L</kbd> | Lock vault immediately |
-| <kbd>Esc</kbd> | Dismiss search / close active modal |
+Veylock is built with Tauri and the project supports macOS as a build target. When a macOS installer is published, download the release's **`.dmg`** artifact for your Mac (Apple Silicon or Intel, as labeled by the release) and install it normally.
 
----
+If a macOS installer is not present in a particular release, use the source-build instructions below to build Veylock locally on a supported Mac.
 
-## Installation & Building from Source
+## Backups
+
+Veylock backups use the `.vlock` format and contain encrypted vault data. Keep backups somewhere you control, such as an external drive or a trusted storage provider.
+
+A backup should not live only inside Veylock's application data directory. For a portable backup, export it to a user-selected location and keep at least one additional copy somewhere separate from the device running Veylock.
+
+## Build from source
 
 ### Prerequisites
 
-* **Node.js**: v20+ and `npm`
-* **Rust**: `rustc` and `cargo` v1.75+ ([rustup.rs](https://rustup.rs/))
-  ```bash
-  curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-  source "$HOME/.cargo/env"
-  ```
+- Node.js 20+
+- npm
+- Rust and Cargo 1.75+
+- Tauri prerequisites for your operating system
 
-#### Linux System Packages
+### Clone
 
-* **Fedora / RHEL**:
-  ```bash
-  sudo dnf install gcc gcc-c++ webkit2gtk4.1-devel openssl-devel curl wget
-  ```
-* **Ubuntu / Debian**:
-  ```bash
-  sudo apt update && sudo apt install build-essential pkg-config libssl-dev libgtk-3-dev libwebkit2gtk-4.1-dev curl wget
-  ```
-* **Arch Linux**:
-  ```bash
-  sudo pacman -S --needed base-devel webkit2gtk-4.1 openssl curl wget
-  ```
+```bash
+git clone https://github.com/RoyalRohan/veylock.git
+cd veylock
+```
 
----
+### Install dependencies
 
-### Step-by-Step Build Instructions
+```bash
+npm install
+```
 
-1. **Clone the repository**:
-   ```bash
-   git clone https://github.com/RoyalRohan/veylock.git
-   cd veylock
-   ```
+### Run the frontend
 
-2. **Install frontend dependencies**:
-   ```bash
-   npm install
-   ```
+```bash
+npm run dev
+```
 
-3. **Run in Web Preview Mode** (Frontend mock — No Rust required):
-   ```bash
-   npm run dev
-   ```
+### Run the native desktop application
 
-4. **Run Native Desktop Application in Development Mode**:
-   ```bash
-   npm run tauri dev
-   ```
+```bash
+npm run tauri dev
+```
 
-5. **Run Verification & Test Suites**:
-   ```bash
-   # Typecheck frontend
-   npx tsc --noEmit
+### Verify the project
 
-   # Build frontend production bundle
-   npm run build
+```bash
+npx tsc --noEmit
+npm run build
+cd src-tauri && cargo test
+```
 
-   # Run backend cryptographic test suite
-   cd src-tauri && cargo test
-   ```
+### Build production bundles
 
-6. **Compile Production Packages**:
-   ```bash
-   npm run tauri build
-   ```
-   * **Linux**: Generates `.deb`, `.rpm`, and `.AppImage` in `src-tauri/target/release/bundle/`
-   * **Windows**: Generates `.exe` installer (NSIS) in `src-tauri/target/release/bundle/nsis/`
-   * **Android**: Generates `.apk` via `npm run tauri android build --apk`
+```bash
+npm run tauri build
+```
 
----
+The exact bundle formats depend on the host platform and the Tauri configuration. Published release assets are the easiest option for most users.
 
-## Documentation Links
+## Architecture and security
 
-* [`ARCHITECTURE.md`](./ARCHITECTURE.md) — IPC layer, envelope cryptography, data models, and database schema.
-* [`SECURITY.md`](./SECURITY.md) — Security disclosures, responsible reporting, and memory protection guarantees.
-* [`THREAT_MODEL.md`](./THREAT_MODEL.md) — Threat boundaries, attack vectors, mitigations, and out-of-scope assumptions.
-* [`PRIVACY.md`](./PRIVACY.md) — Zero-telemetry policy, local storage guarantees, and offline specification.
-* [`CONTRIBUTING.md`](./CONTRIBUTING.md) — Development setup, contribution workflows, and coding standards.
-* [`CHANGELOG.md`](./CHANGELOG.md) — Chronological release history.
+Veylock uses a Tauri 2 frontend/backend boundary with Rust handling vault operations, cryptography, SQLite persistence, clipboard protection, TOTP generation, and backup import/export. The current data model keeps item-specific fields optional to preserve compatibility with existing vaults and backups. fileciteturn0file0L7-L20 fileciteturn0file0L96-L176
 
----
+The documented cryptographic design uses Argon2id to derive a key-encryption key and AES-256-GCM to protect vault item payloads; active key material is intended to be zeroized when the vault is locked. fileciteturn0file0L43-L69
 
-## License
+Read the project security documents before relying on Veylock for sensitive use cases:
 
-Veylock is free and open-source software licensed under the **[MIT License](./LICENSE)**.
+- [ARCHITECTURE.md](./ARCHITECTURE.md)
+- [SECURITY.md](./SECURITY.md)
+- [THREAT_MODEL.md](./THREAT_MODEL.md)
+- [PRIVACY.md](./PRIVACY.md)
+
+## Privacy
+
+Veylock does not require a Veylock account, subscription, or registration. The project is designed for local storage and does not require a central Veylock server for normal vault operations. fileciteturn0file3L22-L41
+
+See [PRIVACY.md](./PRIVACY.md) for the project's current privacy commitments and boundaries.
+
+## Contributing
+
+Contributions are welcome when they improve reliability, usability, accessibility, or security. Please read [CONTRIBUTING.md](./CONTRIBUTING.md) before opening a pull request.
+
+Security-sensitive changes should receive careful review and must not introduce plaintext secret handling or unnecessary network dependencies. fileciteturn0file2L7-L20
+
+## Reporting a security issue
+
+Please do not publish an unverified security vulnerability in a public GitHub issue. Follow the private reporting process in [SECURITY.md](./SECURITY.md).
+
+## Project status
+
+Veylock is an actively developed personal/open project. Treat releases as the authoritative source for downloadable application builds, and read the release notes for platform-specific changes.
+
+## License and source availability
+
+Veylock is **source-available software**, not an OSI-certified open-source project. The source is published so it can be inspected, studied, and contributed to, while distribution of modified or unofficial builds is reserved to the project owner unless separately authorized.
+
+See [LICENSE](./LICENSE) for the full terms.
+
+## Author
+
+**Rohan Ghimire**
+
+- GitHub: https://github.com/RoyalRohan
+- Project: https://github.com/RoyalRohan/veylock

@@ -1,40 +1,51 @@
-# Security Policy for Veylock
+# Veylock Security Policy
 
-Veylock takes security extremely seriously. As a local-first, privacy-focused password manager, our primary objective is to protect user credentials on their own devices.
+Veylock is a security-sensitive application. If you discover a vulnerability, please report it privately so it can be investigated before public disclosure.
 
-## Reporting a Vulnerability
+## Reporting a vulnerability
 
-If you discover a potential security vulnerability in Veylock, please report it responsibly.
+Do not publish an unverified security vulnerability in a public GitHub issue.
 
-**Please DO NOT open a public issue on GitHub for unconfirmed security vulnerabilities.**
+Send a private report to:
 
-Instead, please send an encrypted or private security report to:
-* **Email**: `royalfga69@gmail.com`
+**royalfga69@gmail.com**
 
-### What to Include in Your Report
+Please include, when available:
 
-To help us triage and resolve the issue quickly, please include:
-1. A clear description of the vulnerability and its potential impact.
-2. Step-by-step instructions or proof-of-concept (PoC) code to reproduce the issue.
-3. The platform (Windows / Linux), Veylock version, and Tauri runtime details.
-4. Any relevant logs or system configurations (ensuring no plaintext sensitive user secrets are attached).
+1. A clear description of the issue and its impact.
+2. Reproduction steps or a proof of concept.
+3. The Veylock version and affected platform.
+4. Relevant logs or configuration details with all user secrets removed.
+5. Whether the issue affects the vault, backup format, authentication, IPC, or another boundary.
 
+Never attach a real vault database, real `.vlock` backup, private key, password, or other sensitive user data to a report.
 
-## Security Guarantees & Non-Guarantees
+## Security design
 
-### What Veylock Protects
-* **Data at Rest**: All credentials, secure notes, cards, licenses, server keys, and API secrets are encrypted using AES-256-GCM authenticated encryption.
-* **Key Isolation & Derivation**: Vault Encryption Keys (VEK) are wrapped in memory using keys derived via Argon2id (64MB RAM, 3 iterations, 4 threads). Master passwords are never stored on disk or in the database.
-* **Memory Zeroization**: Plaintext passwords, master keys, and decoded TOTP secret byte buffers implement `zeroize::Zeroize` and are immediately purged from RAM upon vault lock or window close.
-* **Data Integrity**: Authenticated Encryption with Associated Data (AEAD) ensures that any tampered or corrupted database records fail decryption immediately.
-* **TOTP Engine Security**: Pure offline RFC 6238 token generation with strict Base32 validation and in-memory zeroization of secret buffers.
-* **Clipboard Leakage**: Secrets copied to clipboard are auto-cleared after a configurable timeout (default 30s) or upon locking the vault.
-* **CSV Formula Injection Defense**: Exported spreadsheet data strips leading calculation triggers (`=`, `+`, `-`, `@`) to defend against spreadsheet formula execution vulnerabilities.
-* **Complete Offline Guarantee**: Zero external network connections, zero telemetry packages, zero analytics, and zero remote font requests.
+Veylock's documented design uses a Rust/Tauri security boundary, Argon2id key derivation, AES-256-GCM authenticated encryption, local SQLite persistence, TOTP validation/generation, and memory zeroization for sensitive key material. fileciteturn0file0L23-L37 fileciteturn0file0L43-L69
 
-### What Veylock Cannot Protect Against
-* **Compromised Host OS**: Active keyloggers, screen scrapers, or memory hooks running with administrative or root permissions on the host system.
-* **Cold Boot Attacks**: Direct physical RAM extraction while the application vault is currently unlocked.
-* **Hardware Physical Access**: Physical tampering of an unlocked active computer session without an auto-lock timer enabled.
+The threat model and architecture documents describe the project's current assumptions and boundaries in more detail.
 
-Thank you for helping keep Veylock secure!
+## What the application is designed to protect
+
+The current implementation is designed to protect against, among other things:
+
+- theft of the local encrypted vault database or an encrypted `.vlock` backup without the master password;
+- tampering with encrypted payloads, where authenticated decryption should fail;
+- storing the master password directly on disk;
+- residual key material after the vault is locked, to the extent the application's zeroization strategy can provide it;
+- accidental long-term clipboard exposure through timed clearing. fileciteturn0file5L23-L33
+
+## What Veylock cannot guarantee
+
+Veylock cannot protect a user from a fully compromised operating system, kernel-level malware, active keyloggers, screen capture, or physical attacks against an unlocked device. The project threat model explicitly treats these as environmental limits. fileciteturn0file6L56-L68
+
+No password manager should be presented as invulnerable. Security claims should be evaluated against the actual release, source code, platform, and threat model.
+
+## Security-focused development
+
+Security-sensitive changes should be reviewed carefully and tested. Do not introduce plaintext secret logging, unnecessary network communication, unsafe serialization, or unreviewed cryptographic dependencies. Contribution guidance is documented in [CONTRIBUTING.md](./CONTRIBUTING.md).
+
+## Disclosure
+
+When a confirmed vulnerability is resolved, the project may publish a release note describing the impact and the fix without exposing sensitive reproduction material.

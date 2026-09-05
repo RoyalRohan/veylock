@@ -1,236 +1,104 @@
-# Veylock Architecture Documentation
+# Veylock Architecture
 
-This document explains the software architecture, IPC boundaries, key management, database storage model, theme system, and UI integration of Veylock.
+This document describes the main boundaries and data flows of Veylock. It is intentionally implementation-oriented so contributors can understand where UI, IPC, storage, and cryptography meet.
 
----
-
-## 1. System High-Level Diagram
+## 1. System overview
 
 ```text
-┌─────────────────────────────────────────────────────────────────────────┐
-│                          React 19 / TS Renderer                         │
-│                                                                         │
-│   • LockScreen / VaultSetup                                             │
-│   • ThemeEngine (Dark / Light / System via ThemeContext)                │
-│   • 7 Specialized Item Form Editors:                                    │
-│       LoginForm, SecureNoteForm, AuthenticatorForm, CardForm,           │
-│       LicenseForm, ServerForm, ApiCredentialForm                        │
-│   • 7 Dedicated Detail View Renderers (EntryDetail.tsx)                 │
-│   • Shannon Entropy Engine & CSPRNG Generator Modal                     │
-│   • Security Health Dashboard & Dual-Save Import/Export                 │
-└────────────────────────────────────┬────────────────────────────────────┘
-                                     │  Tauri IPC Invoke (JSON-RPC)
-┌────────────────────────────────────▼────────────────────────────────────┐
-│                          Tauri 2 / Rust Backend                         │
-│                                                                         │
-│   ├── VaultManager (In-memory session state, auto-lock timer, keepalive)│
-│   ├── Crypto Engine (Argon2id, AES-256-GCM, Zeroize memory buffers)     │
-│   ├── SQLite Engine (rusqlite local embedded database)                  │
-│   ├── Clipboard Guard (30s background auto-wipe timer)                  │
-│   ├── TOTP Engine (Base32 validation, RFC 6238 generation, 6/8 digits)  │
-│   └── Dual-Save Export Pipeline (OS Downloads/Documents directory write)│
-└────────────────────────────────────┬────────────────────────────────────┘
-                                     │  AES-256-GCM Encrypted Payloads
-┌────────────────────────────────────▼────────────────────────────────────┐
-│                            Local Persistence                            │
-│   • `vault.sqlite` (Local device storage in application data directory) │
-│   • `.vlock` (Portable encrypted vault backup file)                     │
-└─────────────────────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────┐
+│                    React / TypeScript UI                    │
+│                                                              │
+│  Lock Screen · Vault · Theme Context                         │
+│  7 Item Editors · Detail Views · Generator · Health          │
+└────────────────────────────┬─────────────────────────────────┘
+                             │ Tauri IPC
+┌────────────────────────────▼─────────────────────────────────┐
+│                       Rust / Tauri                           │
+│                                                              │
+│  Vault session · Crypto · SQLite · Clipboard · TOTP          │
+│  Backup / restore · Import / export                          │
+└────────────────────────────┬─────────────────────────────────┘
+                             │ encrypted payloads
+┌────────────────────────────▼─────────────────────────────────┐
+│                    Local persistence                          │
+│  vault.sqlite · encrypted .vlock backups                     │
+└──────────────────────────────────────────────────────────────┘
 ```
 
----
+The renderer contains the lock/setup flow, theme engine, seven specialized item form editors, seven dedicated detail renderers, password generation, and security-health views. fileciteturn0file0L7-L20
 
-## 2. Envelope Cryptography & Key Hierarchy
+## 2. Item model
 
-To enable instant master password updates without re-encrypting thousands of vault items individually, Veylock utilizes an envelope key derivation scheme:
+Veylock currently uses an additive decrypted model. Item-specific properties remain optional so older databases and backup payloads can continue to deserialize without a destructive migration.
+
+The current model contains fields for logins, TOTP, cards, licenses, servers, API credentials, custom fields, tags, and favorites. fileciteturn0file0L96-L176
+
+This approach favors backward compatibility over splitting every category into a separate SQLite table.
+
+## 3. Storage
+
+The application stores metadata in SQLite and keeps sensitive entry content inside an encrypted payload. The documented table contains an entry identifier, category, favorite flag, encrypted payload, and timestamps. fileciteturn0file0L74-L92
+
+Portable backups use the `.vlock` extension and preserve encrypted vault data. fileciteturn0file0L33-L37
+
+## 4. Key hierarchy
+
+The documented key hierarchy is:
 
 ```text
-Master Password + Random Salt (16 bytes)
-                 │
-                 ▼
-            Argon2id KDF
- (m=64MB, t=3, p=4, output_len=32B)
-                 │
-                 ▼
-     Key Encryption Key (KEK)
-                 │
-                 ▼
- AES-256-GCM Unwrapping of Random 256-bit
-      Vault Encryption Key (VEK)
-                 │
-                 ▼
-  Decrypted VEK in RAM (Zeroized on Lock)
-                 │
-                 ▼
- AES-256-GCM Encryption / Decryption of Item Payloads
-    (Unique 96-bit CSPRNG Nonce per entry)
+Master password + random salt
+           │
+           ▼
+        Argon2id
+           │
+           ▼
+ Key Encryption Key (KEK)
+           │
+           ▼
+   unwrap random VEK
+           │
+           ▼
+ Vault Encryption Key (VEK)
+           │
+           ▼
+     AES-256-GCM
+           │
+           ▼
+ encrypted item payloads
 ```
 
-1. **Zeroization**: The master password bytes, derived KEK, decrypted VEK, and transient TOTP secret buffers implement `zeroize::Zeroize` or `zeroize::ZeroizeOnDrop`, ensuring plaintext key material is cleared from RAM upon vault lock or application exit.
-2. **Deterministic Derivation**: Salt is generated randomly via `rand::rngs::OsRng` upon vault creation and stored in `vault_metadata`.
+The current documented parameters are Argon2id with 64 MB memory, time cost 3, parallelism 4, and a 16-byte random salt; AES-256-GCM uses a unique random nonce for each entry. fileciteturn0file0L43-L69
 
----
+## 5. Runtime security boundary
 
-## 3. Database & Payload Storage
+The React renderer communicates with the Rust core through Tauri IPC. Rust owns vault state, key material, SQLite operations, TOTP generation/validation, clipboard protection, and backup operations. fileciteturn0file0L220-L235
 
-All sensitive entry data is encapsulated in a JSON payload and encrypted into a single authenticated ciphertext string stored in SQLite.
+The active Vault Encryption Key is kept in memory only while the vault is unlocked and is intended to be zeroized during lock/close operations. fileciteturn0file0L69-L70
 
-### Table Schema
+## 6. Theme system
 
-```sql
-CREATE TABLE IF NOT EXISTS vault_metadata (
-    key TEXT PRIMARY KEY,
-    value TEXT NOT NULL
-);
+The theme system is implemented through `ThemeContext` and CSS variables. The supported modes are:
 
-CREATE TABLE IF NOT EXISTS entries (
-    id TEXT PRIMARY KEY,
-    category TEXT NOT NULL DEFAULT 'logins',
-    favorite INTEGER NOT NULL DEFAULT 0,
-    encrypted_payload_b64 TEXT NOT NULL,
-    created_at TEXT NOT NULL,
-    updated_at TEXT NOT NULL
-);
-```
+- Dark
+- Light
+- System
 
-### Additive Decrypted Model (`DecryptedEntry`)
+The selected preference is stored in `localStorage`, applied through a root `data-theme` attribute, and System mode reacts to the operating system's `prefers-color-scheme` media query. fileciteturn0file0L182-L204
 
-To ensure 100% backward compatibility with existing databases and backups, all item-specific fields in `DecryptedEntry` use `#[serde(default)]` and `Option<T>`:
+## 7. Export and import
 
-```rust
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
-pub struct DecryptedEntry {
-    pub id: String,
-    pub title: String,
-    #[serde(default)]
-    pub category: Option<String>,
-    #[serde(default)]
-    pub username: Option<String>,
-    #[serde(default)]
-    pub password: Option<String>,
-    #[serde(default)]
-    pub url: Option<String>,
-    #[serde(default)]
-    pub notes: Option<String>,
-    #[serde(default)]
-    pub totp_secret: Option<String>,
-    #[serde(default)]
-    pub totp_issuer: Option<String>,
-    #[serde(default)]
-    pub totp_account: Option<String>,
-    #[serde(default)]
-    pub totp_digits: Option<u32>,
-    #[serde(default)]
-    pub totp_period: Option<u64>,
-    #[serde(default)]
-    pub totp_algorithm: Option<String>,
-    #[serde(default)]
-    pub cardholder_name: Option<String>,
-    #[serde(default)]
-    pub card_number: Option<String>,
-    #[serde(default)]
-    pub card_exp_month: Option<String>,
-    #[serde(default)]
-    pub card_exp_year: Option<String>,
-    #[serde(default)]
-    pub card_cvv: Option<String>,
-    #[serde(default)]
-    pub card_pin: Option<String>,
-    #[serde(default)]
-    pub card_billing_address: Option<String>,
-    #[serde(default)]
-    pub license_key: Option<String>,
-    #[serde(default)]
-    pub license_publisher: Option<String>,
-    #[serde(default)]
-    pub license_version: Option<String>,
-    #[serde(default)]
-    pub licensed_to: Option<String>,
-    #[serde(default)]
-    pub server_protocol: Option<String>,
-    #[serde(default)]
-    pub server_host: Option<String>,
-    #[serde(default)]
-    pub server_port: Option<u16>,
-    #[serde(default)]
-    pub server_ssh_key: Option<String>,
-    #[serde(default)]
-    pub api_environment: Option<String>,
-    #[serde(default)]
-    pub api_endpoint: Option<String>,
-    #[serde(default)]
-    pub api_key: Option<String>,
-    #[serde(default)]
-    pub api_secret: Option<String>,
-    #[serde(default)]
-    pub api_client_id: Option<String>,
-    #[serde(default)]
-    pub api_client_secret: Option<String>,
-    #[serde(default)]
-    pub custom_fields: Vec<CustomField>,
-    #[serde(default)]
-    pub tags: Vec<String>,
-    #[serde(default)]
-    pub favorite: bool,
-    pub created_at: String,
-    pub updated_at: String,
-}
-```
+Veylock exposes commands for encrypted vault backup export/import and sanitized CSV export/import. The current command layer includes both native backup operations and string-based export helpers. fileciteturn0file0L220-L235
 
----
+On platforms with filesystem restrictions, the implementation may combine native and browser-side download mechanisms. Backup UX should always make the resulting file user-accessible and should never treat private application storage as the only copy.
 
-## 4. Theme System Architecture
+## 8. Development principles
 
-The theme engine is implemented in [`src/context/ThemeContext.tsx`](file:///home/royalrohan/Documents/veylock/src/context/ThemeContext.tsx) and driven by CSS variables in [`src/index.css`](file:///home/royalrohan/Documents/veylock/src/index.css):
+When changing the architecture:
 
-```text
-User Selects (Dark / Light / System)
-                │
-                ▼
-      ThemeContext.setTheme()
-                │
-    ┌───────────┴───────────┐
-    ▼                       ▼
-localStorage           DOM Attribute
-'veylock_theme_preference'   document.documentElement['data-theme']
-                            │
-                            ▼
-                    CSS Variables:
-                    --bg-app, --bg-surface,
-                    --text-main, --text-muted,
-                    --border-color
-```
-
-When set to `system`, a listener dynamically reacts to changes in `window.matchMedia('(prefers-color-scheme: dark)')`.
-
----
-
-## 5. Dual-Save File Export Architecture
-
-To overcome restrictive OS sandboxing (especially in Android WebViews and containerized Linux desktops), Veylock uses a triple-redundant export pipeline:
-
-1. **Rust Direct Filesystem Write**: Resolves native system paths (`/storage/emulated/0/Download`, `download_dir()`, `document_dir()`) and writes the file directly.
-2. **HTML5 Blob Trigger**: Concurrently synthesizes a client-side `Blob` and triggers a native browser download (`<a download="...">`).
-3. **One-Click Clipboard Backup**: The export success modal provides a direct "Copy to Clipboard" fallback so users never lose exported data.
-
----
-
-## 6. Tauri IPC Command Layer
-
-* `get_vault_status`: Query whether a vault database exists and is currently unlocked.
-* `create_vault`: Initialize new Argon2id parameters, master key wrapper, and database.
-* `unlock_vault`: Verify master password and unwrap VEK into memory.
-* `lock_vault`: Purge session keys and zeroize RAM buffers.
-* `get_entries`: Decrypt and return all stored vault items.
-* `save_entry`: Encrypt item payload and write to SQLite.
-* `delete_entry`: Delete record by ID from SQLite.
-* `generate_password`: Generate CSPRNG passwords or BIP39 passphrases.
-* `generate_totp_code`: Calculate current TOTP token with configurable digits and time periods.
-* `validate_totp`: Validate Base32 secret encoding and algorithm parameters with zeroization.
-* `copy_to_clipboard_secure`: Copy text to clipboard and schedule a 30-second wipe.
-* `touch_user_activity`: Refresh inactivity keepalive timer.
-* `export_vault_backup` / `export_vault_backup_string`: Export encrypted `.vlock` archive.
-* `import_vault_backup`: Restore vault from `.vlock` archive.
-* `export_plaintext_csv` / `export_plaintext_csv_string`: Export sanitized CSV spreadsheet.
-* `import_plaintext_csv`: Import credentials from standard CSV formats.
-
+- preserve existing encrypted data;
+- keep IPC contracts explicit;
+- prefer additive serialization changes;
+- do not move cryptographic responsibilities into the renderer without a strong reason;
+- avoid logging sensitive values;
+- test backup/restore after data-model changes;
+- keep UI item types specialized without duplicating low-level security primitives.
