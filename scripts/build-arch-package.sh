@@ -10,10 +10,16 @@ echo "builduser ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
 
 BUILD_DIR="/home/builduser/build"
 mkdir -p "$BUILD_DIR"
-cp /workspace/deb-package/*.deb "$BUILD_DIR/"
+find /workspace/deb-package -type f -name "*.deb" -exec cp -f {} "$BUILD_DIR/" \;
 cd "$BUILD_DIR"
 
-DEB_FILE=$(ls *.deb | head -n 1)
+DEB_FILE=$(find "$BUILD_DIR" -type f -name "*.deb" | head -n 1)
+if [ -z "$DEB_FILE" ]; then
+  echo "Error: No .deb package found in /workspace/deb-package"
+  exit 1
+fi
+echo "Using deb package: $DEB_FILE"
+
 ar x "$DEB_FILE"
 mkdir -p "$BUILD_DIR/src/pkg-data"
 tar -xf data.tar.* -C "$BUILD_DIR/src/pkg-data"
@@ -45,5 +51,12 @@ chown -R builduser:builduser "$BUILD_DIR"
 sudo -u builduser makepkg -f --nodeps
 
 mkdir -p /workspace/arch-pkg
-cp *.pkg.tar.zst /workspace/arch-pkg/
+find . -maxdepth 1 -type f -name "*.pkg.tar.zst" -exec cp -f {} /workspace/arch-pkg/ \;
 chmod -R 777 /workspace/arch-pkg
+
+if [ -z "$(ls -A /workspace/arch-pkg/*.pkg.tar.zst 2>/dev/null)" ]; then
+  echo "Error: No .pkg.tar.zst was created in /workspace/arch-pkg"
+  exit 1
+fi
+echo "Arch package generated successfully:"
+ls -lh /workspace/arch-pkg/
