@@ -103,20 +103,41 @@ jobs:
           cp -rf src-tauri/icons/android/* src-tauri/gen/android/app/src/main/res/
           npx tauri icon src/assets/logo.png
 
-      - name: Build Android APK
-        run: npx tauri android build --apk --target aarch64 --ci
-
-      - name: Sign & Package Android APK
+      - name: Build & Package Android APKs
         run: |
           keytool -genkey -v -keystore release.keystore -alias veylock -keyalg RSA -keysize 2048 -validity 10000 -storepass android -keypass android -dname "CN=Veylock, OU=Security, O=Veylock, L=City, S=State, C=US"
           BUILD_TOOLS_DIR=$(ls -d $ANDROID_HOME/build-tools/* | sort -V | tail -n 1)
           mkdir -p release-apks
-          find src-tauri/gen/android/app/build/outputs/apk -type f -name "*.apk" | while read -r apk; do
-            echo "Signing $apk..."
-            $BUILD_TOOLS_DIR/apksigner sign --ks release.keystore --ks-pass pass:android --key-pass pass:android "$apk"
-            $BUILD_TOOLS_DIR/apksigner verify "$apk"
-            cp "$apk" "release-apks/veylock-${{ github.ref_name }}-android-aarch64.apk"
-          done
+
+          package_apk() {
+            local dest_name="$1"
+            local found_apk=$(find src-tauri/gen/android/app/build/outputs/apk -type f -name "*.apk" | head -n 1)
+            if [ -n "$found_apk" ]; then
+              echo "Signing $found_apk as $dest_name..."
+              $BUILD_TOOLS_DIR/apksigner sign --ks release.keystore --ks-pass pass:android --key-pass pass:android "$found_apk"
+              $BUILD_TOOLS_DIR/apksigner verify "$found_apk"
+              cp -f "$found_apk" "release-apks/$dest_name"
+              echo "Successfully packaged release-apks/$dest_name"
+              rm -rf src-tauri/gen/android/app/build/outputs/apk/*
+            else
+              echo "Warning: No APK found for $dest_name"
+            fi
+          }
+
+          echo "=== 1. Building Android ARM64 (64-bit) ==="
+          npx tauri android build --apk --target aarch64 --ci
+          package_apk "veylock-${{ github.ref_name }}-android-aarch64.apk"
+
+          echo "=== 2. Building Android ARMv7 (32-bit) ==="
+          npx tauri android build --apk --target armv7 --ci
+          package_apk "veylock-${{ github.ref_name }}-android-armv7.apk"
+
+          echo "=== 3. Building Android Universal (32-bit & 64-bit) ==="
+          npx tauri android build --apk --target aarch64 --target armv7 --ci
+          package_apk "veylock-${{ github.ref_name }}-android-universal.apk"
+
+          echo "=== Summary of generated APKs ==="
+          ls -lh release-apks/
 
       - name: Upload Android APK to GitHub Release
         uses: softprops/action-gh-release@v3
