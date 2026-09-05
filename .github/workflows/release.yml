@@ -62,13 +62,6 @@ jobs:
           prerelease: false
           args: ${{ matrix.args }}
 
-      - name: Upload Debian package artifact for Arch packager
-        if: matrix.platform == 'ubuntu-22.04'
-        uses: actions/upload-artifact@v4
-        with:
-          name: deb-package
-          path: src-tauri/target/release/bundle/deb/*.deb
-
   build-android:
     needs: publish-tauri
     permissions:
@@ -168,11 +161,12 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v5
 
-      - name: Download Debian package artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: deb-package
-          path: deb-package
+      - name: Download Debian package from Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          mkdir -p deb-package
+          gh release download "${{ github.ref_name }}" -p "*.deb" -D deb-package --clobber
 
       - name: Build Arch Linux package (.pkg.tar.zst)
         run: |
