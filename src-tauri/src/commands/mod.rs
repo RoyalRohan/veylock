@@ -134,13 +134,18 @@ fn write_to_destination(app: &tauri::AppHandle, path: &str, data: &str) -> Resul
         #[cfg(target_os = "android")]
         {
             use std::io::Write;
-            use tauri_plugin_fs::{FsExt, OpenOptions};
+            use std::str::FromStr;
+            use tauri_plugin_fs::{FilePath, FsExt, OpenOptions};
+
+            let mut opts = OpenOptions::new();
+            opts.write(true).truncate(true).create(true);
+
+            let target = FilePath::from_str(path)
+                .map_err(|e| format!("Failed to parse destination URI: {}", e))?;
+
             let mut file = app
                 .fs()
-                .open(
-                    path,
-                    OpenOptions::default().write(true).truncate(true).create(true),
-                )
+                .open(target, opts)
                 .map_err(|e| format!("Failed to open destination URI: {}", e))?;
             file.write_all(data.as_bytes())
                 .map_err(|e| format!("Failed to write data: {}", e))?;
@@ -173,10 +178,18 @@ fn read_from_source(app: &tauri::AppHandle, src: &str) -> Result<String, String>
         #[cfg(target_os = "android")]
         {
             use std::io::Read;
-            use tauri_plugin_fs::{FsExt, OpenOptions};
+            use std::str::FromStr;
+            use tauri_plugin_fs::{FilePath, FsExt, OpenOptions};
+
+            let mut opts = OpenOptions::new();
+            opts.read(true);
+
+            let source = FilePath::from_str(src)
+                .map_err(|e| format!("Failed to parse source URI: {}", e))?;
+
             let mut file = app
                 .fs()
-                .open(src, OpenOptions::default().read(true))
+                .open(source, opts)
                 .map_err(|e| format!("Failed to open source URI: {}", e))?;
             let mut buf = String::new();
             file.read_to_string(&mut buf)
@@ -207,40 +220,38 @@ fn resolve_save_path(app: &tauri::AppHandle, custom_path: Option<&str>, ext: &st
         }
     }
 
-    let date = chrono::Utc::now().format("%Y-%m-%d").to_string();
-    let filename = format!("veylock_backup_{}.{}", date, ext);
-
     #[cfg(target_os = "android")]
     {
-        let _ = app;
+        let _ = (app, ext);
         return Err("Please choose a location to save your backup using the system file picker.".to_string());
     }
 
-    // Try Tauri download_dir()
-    if let Ok(dl) = app.path().download_dir() {
-        return Ok(dl.join(&filename).to_string_lossy().to_string());
-    }
+    #[cfg(not(target_os = "android"))]
+    {
+        let date = chrono::Utc::now().format("%Y-%m-%d").to_string();
+        let filename = format!("veylock_backup_{}.{}", date, ext);
 
-    // Try Tauri document_dir()
-    if let Ok(doc) = app.path().document_dir() {
-        return Ok(doc.join(&filename).to_string_lossy().to_string());
-    }
-
-    // Try home directory Downloads
-    if let Ok(home) = app.path().home_dir() {
-        let downloads = home.join("Downloads");
-        if downloads.exists() {
-            return Ok(downloads.join(&filename).to_string_lossy().to_string());
+        // Try Tauri download_dir()
+        if let Ok(dl) = app.path().download_dir() {
+            return Ok(dl.join(&filename).to_string_lossy().to_string());
         }
-        return Ok(home.join(&filename).to_string_lossy().to_string());
-    }
 
-    // Fallback to app_data_dir()
-    if let Ok(app_data) = app.path().app_data_dir() {
-        return Ok(app_data.join(&filename).to_string_lossy().to_string());
-    }
+        // Try Tauri document_dir()
+        if let Ok(doc) = app.path().document_dir() {
+            return Ok(doc.join(&filename).to_string_lossy().to_string());
+        }
 
-    Ok(filename)
+        // Try home directory Downloads
+        if let Ok(home) = app.path().home_dir() {
+            let downloads = home.join("Downloads");
+            if downloads.exists() {
+                return Ok(downloads.join(&filename).to_string_lossy().to_string());
+            }
+            return Ok(home.join(&filename).to_string_lossy().to_string());
+        }
+
+        Err("Could not automatically determine downloads directory. Please specify a file path.".to_string())
+    }
 }
 
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
