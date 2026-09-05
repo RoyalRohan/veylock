@@ -88,7 +88,7 @@ export const SettingsModal: React.FC = () => {
                 onClick={() => setTheme('dark')}
                 className={`py-3 px-3 rounded-xl font-semibold border transition-all cursor-pointer flex flex-col items-center gap-1.5 ${
                   theme === 'dark'
-                    ? 'bg-blue-600/15 text-blue-400 border-blue-500/40 shadow-sm'
+                    ? 'bg-blue-600/15 text-blue-600 dark:text-blue-400 border-blue-500/40 shadow-sm'
                     : 'bg-theme-surface border-theme-border text-theme-text-muted hover:text-theme-text hover:bg-theme-hover'
                 }`}
               >
@@ -101,7 +101,7 @@ export const SettingsModal: React.FC = () => {
                 onClick={() => setTheme('light')}
                 className={`py-3 px-3 rounded-xl font-semibold border transition-all cursor-pointer flex flex-col items-center gap-1.5 ${
                   theme === 'light'
-                    ? 'bg-blue-600/15 text-blue-500 border-blue-500/40 shadow-sm'
+                    ? 'bg-blue-600/15 text-blue-600 dark:text-blue-400 border-blue-500/40 shadow-sm'
                     : 'bg-theme-surface border-theme-border text-theme-text-muted hover:text-theme-text hover:bg-theme-hover'
                 }`}
               >
@@ -114,7 +114,7 @@ export const SettingsModal: React.FC = () => {
                 onClick={() => setTheme('system')}
                 className={`py-3 px-3 rounded-xl font-semibold border transition-all cursor-pointer flex flex-col items-center gap-1.5 ${
                   theme === 'system'
-                    ? 'bg-blue-600/15 text-blue-400 border-blue-500/40 shadow-sm'
+                    ? 'bg-blue-600/15 text-blue-600 dark:text-blue-400 border-blue-500/40 shadow-sm'
                     : 'bg-theme-surface border-theme-border text-theme-text-muted hover:text-theme-text hover:bg-theme-hover'
                 }`}
               >
@@ -140,7 +140,7 @@ export const SettingsModal: React.FC = () => {
                     onClick={() => setAutoLockTimer(mins)}
                     className={`py-2.5 px-3 rounded-xl font-semibold border transition-all cursor-pointer ${
                       isSelected
-                        ? 'bg-blue-600/15 text-blue-400 border-blue-500/40 shadow-sm'
+                        ? 'bg-blue-600/15 text-blue-600 dark:text-blue-400 border-blue-500/40 shadow-sm'
                         : 'bg-theme-surface border-theme-border text-theme-text-muted hover:text-theme-text hover:bg-theme-hover'
                     }`}
                   >

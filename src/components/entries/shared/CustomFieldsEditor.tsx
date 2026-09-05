@@ -118,7 +118,7 @@ export const CustomFieldsEditor: React.FC<CustomFieldsEditorProps> = ({
                 <button
                   type="button"
                   onClick={() => handleRemove(field.id)}
-                  className="p-1.5 rounded-lg text-rose-400 hover:text-rose-300 hover:bg-rose-950/30 transition-colors cursor-pointer shrink-0"
+                  className="p-1.5 rounded-lg text-rose-500 dark:text-rose-400 hover:text-rose-600 dark:hover:text-rose-300 hover:bg-rose-500/15 transition-colors cursor-pointer shrink-0"
                   title="Remove field"
                 >
                   <Trash2 className="w-3.5 h-3.5" />

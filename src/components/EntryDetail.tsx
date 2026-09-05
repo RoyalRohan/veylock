@@ -1097,7 +1097,7 @@ export const EntryDetail: React.FC = () => {
                 setSelectedEntryId(null);
               }
             }}
-            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-rose-950/30 hover:bg-rose-950/60 border border-rose-500/30 text-rose-400 text-xs font-semibold transition-colors cursor-pointer"
+            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/30 text-rose-600 dark:text-rose-400 text-xs font-semibold transition-colors cursor-pointer"
           >
             <Trash2 className="w-4 h-4" />
             <span>Delete</span>
