@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   X,
   HardDriveDownload,
@@ -14,7 +14,8 @@ import {
   CheckCircle2,
 } from 'lucide-react';
 import { useVault } from '../context/VaultContext';
-import { documentDir, downloadDir } from '@tauri-apps/api/path';
+import { save, open } from '@tauri-apps/plugin-dialog';
+import { readTextFile } from '@tauri-apps/plugin-fs';
 
 export const ImportExportModal: React.FC = () => {
   const {
@@ -31,7 +32,6 @@ export const ImportExportModal: React.FC = () => {
   // Mode: 'export' or 'import'
   const [mode, setMode] = useState<'export' | 'import'>('export');
   const [exportFormat, setExportFormat] = useState<'vlock' | 'csv'>('vlock');
-  const [saveLocation, setSaveLocation] = useState<'downloads' | 'documents'>('downloads');
 
   // Success state after export
   const [exportSuccess, setExportSuccess] = useState<{
@@ -50,76 +50,78 @@ export const ImportExportModal: React.FC = () => {
   const [detectedType, setDetectedType] = useState<'vlock' | 'csv' | null>(null);
 
   const [isProcessing, setIsProcessing] = useState(false);
-  const [docDir, setDocDir] = useState('');
-  const [dlDir, setDlDir] = useState('');
-
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  // Resolve system paths on mount
-  useEffect(() => {
-    const resolve = async () => {
-      try {
-        const [doc, dl] = await Promise.all([documentDir(), downloadDir()]);
-        setDocDir(doc);
-        setDlDir(dl);
-      } catch (err) {
-        console.warn('Directory fallback:', err);
-      }
-    };
-    resolve();
-  }, []);
 
   if (!isImportExportOpen) return null;
 
-  const getExportPath = (format: 'vlock' | 'csv') => {
-    const dir = saveLocation === 'downloads' ? (dlDir || docDir) : (docDir || dlDir);
-    const date = new Date().toISOString().slice(0, 10);
-    const name = format === 'vlock' ? `veylock_backup_${date}.vlock` : `veylock_export_${date}.csv`;
-    return dir ? `${dir}/${name}` : name;
-  };
-
-  // Handle Export (Dual-Save: Rust direct disk write + HTML5 Blob download trigger)
+  // Handle Export: Opens native OS / Android system Save Document dialog
   const handleExport = async () => {
     setIsProcessing(true);
-    const targetPath = getExportPath(exportFormat);
     const date = new Date().toISOString().slice(0, 10);
-    const filename = exportFormat === 'vlock' ? `veylock_backup_${date}.vlock` : `veylock_export_${date}.csv`;
+    const defaultFilename = exportFormat === 'vlock' ? `veylock_backup_${date}.vlock` : `veylock_export_${date}.csv`;
+
+    if (exportFormat === 'csv') {
+      if (!confirm('Exporting to CSV saves passwords unencrypted. Anyone with access to the file can view your passwords. Proceed?')) {
+        setIsProcessing(false);
+        return;
+      }
+    }
 
     try {
-      let res: { path: string; content: string };
-      if (exportFormat === 'vlock') {
-        res = await exportBackup(targetPath);
-      } else {
-        if (!confirm('Exporting to CSV saves passwords unencrypted. Proceed?')) {
+      // 1. Open the native system file picker / Save Document dialog (Storage Access Framework on Android, native OS save dialog on Desktop)
+      let selectedPath: string | null = null;
+      try {
+        selectedPath = await save({
+          defaultPath: defaultFilename,
+          filters: exportFormat === 'vlock'
+            ? [{ name: 'Veylock Encrypted Backup (*.vlock)', extensions: ['vlock'] }]
+            : [{ name: 'CSV Spreadsheet (*.csv)', extensions: ['csv'] }],
+        });
+      } catch (pickerErr: any) {
+        const msg = (pickerErr?.message || pickerErr?.toString() || '').toLowerCase();
+        if (msg.includes('cancel')) {
+          // User cancelled file picker safely
           setIsProcessing(false);
           return;
         }
-        res = await exportCsv(targetPath);
+        console.warn('Dialog save error, attempting direct path fallback:', pickerErr);
       }
 
-      // Trigger HTML5 Blob download for 100% reliability on mobile & desktop WebViews
-      try {
-        const mimeType = exportFormat === 'vlock' ? 'application/json' : 'text/csv;charset=utf-8;';
-        const blob = new Blob([res.content], { type: mimeType });
-        const blobUrl = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = blobUrl;
-        link.download = filename;
-        link.style.display = 'none';
-        document.body.appendChild(link);
-        link.click();
-        setTimeout(() => {
-          document.body.removeChild(link);
-          URL.revokeObjectURL(blobUrl);
-        }, 1000);
-      } catch (dlErr) {
-        console.warn('HTML5 download fallback:', dlErr);
+      // Handle cancellation safely
+      if (!selectedPath) {
+        setIsProcessing(false);
+        return;
       }
 
-      // Show success screen with path and clipboard fallback
+      // 2. Perform export to the user-chosen location
+      const res = exportFormat === 'vlock'
+        ? await exportBackup(selectedPath)
+        : await exportCsv(selectedPath);
+
+      // Extract a clean display filename and location
+      let savedName = defaultFilename;
+      let displayLocation = res.path;
+      if (res.path.includes('/')) {
+        savedName = res.path.split('/').pop() || defaultFilename;
+      } else if (res.path.includes('\\')) {
+        savedName = res.path.split('\\').pop() || defaultFilename;
+      }
+
+      if (res.path.startsWith('content:')) {
+        try {
+          const decoded = decodeURIComponent(res.path);
+          const parts = decoded.split('/');
+          savedName = parts[parts.length - 1] || defaultFilename;
+          displayLocation = `Android Storage Provider: ${savedName}`;
+        } catch {
+          displayLocation = `Android System Storage (${savedName})`;
+        }
+      }
+
+      // Show success screen with the exact location chosen by user
       setExportSuccess({
-        path: res.path,
-        filename,
+        path: displayLocation,
+        filename: savedName,
         content: res.content,
         format: exportFormat,
       });
@@ -137,7 +139,79 @@ export const ImportExportModal: React.FC = () => {
     setTimeout(() => setCopiedContent(false), 3000);
   };
 
-  // Handle File Selection for Import
+  // Handle native file picker for Restore / Import
+  const handleChooseImportFile = async () => {
+    try {
+      const selected = await open({
+        multiple: false,
+        title: 'Select Veylock Backup or CSV',
+        filters: [
+          {
+            name: 'Veylock Backups & CSV (*.vlock, *.csv, *.txt, *.json)',
+            extensions: ['vlock', 'csv', 'txt', 'json'],
+          },
+        ],
+      });
+
+      if (!selected) {
+        // User cancelled picker safely
+        return;
+      }
+
+      const pathStr = typeof selected === 'string' ? selected : (selected as any)?.path || '';
+      if (!pathStr) return;
+
+      let displayName = pathStr;
+      if (displayName.includes('/')) {
+        displayName = displayName.split('/').pop() || displayName;
+      }
+      if (displayName.includes('\\')) {
+        displayName = displayName.split('\\').pop() || displayName;
+      }
+      if (displayName.startsWith('content:')) {
+        try {
+          const decoded = decodeURIComponent(displayName);
+          displayName = decoded.split('/').pop() || 'selected_backup.vlock';
+        } catch {
+          displayName = 'Android Selected Backup';
+        }
+      }
+
+      setSelectedFileName(displayName);
+      setImportPath(pathStr);
+
+      const lower = displayName.toLowerCase();
+      if (lower.endsWith('.csv') || lower.endsWith('.txt')) {
+        setDetectedType('csv');
+      } else {
+        setDetectedType('vlock');
+      }
+
+      // Try reading text directly in frontend if possible, otherwise backend handles path/URI
+      try {
+        const text = await readTextFile(pathStr);
+        if (text) {
+          setImportContent(text);
+          if (text.trim().startsWith('{')) {
+            setDetectedType('vlock');
+          } else if (text.includes(',') || text.toLowerCase().startsWith('title')) {
+            setDetectedType('csv');
+          }
+        }
+      } catch (readErr) {
+        console.warn('Frontend direct read bypassed, backend will read:', readErr);
+      }
+    } catch (err: any) {
+      const msg = (err?.message || err?.toString() || '').toLowerCase();
+      if (msg.includes('cancel')) {
+        return;
+      }
+      console.warn('Native open dialog error, falling back to file input:', err);
+      fileInputRef.current?.click();
+    }
+  };
+
+  // Fallback File Selection for Import via HTML5 file input
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -213,7 +287,7 @@ export const ImportExportModal: React.FC = () => {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-md select-none">
       <div className="w-full max-w-lg glass-panel rounded-2xl p-5 sm:p-6 shadow-2xl border border-theme-border animate-scale-up max-h-[92vh] flex flex-col overflow-hidden">
-        {/* Hidden File Input */}
+        {/* Hidden Fallback File Input */}
         <input
           type="file"
           ref={fileInputRef}
@@ -256,10 +330,10 @@ export const ImportExportModal: React.FC = () => {
               <CheckCircle2 className="w-6 h-6 text-emerald-500 shrink-0 mt-0.5" />
               <div className="space-y-1 min-w-0">
                 <h3 className="text-sm font-bold text-emerald-600 dark:text-emerald-300">
-                  File Downloaded & Saved Successfully!
+                  File Saved Successfully!
                 </h3>
                 <p className="text-xs text-emerald-700 dark:text-emerald-200/80 leading-relaxed">
-                  The file has been saved to your device's Downloads folder.
+                  Your backup has been saved to your selected destination.
                 </p>
               </div>
             </div>
@@ -342,7 +416,6 @@ export const ImportExportModal: React.FC = () => {
             </div>
 
             {/* Content Area */}
-            {/* Content Area */}
             <div className="flex-1 overflow-y-auto space-y-4 pr-0.5">
               {mode === 'export' ? (
                 /* EXPORT SECTION */
@@ -387,37 +460,15 @@ export const ImportExportModal: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* Save Location */}
-                  <div className="space-y-2">
-                    <label className="text-xs font-bold text-theme-text-muted uppercase tracking-wider block">
-                      Save Location
-                    </label>
-                    <div className="flex items-center gap-2 bg-theme-surface p-1.5 rounded-xl border border-theme-border">
-                      <button
-                        type="button"
-                        onClick={() => setSaveLocation('downloads')}
-                        className={`flex-1 py-2 rounded-lg text-xs font-medium transition-colors cursor-pointer flex items-center justify-center gap-2 ${
-                          saveLocation === 'downloads'
-                            ? 'bg-theme-bg text-theme-text border border-theme-border font-semibold shadow-sm'
-                            : 'text-theme-text-muted hover:text-theme-text'
-                        }`}
-                      >
-                        <Folder className="w-4 h-4 text-blue-500" />
-                        <span>Downloads Folder</span>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setSaveLocation('documents')}
-                        className={`flex-1 py-2 rounded-lg text-xs font-medium transition-colors cursor-pointer flex items-center justify-center gap-2 ${
-                          saveLocation === 'documents'
-                            ? 'bg-theme-bg text-theme-text border border-theme-border font-semibold shadow-sm'
-                            : 'text-theme-text-muted hover:text-theme-text'
-                        }`}
-                      >
-                        <Folder className="w-4 h-4 text-blue-500" />
-                        <span>Documents Folder</span>
-                      </button>
+                  {/* Destination Information */}
+                  <div className="p-3.5 rounded-xl bg-theme-surface border border-theme-border text-xs space-y-1.5">
+                    <div className="flex items-center gap-2 font-semibold text-theme-text">
+                      <Folder className="w-4 h-4 text-blue-500" />
+                      <span>Save Destination</span>
                     </div>
+                    <p className="text-theme-text-muted leading-relaxed">
+                      Tap export to open your device's system file picker. You can choose any destination (Downloads, Documents, SD card, or Cloud storage).
+                    </p>
                   </div>
 
                   {/* Security Hint */}
@@ -441,7 +492,7 @@ export const ImportExportModal: React.FC = () => {
                     className="w-full py-3.5 rounded-xl bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white text-sm font-medium shadow-sm transition-colors flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
                   >
                     <HardDriveDownload className="w-4 h-4" />
-                    <span>{isProcessing ? 'Saving to Files...' : `Export ${exportFormat === 'vlock' ? 'Encrypted Backup' : 'CSV File'}`}</span>
+                    <span>{isProcessing ? 'Opening File Picker...' : `Export ${exportFormat === 'vlock' ? 'Encrypted Backup' : 'CSV File'}`}</span>
                   </button>
                 </div>
               ) : (
@@ -454,7 +505,7 @@ export const ImportExportModal: React.FC = () => {
                     </label>
                     <button
                       type="button"
-                      onClick={() => fileInputRef.current?.click()}
+                      onClick={handleChooseImportFile}
                       className="w-full p-5 rounded-xl border border-dashed border-theme-border hover:border-blue-500/60 bg-theme-surface/50 hover:bg-theme-surface transition-all flex flex-col items-center justify-center gap-2.5 cursor-pointer group"
                     >
                       <div className="w-11 h-11 rounded-xl bg-theme-surface group-hover:bg-blue-600/20 text-theme-text-muted group-hover:text-blue-500 flex items-center justify-center transition-colors">
@@ -462,10 +513,10 @@ export const ImportExportModal: React.FC = () => {
                       </div>
                       <div className="text-center">
                         <span className="text-sm font-semibold text-theme-text block">
-                          {selectedFileName || 'Tap to choose file'}
+                          {selectedFileName || 'Tap to choose file via system file picker'}
                         </span>
                         <span className="text-xs text-theme-text-muted mt-0.5 block">
-                          Supports .vlock (encrypted backup) and .csv
+                          Select from Downloads, Documents, SD card, or Cloud storage (.vlock or .csv)
                         </span>
                       </div>
                     </button>

@@ -27,3 +27,5 @@ totp-lite = "2.0"
 uuid = { version = "1.8", features = ["v4", "serde"] }
 chrono = { version = "0.4", features = ["serde"] }
 base64 = "0.22"
+tauri-plugin-dialog = "2.7.3"
+tauri-plugin-fs = "2.5.2"

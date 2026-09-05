@@ -129,54 +129,118 @@ pub fn get_vault_health(state: State<'_, SharedVaultManager>) -> Result<VaultHea
     Ok(evaluate_vault_health(&entries))
 }
 
-fn resolve_save_path(app: &tauri::AppHandle, custom_path: Option<&str>, ext: &str) -> String {
-    let date = chrono::Utc::now().format("%Y-%m-%d").to_string();
-    let filename = format!("veylock_backup_{}.{}", date, ext);
+fn write_to_destination(app: &tauri::AppHandle, path: &str, data: &str) -> Result<(), String> {
+    if path.starts_with("content://") {
+        #[cfg(target_os = "android")]
+        {
+            use std::io::Write;
+            use tauri_plugin_fs::{FsExt, OpenOptions};
+            let mut file = app
+                .fs()
+                .open(
+                    path,
+                    OpenOptions::default().write(true).truncate(true).create(true),
+                )
+                .map_err(|e| format!("Failed to open destination URI: {}", e))?;
+            file.write_all(data.as_bytes())
+                .map_err(|e| format!("Failed to write data: {}", e))?;
+            file.flush()
+                .map_err(|e| format!("Failed to flush data: {}", e))?;
+            return Ok(());
+        }
+        #[cfg(not(target_os = "android"))]
+        {
+            let _ = app;
+            return Err("Content URIs are only supported on Android".to_string());
+        }
+    }
 
+    let p = std::path::Path::new(path);
+    if let Some(parent) = p.parent() {
+        if !parent.as_os_str().is_empty() {
+            let _ = fs::create_dir_all(parent);
+        }
+    }
+    fs::write(p, data).map_err(|e| format!("Failed to write file to disk ({}): {}", path, e))
+}
+
+fn read_from_source(app: &tauri::AppHandle, src: &str) -> Result<String, String> {
+    if src.trim().starts_with('{') || src.contains('\n') || src.starts_with("title") || src.starts_with("Title") {
+        return Ok(src.to_string());
+    }
+
+    if src.starts_with("content://") {
+        #[cfg(target_os = "android")]
+        {
+            use std::io::Read;
+            use tauri_plugin_fs::{FsExt, OpenOptions};
+            let mut file = app
+                .fs()
+                .open(src, OpenOptions::default().read(true))
+                .map_err(|e| format!("Failed to open source URI: {}", e))?;
+            let mut buf = String::new();
+            file.read_to_string(&mut buf)
+                .map_err(|e| format!("Failed to read source URI: {}", e))?;
+            return Ok(buf);
+        }
+        #[cfg(not(target_os = "android"))]
+        {
+            let _ = app;
+            return Err("Content URIs are only supported on Android".to_string());
+        }
+    }
+
+    fs::read_to_string(src).map_err(|e| format!("Failed to read file from {}: {}", src, e))
+}
+
+fn resolve_save_path(app: &tauri::AppHandle, custom_path: Option<&str>, ext: &str) -> Result<String, String> {
     if let Some(p) = custom_path {
         let p = p.trim();
         if !p.is_empty() {
+            if p.starts_with("content://") {
+                return Ok(p.to_string());
+            }
             let path = std::path::Path::new(p);
             if path.is_absolute() {
-                return p.to_string();
+                return Ok(p.to_string());
             }
         }
     }
 
-    // Check Android external public storage Download directory
+    let date = chrono::Utc::now().format("%Y-%m-%d").to_string();
+    let filename = format!("veylock_backup_{}.{}", date, ext);
+
     #[cfg(target_os = "android")]
     {
-        let android_dl = std::path::Path::new("/storage/emulated/0/Download");
-        if android_dl.exists() && android_dl.is_dir() {
-            return android_dl.join(&filename).to_string_lossy().to_string();
-        }
+        let _ = app;
+        return Err("Please choose a location to save your backup using the system file picker.".to_string());
     }
 
     // Try Tauri download_dir()
     if let Ok(dl) = app.path().download_dir() {
-        return dl.join(&filename).to_string_lossy().to_string();
+        return Ok(dl.join(&filename).to_string_lossy().to_string());
     }
 
     // Try Tauri document_dir()
     if let Ok(doc) = app.path().document_dir() {
-        return doc.join(&filename).to_string_lossy().to_string();
+        return Ok(doc.join(&filename).to_string_lossy().to_string());
     }
 
     // Try home directory Downloads
     if let Ok(home) = app.path().home_dir() {
         let downloads = home.join("Downloads");
         if downloads.exists() {
-            return downloads.join(&filename).to_string_lossy().to_string();
+            return Ok(downloads.join(&filename).to_string_lossy().to_string());
         }
-        return home.join(&filename).to_string_lossy().to_string();
+        return Ok(home.join(&filename).to_string_lossy().to_string());
     }
 
     // Fallback to app_data_dir()
     if let Ok(app_data) = app.path().app_data_dir() {
-        return app_data.join(&filename).to_string_lossy().to_string();
+        return Ok(app_data.join(&filename).to_string_lossy().to_string());
     }
 
-    filename
+    Ok(filename)
 }
 
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
@@ -202,17 +266,9 @@ pub fn export_vault_backup(
     let mut manager = state.lock().map_err(|_| "Failed to acquire vault lock")?;
     let json_str = manager.export_backup_string()?;
 
-    let target_path = resolve_save_path(&app, dest_path.as_deref(), "vlock");
-    if let Some(parent) = std::path::Path::new(&target_path).parent() {
-        if !parent.as_os_str().is_empty() {
-            let _ = fs::create_dir_all(parent);
-        }
-    }
+    let target_path = resolve_save_path(&app, dest_path.as_deref(), "vlock")?;
+    write_to_destination(&app, &target_path, &json_str)?;
 
-    let write_res = fs::write(&target_path, &json_str);
-    if let Err(e) = write_res {
-        eprintln!("Warning: direct disk write failed: {}", e);
-    }
     Ok(ExportResult {
         path: target_path,
         content: json_str,
@@ -221,12 +277,14 @@ pub fn export_vault_backup(
 
 #[tauri::command]
 pub fn import_vault_backup(
+    app: tauri::AppHandle,
     state: State<'_, SharedVaultManager>,
     src_path: String,
     master_password: String,
 ) -> Result<(), String> {
+    let content = read_from_source(&app, &src_path)?;
     let mut manager = state.lock().map_err(|_| "Failed to acquire vault lock")?;
-    manager.import_backup(&src_path, &master_password)
+    manager.import_backup(&content, &master_password)
 }
 
 #[tauri::command]
@@ -291,17 +349,9 @@ pub fn export_plaintext_csv(
         ));
     }
 
-    let target_path = resolve_save_path(&app, dest_path.as_deref(), "csv");
-    if let Some(parent) = std::path::Path::new(&target_path).parent() {
-        if !parent.as_os_str().is_empty() {
-            let _ = fs::create_dir_all(parent);
-        }
-    }
+    let target_path = resolve_save_path(&app, dest_path.as_deref(), "csv")?;
+    write_to_destination(&app, &target_path, &csv_out)?;
 
-    let write_res = fs::write(&target_path, &csv_out);
-    if let Err(e) = write_res {
-        eprintln!("Warning: direct disk write failed: {}", e);
-    }
     Ok(ExportResult {
         path: target_path,
         content: csv_out,
@@ -406,17 +456,11 @@ fn parse_rfc4180_csv(input: &str) -> Vec<Vec<String>> {
 
 #[tauri::command]
 pub fn import_plaintext_csv(
+    app: tauri::AppHandle,
     state: State<'_, SharedVaultManager>,
     src_path: String,
 ) -> Result<usize, String> {
-    let content = if src_path.contains('\n') || src_path.starts_with("title") || src_path.starts_with("Title") {
-        src_path
-    } else {
-        match fs::read_to_string(&src_path) {
-            Ok(c) => c,
-            Err(_) => src_path, // fallback if raw CSV was passed
-        }
-    };
+    let content = read_from_source(&app, &src_path)?;
 
     let mut manager = state.lock().map_err(|_| "Failed to acquire vault lock")?;
     if !manager.is_unlocked() {
@@ -512,4 +556,33 @@ pub fn import_plaintext_csv(
     }
 
     Ok(count)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_escape_csv_formula_injection() {
+        assert_eq!(escape_csv("=SUM(A1:B1)"), "\"'=SUM(A1:B1)\"");
+        assert_eq!(escape_csv("+12345"), "\"'+12345\"");
+        assert_eq!(escape_csv("-cmd"), "\"'-cmd\"");
+        assert_eq!(escape_csv("hello, world"), "\"hello, world\"");
+    }
+
+    #[test]
+    fn test_clean_csv_field() {
+        assert_eq!(clean_csv_field("'=SUM(A1:B1)"), "=SUM(A1:B1)");
+        assert_eq!(clean_csv_field("normal_text"), "normal_text");
+    }
+
+    #[test]
+    fn test_parse_rfc4180_csv() {
+        let raw = "title,username,password\r\n\"Google, Inc.\",user@example.com,\"p@ss\"\"word\"\r\n";
+        let records = parse_rfc4180_csv(raw);
+        assert_eq!(records.len(), 2);
+        assert_eq!(records[1][0], "Google, Inc.");
+        assert_eq!(records[1][1], "user@example.com");
+        assert_eq!(records[1][2], "p@ss\"word");
+    }
 }

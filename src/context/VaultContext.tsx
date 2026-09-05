@@ -271,6 +271,7 @@ export const VaultProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       await refreshStatus();
     } catch (err: any) {
       showToast(err.toString(), 'error');
+      throw err;
     }
   }, [showToast, refreshStatus]);
 

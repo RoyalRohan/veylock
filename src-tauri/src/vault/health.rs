@@ -22,9 +22,7 @@ pub fn evaluate_vault_health(entries: &[DecryptedEntry]) -> VaultHealthReport {
         let is_login_item = entry.category == "logins" || entry.category.is_empty();
 
         // Password weakness check (only for login items or entries with a password)
-        if is_login_item && (pwd.is_empty() || is_weak_password(pwd)) {
-            weak_count += 1;
-        } else if !is_login_item && !pwd.is_empty() && is_weak_password(pwd) {
+        if (is_login_item && pwd.is_empty()) || (!pwd.is_empty() && is_weak_password(pwd)) {
             weak_count += 1;
         }
 
@@ -80,4 +78,24 @@ pub fn is_weak_password(password: &str) -> bool {
     }
 
     false
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_is_weak_password() {
+        assert!(is_weak_password("short"));
+        assert!(is_weak_password("lowercase"));
+        assert!(is_weak_password("lower12345"));
+        assert!(!is_weak_password("Str0ng!Passw0rd2026"));
+    }
+
+    #[test]
+    fn test_evaluate_vault_health_empty() {
+        let report = evaluate_vault_health(&[]);
+        assert_eq!(report.total_entries, 0);
+        assert_eq!(report.total_score, 100);
+    }
 }

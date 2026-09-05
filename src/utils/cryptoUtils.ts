@@ -1,5 +1,3 @@
-import { invoke } from '@tauri-apps/api/core';
-
 export function isWeakPassword(password: string): boolean {
   if (!password || password.length < 8) return true;
   const hasUpper = /[A-Z]/.test(password);
@@ -79,16 +77,4 @@ export function calculatePasswordStrength(password: string): {
   };
 
   return { score, ...map[score] };
-}
-
-/**
- * Fallbacks for local dev / browser preview when Tauri native bindings are mockable
- */
-export async function safeInvoke<T>(command: string, args?: Record<string, unknown>): Promise<T> {
-  try {
-    return await invoke<T>(command, args);
-  } catch (err) {
-    console.warn(`[Tauri IPC Call] ${command}:`, err);
-    throw err;
-  }
 }

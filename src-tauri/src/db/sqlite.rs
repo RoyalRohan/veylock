@@ -75,6 +75,7 @@ pub fn get_metadata(conn: &Connection, key: &str) -> Result<Option<String>, Stri
     }
 }
 
+#[allow(clippy::too_many_arguments)]
 pub fn save_encrypted_entry(
     conn: &Connection,
     id: &str,
